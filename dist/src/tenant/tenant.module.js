@@ -11,6 +11,8 @@ const common_1 = require("@nestjs/common");
 const prisma_module_1 = require("../prisma/prisma.module");
 const tenant_service_1 = require("./tenant.service");
 const tenant_controller_1 = require("./tenant.controller");
+const branch_settings_service_1 = require("./branch-settings/branch-settings.service");
+const branch_settings_controller_1 = require("./branch-settings/branch-settings.controller");
 let TenantModule = class TenantModule {
 };
 exports.TenantModule = TenantModule;
@@ -18,9 +20,9 @@ exports.TenantModule = TenantModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
         imports: [(0, common_1.forwardRef)(() => prisma_module_1.PrismaModule)],
-        providers: [tenant_service_1.TenantService],
-        controllers: [tenant_controller_1.TenantAdminController],
-        exports: [tenant_service_1.TenantService],
+        providers: [tenant_service_1.TenantService, branch_settings_service_1.BranchSettingsService],
+        controllers: [tenant_controller_1.TenantAdminController, branch_settings_controller_1.BranchSettingsController],
+        exports: [tenant_service_1.TenantService, branch_settings_service_1.BranchSettingsService],
     })
 ], TenantModule);
 //# sourceMappingURL=tenant.module.js.map

@@ -38,6 +38,7 @@ model Tenant {
   stockTransfers   StockTransfer[]
   tables           Table[]
   tableSections    TableSection[]
+  branchSettings   BranchSettings[]
   users            User[]
   userPermissions  UserPermission[]
   roles            Role[]
@@ -82,6 +83,7 @@ model Branch {
   waitingEntries       WaitingEntry[]
   warehouses           Warehouse[]
   scheduledShifts      ScheduledShift[]
+  settings             BranchSettings?
 
   @@unique([name, tenantId])
 }
@@ -124,6 +126,45 @@ model Settings {
   instagramUrl                String?
   twitterUrl                  String?
   tenant                      Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model BranchSettings {
+  id                          String   @id @default(uuid())
+  branchId                    String   @unique
+  tenantId                    String
+  isActive                    Boolean  @default(true)
+  
+  // Overrides
+  taxRate                     Decimal?
+  serviceFee                  Decimal?
+  receiptHeader               String?
+  receiptFooter               String?
+  receiptLanguage             String?
+  receiptShowCustomer         Boolean?
+  receiptShowLogo             Boolean?
+  receiptShowOrderNumber      Boolean?
+  receiptShowTable            Boolean?
+  receiptShowTimestamp        Boolean?
+  receiptShowOrderType        Boolean?
+  receiptShowOperator         Boolean?
+  receiptShowItemsDescription Boolean?
+  receiptShowItemsQty         Boolean?
+  receiptShowItemsPrice       Boolean?
+  receiptShowSubtotal         Boolean?
+  receiptShowTax              Boolean?
+  receiptShowServiceCharge    Boolean?
+  receiptShowDiscount         Boolean?
+  receiptShowTotal            Boolean?
+  receiptShowPaymentMethod    Boolean?
+  receiptShowBarcode          Boolean?
+
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  branch                      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  tenant                      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
 }
 
 model User {

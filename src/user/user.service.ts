@@ -33,7 +33,7 @@ export class UserService {
             email: dto.email,
             password: hashedPassword,
             tenantId,
-            pinCode: dto.pinCode,
+            pinCode: dto.pinCode || null,
         };
         if (dto.role) data.role = dto.role as UserRole;
         if (dto.roleId) data.roleId = dto.roleId;
