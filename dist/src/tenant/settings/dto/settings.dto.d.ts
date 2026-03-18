@@ -1,0 +1,30 @@
+export declare class UpdateSettingsDto {
+    name?: string;
+    currency?: string;
+    timezone?: string;
+    taxRate?: number;
+    serviceFee?: number;
+    logoUrl?: string;
+    receiptHeader?: string;
+    receiptFooter?: string;
+    receiptShowLogo?: boolean;
+    receiptShowTable?: boolean;
+    receiptShowCustomer?: boolean;
+    receiptShowOrderNumber?: boolean;
+    receiptFontSize?: number;
+    receiptQrCodeUrl?: string;
+    receiptLanguage?: string;
+    receiptShowTimestamp?: boolean;
+    receiptShowOrderType?: boolean;
+    receiptShowOperator?: boolean;
+    receiptShowItemsDescription?: boolean;
+    receiptShowItemsQty?: boolean;
+    receiptShowItemsPrice?: boolean;
+    receiptShowSubtotal?: boolean;
+    receiptShowTax?: boolean;
+    receiptShowServiceCharge?: boolean;
+    receiptShowDiscount?: boolean;
+    receiptShowTotal?: boolean;
+    receiptShowPaymentMethod?: boolean;
+    receiptShowBarcode?: boolean;
+}

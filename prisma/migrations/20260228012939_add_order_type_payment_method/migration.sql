@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "note" TEXT,
+ADD COLUMN     "orderType" TEXT NOT NULL DEFAULT 'IN_STORE',
+ADD COLUMN     "paidAmount" DECIMAL(65,30) NOT NULL DEFAULT 0,
+ADD COLUMN     "paymentMethod" TEXT NOT NULL DEFAULT 'CASH';

@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: idarax_user
+      POSTGRES_PASSWORD: idarax_password
+      POSTGRES_DB: idarax_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - '6379:6379'
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      DATABASE_URL: "postgresql://idarax_user:idarax_password@postgres:5432/idarax_db?schema=public"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: "your_ultra_secure_secret"
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgres
+      - redis
+
+  web_admin:
+    build:
+      context: ./idarax_web
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:3000"
+    ports:
+      - '3001:3001'
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

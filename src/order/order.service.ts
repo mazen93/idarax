@@ -1,0 +1,883 @@
+import { Injectable, ForbiddenException, NotFoundException, Optional, InternalServerErrorException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { TenantService } from '../tenant/tenant.service';
+import { InjectQueue } from '@nestjs/bull';
+import type { Queue } from 'bull';
+import { CreateOrderDto, SplitBillDto, RepeatOrderDto } from './dto/order.dto';
+import { OfferService } from '../retail/offer/offer.service';
+import { DrawerService } from '../staff/drawer.service';
+import { NumberingService } from './numbering.service';
+import { AuditLogService } from '../common/audit-log/audit-log.service';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { CrmService } from '../crm/crm.service';
+import { KdsGateway } from '../restaurant/kds/kds.gateway';
+import { MailService } from '../mail/mail.service';
+
+@Injectable()
+export class OrderService {
+    constructor(
+        private prisma: PrismaService,
+        private tenantService: TenantService,
+        private offerService: OfferService,
+        private numberingService: NumberingService,
+        private mailService: MailService,
+        @InjectQueue('orders') private orderQueue: Queue,
+        @Optional() private drawerService?: DrawerService,
+        @Optional() private auditLog?: AuditLogService,
+        @Optional() private analyticsService?: AnalyticsService,
+        @Optional() private crmService?: CrmService,
+        @Optional() private kdsGateway?: KdsGateway,
+    ) { }
+
+    private get db() {
+        return this.prisma.client.order;
+    }
+
+    async createAsync(dto: CreateOrderDto, userId?: string) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+
+        const branchId = this.tenantService.getBranchId();
+        const job = await this.orderQueue.add('create-order', {
+            orderData: {
+                tableId: dto.tableId,
+                customerId: dto.customerId,
+                userId,
+                totalAmount: dto.totalAmount,
+                status: 'PENDING',
+                branchId,
+                deliveryAddress: dto.deliveryAddress,
+            },
+            items: dto.items,
+            tenantId,
+            branchId,
+        });
+
+        return { jobId: job.id, status: 'QUEUED' };
+    }
+
+    async createDirect(dto: CreateOrderDto & { userId?: string; orderType?: string; paymentMethod?: string; note?: string; paidAmount?: number; splitPayments?: { method: string, amount: number }[] }) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+
+        let finalTotalAmount = dto.totalAmount;
+        let appliedDiscount = 0;
+
+        // Process Promotion if provided
+        if (dto.offerCode) {
+            const validation = await this.offerService.validatePromotion(dto.offerCode, dto.items);
+            if (validation.isValid) {
+                appliedDiscount = validation.discountAmount;
+                finalTotalAmount = dto.totalAmount - appliedDiscount;
+            }
+        }
+
+        // Run everything in a single transaction for consistency
+        return (this.prisma.client as any).$transaction(async (tx: any) => {
+            let order;
+            const branchId = this.tenantService.getBranchId();
+
+            // 1. Check if there's an active order for this table to append items
+            const existingOrder = dto.tableId ? await tx.order.findFirst({
+                where: {
+                    tableId: dto.tableId,
+                    status: { in: ['PENDING', 'PREPARING', 'READY'] }
+                },
+                orderBy: { createdAt: 'desc' }
+            }) : null;
+
+            const paymentsData = dto.splitPayments && dto.splitPayments.length > 0
+                ? dto.splitPayments.map(p => ({
+                    amount: p.amount,
+                    method: p.method,
+                    status: 'COMPLETED'
+                }))
+                : [{
+                    amount: dto.paidAmount ?? finalTotalAmount,
+                    method: dto.paymentMethod || 'CASH',
+                    status: (dto.paidAmount !== undefined && dto.paidAmount > 0) ? 'COMPLETED' : 'PENDING'
+                }];
+
+            const totalPaidNow = paymentsData.reduce((sum, p) => sum + Number(p.amount), 0);
+
+            // Resolve stationIds for items if not provided
+            const resolvedItems = await this.resolveStationIds(tx, dto.items);
+
+            if (existingOrder) {
+                // UPDATE EXISTING ORDER
+                order = await tx.order.update({
+                    where: { id: existingOrder.id },
+                    data: {
+                        ...(dto.customerId ? { customerId: dto.customerId } : {}),
+                        totalAmount: { increment: finalTotalAmount },
+                        paidAmount: { increment: totalPaidNow },
+                        taxAmount: { increment: dto.taxAmount || 0 },
+                        serviceFeeAmount: { increment: dto.serviceFeeAmount || 0 },
+                        discountAmount: { increment: appliedDiscount },
+                        offerCode: dto.offerCode || existingOrder.offerCode,
+                        note: dto.note ? (existingOrder.note ? `${existingOrder.note}\n--- Additional ---\n${dto.note}` : dto.note) : existingOrder.note,
+                        items: {
+                            create: resolvedItems.map(item => ({
+                                productId: item.productId,
+                                variantId: item.variantId || null,
+                                quantity: item.quantity,
+                                price: item.price,
+                                stationId: item.stationId || null,
+                                note: item.note || null,
+                                courseName: item.courseName || null,
+                            })),
+                        },
+                        payments: {
+                            create: paymentsData.filter(p => p.amount > 0)
+                        },
+                        status: existingOrder.status,
+                    },
+                    include: {
+                        items: {
+                            include: {
+                                product: { select: { name: true } },
+                                variant: { select: { name: true } }
+                            }
+                        },
+                        customer: { select: { name: true } },
+                        table: { select: { number: true } },
+                        payments: true
+                    },
+                });
+            } else {
+                // CREATE NEW ORDER
+                // ── Dual Numbering ─────────────────────────────────────────────────────
+                // Fetch settings (timezone) and branch (business day cutoff) inside the
+                // transaction so the numbers are assigned atomically with the order row.
+                const settings = await tx.settings.findUnique({
+                    where: { tenantId },
+                    select: { timezone: true },
+                });
+                const branchRec = branchId ? await tx.branch.findUnique({
+                    where: { id: branchId },
+                    select: { businessDayStartHour: true },
+                }) : null;
+
+                const timezone = settings?.timezone ?? 'UTC';
+                const cutoffHour: number = branchRec?.businessDayStartHour ?? 0;
+
+                const receiptNumber = await this.numberingService.nextReceiptNumber(
+                    tx, tenantId, branchId ?? null, timezone, cutoffHour,
+                );
+                const invoiceNumber = await this.numberingService.nextInvoiceNumber(
+                    tx, tenantId, timezone, cutoffHour,
+                );
+                // ───────────────────────────────────────────────────────────────────────
+
+                order = await tx.order.create({
+                    data: {
+                        tenantId,
+                        branchId,
+                        tableId: dto.tableId || null,
+                        customerId: dto.customerId || null,
+                        totalAmount: finalTotalAmount,
+                        paidAmount: totalPaidNow,
+                        status: dto.status || 'PENDING',
+                        orderType: dto.orderType || (dto.tableId ? 'DINE_IN' : 'IN_STORE'),
+                        paymentMethod: dto.splitPayments?.length ? 'MULTI' : (dto.paymentMethod || 'CASH'),
+                        guestName: dto.guestName,
+                        guestPhone: dto.guestPhone,
+                        offerCode: dto.offerCode || null,
+                        discountAmount: appliedDiscount || dto.discountAmount || 0,
+                        taxAmount: dto.taxAmount || 0,
+                        serviceFeeAmount: dto.serviceFeeAmount || 0,
+                        deliveryAddress: dto.deliveryAddress,
+                        note: dto.note,
+                        userId: dto.userId || null,
+                        receiptNumber,
+                        invoiceNumber,
+                        items: {
+                            create: resolvedItems.map(item => ({
+                                productId: item.productId,
+                                variantId: item.variantId || null,
+                                quantity: item.quantity,
+                                price: item.price,
+                                stationId: item.stationId || null,
+                                note: item.note || null,
+                                courseName: item.courseName || null,
+                                modifiers: item.modifiers ? {
+                                    create: item.modifiers.map((m: any) => ({
+                                        optionId: m.optionId,
+                                        price: 0,
+                                    }))
+                                } : undefined
+                            })),
+                        },
+                        payments: {
+                            create: paymentsData.filter(p => p.amount > 0)
+                        }
+                    } as any,
+                    include: {
+                        items: {
+                            include: {
+                                product: {
+                                    include: {
+                                        category: { select: { name: true } },
+                                        usedInRecipes: { include: { ingredient: { select: { name: true } } } }
+                                    }
+                                },
+                                variant: { select: { name: true } },
+                                modifiers: { include: { option: true } }
+                            }
+                        },
+                        customer: { select: { name: true } },
+                        table: { select: { number: true } },
+                        user: { select: { name: true } },
+                        payments: true
+                    },
+                });
+            }
+
+            // 2. Deduct stock for each item (recursively handling recipes)
+            for (const item of dto.items) {
+                await this.deductStockRecursively(tx, tenantId, branchId, item.productId, item.quantity, order.id);
+            }
+
+            // 3. If a table is assigned, manage its status
+            if (dto.tableId) {
+                const isFullyPaid = Math.round(Number(order.paidAmount) * 100) >= Math.round(Number(order.totalAmount) * 100);
+                await tx.table.update({
+                    where: { id: dto.tableId },
+                    data: { status: isFullyPaid ? 'AVAILABLE' : 'OCCUPIED' },
+                });
+            }
+
+            // 4. Auto-record SALE movement in open cash drawer for CASH payments
+            const paymentMethod = order.paymentMethod || dto.paymentMethod || 'CASH';
+            const isCash = paymentMethod === 'CASH' || paymentMethod === 'MULTI';
+
+            if (isCash && this.drawerService) {
+                let cashAmount: number;
+                if (dto.splitPayments?.length) {
+                    cashAmount = dto.splitPayments
+                        .filter(p => p.method === 'CASH')
+                        .reduce((sum, p) => sum + p.amount, 0);
+                } else if (paymentMethod === 'CASH') {
+                    cashAmount = Number(dto.paidAmount ?? dto.totalAmount);
+                } else {
+                    cashAmount = 0;
+                }
+
+                if (cashAmount > 0) {
+                    const branchIdForDrawer = this.tenantService.getBranchId() ?? undefined;
+                    if (cashAmount > 0) {
+                        const branchIdForDrawer = this.tenantService.getBranchId() ?? undefined;
+                        // Remove the catch to let errors bubble up to the POS UI for debugging
+                        await this.drawerService.recordSaleByTenant(tenantId, branchIdForDrawer, cashAmount, order.id);
+                    }
+                }
+            }
+
+            // 5. Update modifier prices
+            if (order.items) {
+                for (const item of order.items) {
+                    if (item.modifiers) {
+                        for (const mod of item.modifiers) {
+                            const option = await tx.productModifierOption.findUnique({
+                                where: { id: mod.optionId },
+                                select: { priceAdjust: true }
+                            });
+                            if (option) {
+                                await tx.orderItemModifier.update({
+                                    where: { id: mod.id },
+                                    data: { price: option.priceAdjust }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (this.analyticsService) {
+                this.analyticsService.pushStatsUpdate(tenantId, branchId).catch(() => { });
+            }
+
+            // 6. Notify KDS
+            if (this.kdsGateway) {
+                // Notify for the whole order first
+                this.kdsGateway.notifyNewOrder(tenantId, order);
+
+                // Notify each station for its items
+                if (order.items) {
+                    const stationItemsMap = new Map<string, any[]>();
+                    for (const item of order.items) {
+                        if (item.stationId) {
+                            if (!stationItemsMap.has(item.stationId)) {
+                                stationItemsMap.set(item.stationId, []);
+                            }
+                            stationItemsMap.get(item.stationId)!.push(item);
+                        }
+                    }
+
+                    for (const [stationId, items] of stationItemsMap.entries()) {
+                        for (const item of items) {
+                            // Ensure item has the order context for KDS display
+                            const itemWithOrder = {
+                                ...item,
+                                order: {
+                                    orderNumber: (order as any).orderNumber || (order as any).receiptNumber,
+                                    tableName: (order as any).table?.number || (order as any).tableId,
+                                    table: (order as any).table,
+                                }
+                            };
+                            this.kdsGateway.notifyStationOrder(tenantId, stationId, itemWithOrder);
+                        }
+                    }
+                }
+            }
+
+            return order;
+        });
+    }
+
+    private async resolveStationIds(tx: any, items: any[]) {
+        if (!items || items.length === 0) return [];
+
+        const productIds = items.map(item => item.productId).filter(Boolean);
+        const products = await tx.product.findMany({
+            where: { id: { in: productIds } },
+            include: { category: true }
+        });
+
+        const productMap = new Map(products.map((p: any) => [p.id, p]));
+
+        return items.map(item => {
+            // If item already has a stationId from POS, keep it
+            if (item.stationId) return item;
+
+            const product = productMap.get(item.productId) as any;
+            if (!product) return item;
+
+            // Priority: Product Default -> Category Default -> null
+            const stationId = product.defaultStationId || product.category?.defaultStationId || null;
+            return { ...item, stationId };
+        });
+    }
+
+    private async deductStockRecursively(tx: any, tenantId: string, branchId: string | undefined, productId: string, quantity: number, orderId: string) {
+        // Fetch the product first to check its productType
+        const product = await tx.product.findUnique({
+            where: { id: productId },
+            select: { productType: true }
+        });
+
+        // Check if the product has a recipe (applicable to STANDARD made-in-house items and COMBO items)
+        const recipe = await tx.productRecipe.findMany({
+            where: { parentId: productId },
+        });
+
+        if (recipe && recipe.length > 0 && (product?.productType === 'STANDARD' || product?.productType === 'COMBO')) {
+            // It's a BOM product or a COMBO - deduct ingredients instead
+            for (const component of recipe) {
+                const componentQuantity = Number(component.quantity) * quantity;
+                await this.deductStockRecursively(tx, tenantId, branchId, component.ingredientId, componentQuantity, orderId);
+            }
+        } else {
+            // It's a base product - deduct its own stock
+            const stockLevel = await tx.stockLevel.findFirst({
+                where: {
+                    productId: productId,
+                    warehouse: {
+                        ...(branchId ? { branchId } : {})
+                    },
+                },
+                include: { warehouse: true },
+            });
+
+            if (stockLevel) {
+                // Decrement stock (even if it goes negative, to track shortage)
+                await tx.stockLevel.update({
+                    where: { id: stockLevel.id },
+                    data: { quantity: { decrement: quantity } },
+                });
+
+                // Log a SALE movement
+                await tx.stockMovement.create({
+                    data: {
+                        productId: productId,
+                        warehouseId: stockLevel.warehouseId,
+                        quantity: -quantity,
+                        type: 'SALE',
+                        referenceId: orderId,
+                    } as any,
+                });
+            }
+        }
+    }
+
+    async findAll(startDate?: Date, endDate?: Date) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+
+        const branchId = this.tenantService.getBranchId();
+
+        const dateFilter: any = {};
+        if (startDate && !isNaN(startDate.getTime())) dateFilter.gte = startDate;
+        if (endDate && !isNaN(endDate.getTime())) dateFilter.lte = endDate;
+
+        return this.db.findMany({
+            where: {
+                tenantId,
+                ...(branchId ? { branchId } : {}),
+                ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}),
+            },
+            include: {
+                items: {
+                    include: {
+                        product: {
+                            include: {
+                                category: { select: { name: true } },
+                                usedInRecipes: { include: { ingredient: { select: { name: true } } } }
+                            }
+                        },
+                        variant: { select: { name: true } },
+                        modifiers: { include: { option: true } }
+                    }
+                },
+                customer: { select: { name: true, phone: true } },
+                table: { select: { number: true } },
+                user: { select: { name: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 1000,
+        });
+    }
+
+    async updateStatus(id: string, status: string) {
+        const order = await this.db.findUnique({ where: { id } });
+        if (!order) throw new NotFoundException('Order not found');
+
+        const data: any = { status };
+
+        // If marking as COMPLETED, ensure it's fully paid
+        if (status === 'COMPLETED' && Number(order.paidAmount) < Number(order.totalAmount)) {
+            const balance = Number(order.totalAmount) - Number(order.paidAmount);
+            data.paidAmount = { increment: balance };
+
+            // Create a payment record for the balance
+            await (this.prisma.client as any).payment.create({
+                data: {
+                    orderId: id,
+                    amount: balance,
+                    method: order.paymentMethod || 'CASH',
+                    status: 'COMPLETED',
+                }
+            });
+
+            // Auto-record in cash drawer if settled in cash
+            if ((order.paymentMethod === 'CASH' || !order.paymentMethod) && this.drawerService) {
+                const branchId = this.tenantService.getBranchId() || (order as any).branchId;
+                // Remove the catch to let errors bubble up
+                await this.drawerService.recordSaleByTenant(order.tenantId, branchId, balance, order.id);
+            }
+        }
+
+        const updated = await this.db.update({
+            where: { id },
+            data,
+            include: {
+                items: {
+                    include: {
+                        product: { select: { name: true } },
+                        variant: { select: { name: true } }
+                    }
+                },
+                table: { select: { number: true } },
+            },
+        });
+
+        // Trigger Loyalty Processing if order is completed and has a customer
+        if (status === 'COMPLETED' && updated.customerId && this.crmService) {
+            try {
+                await this.crmService.processLoyaltyForOrder(
+                    updated.customerId,
+                    Number(updated.totalAmount),
+                    updated.id
+                );
+            } catch (error) {
+                console.error('Failed to process loyalty for order:', error);
+            }
+        }
+
+        // Auto-update table status when order finishes or is fully paid
+        if (updated.tableId) {
+            const isFinishing = ['COMPLETED', 'CANCELLED', 'DELIVERED'].includes(status);
+            const isFullyPaid = Math.round(Number(updated.paidAmount) * 100) >= Math.round(Number(updated.totalAmount) * 100);
+
+            if (isFinishing || isFullyPaid) {
+                await (this.prisma.client as any).table.update({
+                    where: { id: updated.tableId },
+                    data: { status: 'AVAILABLE' },
+                });
+            } else {
+                await (this.prisma.client as any).table.update({
+                    where: { id: updated.tableId },
+                    data: { status: 'OCCUPIED' },
+                });
+            }
+        }
+
+        if (this.analyticsService) {
+            this.analyticsService.pushStatsUpdate(updated.tenantId, (updated as any).branchId).catch(() => { });
+        }
+
+        return updated;
+    }
+
+    async assignTable(id: string, tableId: string) {
+        const order = await this.db.findUnique({ where: { id } });
+        if (!order) throw new NotFoundException('Order not found');
+
+        // Check table is available
+        const table = await (this.prisma.client as any).table.findUnique({ where: { id: tableId } });
+        if (!table) throw new NotFoundException('Table not found');
+
+        const isFullyPaid = Math.round(Number(order.paidAmount) * 100) >= Math.round(Number(order.totalAmount) * 100);
+        const [updatedOrder] = await (this.prisma.client as any).$transaction([
+            this.db.update({
+                where: { id },
+                data: { tableId, orderType: 'DINE_IN' },
+                include: { table: { select: { number: true } } },
+            }),
+            (this.prisma.client as any).table.update({
+                where: { id: tableId },
+                data: { status: isFullyPaid ? 'AVAILABLE' : 'OCCUPIED' },
+            }),
+        ]);
+
+        if (this.analyticsService) {
+            this.analyticsService.pushStatsUpdate(updatedOrder.tenantId, (updatedOrder as any).branchId).catch(() => { });
+        }
+
+        return updatedOrder;
+    }
+
+    async splitBill(dto: SplitBillDto) {
+        const order = await this.db.findUnique({
+            where: { id: dto.orderId },
+            include: { items: true },
+        });
+
+        if (!order) {
+            throw new NotFoundException('Order not found');
+        }
+
+        if (dto.splitType === 'EQUAL') {
+            const splitAmount = Number(order.totalAmount) / dto.splits.length;
+            return dto.splits.map(split => ({
+                customerId: split.customerId,
+                amount: splitAmount,
+            }));
+        }
+
+        // Logic for other split types would go here
+        return dto.splits;
+    }
+
+    async getOrder(id: string) {
+        const order = await this.db.findUnique({
+            where: { id },
+            include: {
+                items: {
+                    include: {
+                        product: {
+                            include: {
+                                usedInRecipes: { include: { ingredient: { select: { name: true } } } }
+                            }
+                        },
+                        variant: true,
+                        modifiers: { include: { option: true } }
+                    }
+                },
+                user: { select: { name: true } }
+            },
+        });
+
+        if (!order) {
+            throw new NotFoundException('Order not found');
+        }
+
+        return order;
+    }
+
+    async findActiveByTable(tableId: string) {
+        const order = await this.db.findFirst({
+            where: {
+                tableId,
+                status: { in: ['PENDING', 'PREPARING', 'READY', 'HELD'] }
+            },
+            include: {
+                items: {
+                    include: {
+                        product: {
+                            include: {
+                                usedInRecipes: { include: { ingredient: { select: { name: true } } } }
+                            }
+                        },
+                        variant: true,
+                        modifiers: { include: { option: true } }
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (!order) {
+            throw new NotFoundException('No active order found for this table');
+        }
+
+        return order;
+    }
+    async holdOrder(id: string) {
+        return this.updateStatus(id, 'HELD');
+    }
+
+    async fireOrder(id: string) {
+        return this.updateStatus(id, 'PREPARING');
+    }
+
+    async voidOrder(id: string, actorId?: string, actorEmail?: string) {
+        const order = await this.db.findUnique({ where: { id } });
+        if (!order) throw new NotFoundException('Order not found');
+
+        const result = await this.updateStatus(id, 'CANCELLED');
+
+        // Audit trail: void is a sensitive operation
+        if (this.auditLog) {
+            await this.auditLog.log({
+                tenantId: order.tenantId,
+                userId: actorId,
+                userEmail: actorEmail,
+                action: 'order.void',
+                resourceType: 'Order',
+                resourceId: id,
+                meta: { previousStatus: order.status, totalAmount: Number(order.totalAmount) },
+            });
+        }
+
+        // Real-time Dashboard Update
+        if (this.analyticsService) {
+            this.analyticsService.pushStatsUpdate(order.tenantId, (order as any).branchId).catch(() => { });
+        }
+
+        return result;
+    }
+
+    async voidItem(orderId: string, itemId: string, actorId?: string, actorEmail?: string) {
+        const order = await this.db.findUnique({ where: { id: orderId } });
+        if (!order) throw new NotFoundException('Order not found');
+
+        const item = await (this.prisma.client as any).orderItem.findUnique({ where: { id: itemId } });
+
+        const result = await (this.prisma.client as any).orderItem.update({
+            where: { id: itemId },
+            data: { status: 'VOIDED' },
+        });
+
+        // Audit trail: item void
+        if (this.auditLog) {
+            await this.auditLog.log({
+                tenantId: order.tenantId,
+                userId: actorId,
+                userEmail: actorEmail,
+                action: 'order.item_void',
+                resourceType: 'OrderItem',
+                resourceId: itemId,
+                meta: { orderId, productId: item?.productId, quantity: item?.quantity, price: Number(item?.price) },
+            });
+        }
+        return result;
+    }
+
+    async repeatOrder(dto: RepeatOrderDto) {
+        const oldOrder = await this.db.findUnique({
+            where: { id: dto.orderId },
+            include: {
+                items: {
+                    include: {
+                        modifiers: true
+                    }
+                }
+            }
+        });
+
+        if (!oldOrder) {
+            throw new NotFoundException('Original order not found');
+        }
+
+        // Create new order as a clone
+        return this.createDirect({
+            tableId: oldOrder.tableId ?? undefined,
+            customerId: oldOrder.customerId ?? undefined,
+            orderType: (oldOrder.orderType as any) ?? undefined,
+            totalAmount: Number(oldOrder.totalAmount),
+            items: oldOrder.items.map((item: any) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                price: Number(item.price),
+                stationId: item.stationId ?? undefined,
+                note: item.note ?? undefined,
+                modifiers: item.modifiers.map((m: any) => ({ optionId: m.optionId }))
+            }))
+        });
+    }
+
+    /**
+     * Find an order by its daily receipt number, business date, and optional branch.
+     * `date` can be YYYYMMDD or YYYY-MM-DD.
+     *
+     * Acceptance criterion: "Invoice queryable by receipt number + date + terminal"
+     */
+    async lookupByReceipt(receiptNumber: number, date: string, branchId?: string) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+
+        if (!receiptNumber || !date) {
+            throw new NotFoundException('receiptNumber and date are required');
+        }
+
+        // Normalise YYYY-MM-DD → YYYYMMDD
+        const normalisedDate = date.replace(/-/g, '');
+
+        const order = await this.db.findFirst({
+            where: {
+                tenantId,
+                receiptNumber,
+                ...(branchId ? { branchId } : {}),
+                invoiceNumber: { startsWith: `INV-${normalisedDate}-` },
+            } as any,
+            include: {
+                items: {
+                    include: {
+                        product: { select: { name: true } },
+                        variant: { select: { name: true } },
+                        modifiers: { include: { option: true } },
+                    },
+                },
+                customer: { select: { name: true, phone: true } },
+                table: { select: { number: true } },
+                user: { select: { name: true } },
+                payments: true,
+            },
+        });
+
+        if (!order) {
+            throw new NotFoundException(
+                `No order found with receipt #${receiptNumber} on ${normalisedDate}`,
+            );
+        }
+
+        return order;
+    }
+
+    async sendReceipt(orderId: string, email: string) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+
+        const order = await this.getOrder(orderId);
+        if (!order) throw new NotFoundException('Order not found');
+
+        const settings = await this.prisma.client.settings.findUnique({
+            where: { tenantId }
+        });
+
+        const tenant = await this.prisma.client.tenant.findUnique({
+            where: { id: tenantId }
+        });
+
+        const html = this.generateReceiptHtml(tenant, order, settings);
+        
+        try {
+            await this.mailService.sendMail(email, `Receipt for Order #${order.receiptNumber || order.id.substring(0, 8).toUpperCase()}`, html);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Failed to send receipt email:', error);
+            throw new InternalServerErrorException(error.message || 'Failed to send receipt email due to server configuration issues.');
+        }
+    }
+
+    private generateReceiptHtml(tenant: any, order: any, settings: any) {
+        const currency = settings?.currency || 'USD';
+        const itemsHtml = order.items.map((item: any) => `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; text-transform: uppercase;">${item.product?.name || 'Item'}</div>
+                    ${item.variant?.name ? `<div style="font-size: 10px; color: #666;">↳ ${item.variant.name}</div>` : ''}
+                </div>
+                <div style="width: 40px; text-align: center;">x${item.quantity}</div>
+                <div style="width: 80px; text-align: right;">${(Number(item.price) * item.quantity).toFixed(2)}</div>
+            </div>
+        `).join('');
+
+        const subtotal = order.items.reduce((sum: number, item: any) => sum + (Number(item.price) * item.quantity), 0);
+        const tax = Number(order.taxAmount) || 0;
+        const serviceFee = Number(order.serviceFeeAmount) || 0;
+        const total = Number(order.totalAmount);
+        const discount = Number(order.discountAmount) || 0;
+
+        return `
+            <div style="font-family: monospace; max-width: 400px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="margin: 0; text-transform: uppercase;">${tenant?.name || 'IDARAX STORE'}</h1>
+                    ${settings?.receiptHeader ? `<div style="font-size: 10px; color: #666; margin-top: 10px;">${settings.receiptHeader}</div>` : ''}
+                </div>
+                
+                <div style="border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px; font-size: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>RECEIPT NO</span>
+                        <span style="font-weight: bold;">${order.receiptNumber ? `#${order.receiptNumber.toString().padStart(3, '0')}` : `#${order.id.substring(0, 8).toUpperCase()}`}</span>
+                    </div>
+                    ${order.invoiceNumber ? `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>INVOICE NO</span>
+                        <span style="font-weight: bold;">${order.invoiceNumber}</span>
+                    </div>` : ''}
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>DATE</span>
+                        <span>${new Date(order.createdAt).toLocaleString()}</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    ${itemsHtml}
+                </div>
+
+                <div style="border-top: 2px solid #000; pt: 10px; font-size: 14px;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                        <span>SUBTOTAL</span>
+                        <span>${currency} ${subtotal.toFixed(2)}</span>
+                    </div>
+                    ${discount > 0 ? `
+                    <div style="display: flex; justify-content: space-between; color: #e11d48;">
+                        <span>DISCOUNT ${order.offerCode ? `(${order.offerCode})` : ''}</span>
+                        <span>-${currency} ${discount.toFixed(2)}</span>
+                    </div>` : ''}
+                    ${tax > 0 ? `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>TAX</span>
+                        <span>${currency} ${tax.toFixed(2)}</span>
+                    </div>` : ''}
+                    ${serviceFee > 0 ? `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>SERVICE FEE</span>
+                        <span>${currency} ${serviceFee.toFixed(2)}</span>
+                    </div>` : ''}
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; border-top: 1px solid #000; margin-top: 10px; padding-top: 5px;">
+                        <span>TOTAL</span>
+                        <span>${currency} ${total.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; font-size: 10px; color: #999;">
+                    ${settings?.receiptFooter || 'THANK YOU FOR YOUR VISIT'}
+                    <div style="margin-top: 10px;">SYSTEM BY IDARAX SOLUTIONS</div>
+                </div>
+            </div>
+        `;
+    }
+}
