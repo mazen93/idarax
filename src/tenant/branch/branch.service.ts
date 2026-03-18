@@ -46,8 +46,60 @@ export class BranchService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
 
-        return this.db.create({
-            data: dto
+        return this.prisma.$transaction(async (tx) => {
+            // 1. Create the Branch
+            const branch = await tx.branch.create({
+                data: {
+                    ...dto,
+                    tenantId,
+                },
+            });
+
+            // 2. Auto-initialize Catalog (clone master products to branch)
+            const products = await tx.product.findMany({
+                where: { tenantId },
+                select: { id: true },
+            });
+
+            if (products.length > 0) {
+                await tx.branchProduct.createMany({
+                    data: products.map((p) => ({
+                        branchId: branch.id,
+                        productId: p.id,
+                        isAvailable: true,
+                    })),
+                    skipDuplicates: true,
+                });
+            }
+
+            // 3. Create default Warehouse for this branch
+            await tx.warehouse.create({
+                data: {
+                    name: `Main Warehouse - ${branch.name}`,
+                    tenantId,
+                    branchId: branch.id,
+                },
+            });
+
+            // 4. Create default Kitchen Station
+            await tx.kitchenStation.create({
+                data: {
+                    name: `Main Kitchen - ${branch.name}`,
+                    tenantId,
+                    branchId: branch.id,
+                },
+            });
+
+            // 5. Create default Table Section
+            await tx.tableSection.create({
+                data: {
+                    name: `Main Floor - ${branch.name}`,
+                    tenantId,
+                    branchId: branch.id,
+                },
+            });
+
+            return branch;
         });
     }
 

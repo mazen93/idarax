@@ -52,8 +52,49 @@ let BranchService = class BranchService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
-        return this.db.create({
-            data: dto
+        return this.prisma.$transaction(async (tx) => {
+            const branch = await tx.branch.create({
+                data: {
+                    ...dto,
+                    tenantId,
+                },
+            });
+            const products = await tx.product.findMany({
+                where: { tenantId },
+                select: { id: true },
+            });
+            if (products.length > 0) {
+                await tx.branchProduct.createMany({
+                    data: products.map((p) => ({
+                        branchId: branch.id,
+                        productId: p.id,
+                        isAvailable: true,
+                    })),
+                    skipDuplicates: true,
+                });
+            }
+            await tx.warehouse.create({
+                data: {
+                    name: `Main Warehouse - ${branch.name}`,
+                    tenantId,
+                    branchId: branch.id,
+                },
+            });
+            await tx.kitchenStation.create({
+                data: {
+                    name: `Main Kitchen - ${branch.name}`,
+                    tenantId,
+                    branchId: branch.id,
+                },
+            });
+            await tx.tableSection.create({
+                data: {
+                    name: `Main Floor - ${branch.name}`,
+                    tenantId,
+                    branchId: branch.id,
+                },
+            });
+            return branch;
         });
     }
     async update(id, dto) {
