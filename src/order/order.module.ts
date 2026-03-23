@@ -14,9 +14,10 @@ import { AuditLogModule } from '../common/audit-log/audit-log.module';
 import { CrmModule } from '../crm/crm.module';
 import { KdsModule } from '../restaurant/kds/kds.module';
 import { MailModule } from '../mail/mail.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, TenantModule, InventoryModule, OfferModule, StaffModule, AuditLogModule, CrmModule, KdsModule, MailModule,
+  imports: [PrismaModule, TenantModule, InventoryModule, OfferModule, StaffModule, AuditLogModule, CrmModule, KdsModule, MailModule, NotificationsModule,
     BullModule.registerQueue({
       name: 'orders',
     }),

@@ -423,6 +423,18 @@ export class AnalyticsService {
         const tenantId = this.tenantService.getTenantId();
         const branchId = this.getQueryBranchId(filterBranchId);
 
+        // Fetch dynamic tax rates
+        const tenantSettings = await this.prisma.settings.findUnique({ where: { tenantId } });
+        const branchSettingsList = await (this.prisma.client as any).branchSettings.findMany({ where: { tenantId } });
+        
+        const globalTaxRate = Number(tenantSettings?.taxRate || 0);
+        const branchTaxRates: Record<string, number> = {};
+        branchSettingsList.forEach((bs: any) => {
+            if (bs.taxRate !== null && bs.taxRate !== undefined) {
+                branchTaxRates[bs.branchId] = Number(bs.taxRate);
+            }
+        });
+
         const orders = await (this.prisma as any).order.findMany({
             where: {
                 tenantId,
@@ -434,12 +446,17 @@ export class AnalyticsService {
 
         const summary = orders.reduce((acc: any, order: any) => {
             const date = order.createdAt.toISOString().split('T')[0];
-            const key = `${date}_VAT10`;
+            const orderBranchId = order.branchId;
+            const taxRate = (orderBranchId && branchTaxRates[orderBranchId] !== undefined) 
+                ? branchTaxRates[orderBranchId] 
+                : globalTaxRate;
+
+            const key = `${date}_VAT${taxRate}`;
             if (!acc[key]) {
                 acc[key] = {
                     report_date: date,
-                    tax_code: 'VAT 10%',
-                    tax_rate: 10,
+                    tax_code: `VAT ${taxRate}%`,
+                    tax_rate: taxRate,
                     taxable_amount: 0,
                     non_taxable_amount: 0,
                     tax_collected: 0,

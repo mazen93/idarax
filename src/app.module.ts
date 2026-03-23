@@ -41,6 +41,7 @@ import { ImportModule } from './retail/import/import.module';
 import { MenuModule } from './retail/menu/menu.module';
 import { AuditLogModule } from './common/audit-log/audit-log.module';
 import { MailModule } from './mail/mail.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -93,6 +94,7 @@ import { MailModule } from './mail/mail.module';
     MenuModule,
     AuditLogModule,
     MailModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

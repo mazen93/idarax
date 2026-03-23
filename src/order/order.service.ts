@@ -12,6 +12,8 @@ import { AnalyticsService } from '../analytics/analytics.service';
 import { CrmService } from '../crm/crm.service';
 import { KdsGateway } from '../restaurant/kds/kds.gateway';
 import { MailService } from '../mail/mail.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/dto/notifications.dto';
 
 @Injectable()
 export class OrderService {
@@ -27,6 +29,7 @@ export class OrderService {
         @Optional() private analyticsService?: AnalyticsService,
         @Optional() private crmService?: CrmService,
         @Optional() private kdsGateway?: KdsGateway,
+        @Optional() private notificationsService?: NotificationsService,
     ) { }
 
     private get db() {
@@ -104,6 +107,10 @@ export class OrderService {
             const resolvedItems = await this.resolveStationIds(tx, dto.items);
 
             if (existingOrder) {
+                const totalPaidAmount = Number(existingOrder.paidAmount) + totalPaidNow;
+                const totalOrderAmount = Number(existingOrder.totalAmount) + finalTotalAmount;
+                const isFullyPaid = Math.round(totalPaidAmount * 100) >= Math.round(totalOrderAmount * 100);
+
                 // UPDATE EXISTING ORDER
                 order = await tx.order.update({
                     where: { id: existingOrder.id },
@@ -130,7 +137,7 @@ export class OrderService {
                         payments: {
                             create: paymentsData.filter(p => p.amount > 0)
                         },
-                        status: existingOrder.status,
+                        status: (existingOrder.status === 'PENDING' && isFullyPaid) ? 'COMPLETED' : existingOrder.status,
                     },
                     include: {
                         items: {
@@ -146,9 +153,8 @@ export class OrderService {
                 });
             } else {
                 // CREATE NEW ORDER
-                // ── Dual Numbering ─────────────────────────────────────────────────────
-                // Fetch settings (timezone) and branch (business day cutoff) inside the
-                // transaction so the numbers are assigned atomically with the order row.
+                const isFullyPaid = Math.round(totalPaidNow * 100) >= Math.round(finalTotalAmount * 100);
+
                 const settings = await tx.settings.findUnique({
                     where: { tenantId },
                     select: { timezone: true },
@@ -167,8 +173,7 @@ export class OrderService {
                 const invoiceNumber = await this.numberingService.nextInvoiceNumber(
                     tx, tenantId, timezone, cutoffHour,
                 );
-                // ───────────────────────────────────────────────────────────────────────
-
+                
                 order = await tx.order.create({
                     data: {
                         tenantId,
@@ -177,7 +182,7 @@ export class OrderService {
                         customerId: dto.customerId || null,
                         totalAmount: finalTotalAmount,
                         paidAmount: totalPaidNow,
-                        status: dto.status || 'PENDING',
+                        status: dto.status || (isFullyPaid ? 'COMPLETED' : 'PENDING'),
                         orderType: dto.orderType || (dto.tableId ? 'DINE_IN' : 'IN_STORE'),
                         paymentMethod: dto.splitPayments?.length ? 'MULTI' : (dto.paymentMethod || 'CASH'),
                         guestName: dto.guestName,
@@ -339,9 +344,15 @@ export class OrderService {
         if (!items || items.length === 0) return [];
 
         const productIds = items.map(item => item.productId).filter(Boolean);
+        const branchId = this.tenantService.getBranchId();
         const products = await tx.product.findMany({
             where: { id: { in: productIds } },
-            include: { category: true }
+            include: { 
+                category: true,
+                branchSettings: branchId ? {
+                    where: { branchId }
+                } : false
+            }
         });
 
         const productMap = new Map(products.map((p: any) => [p.id, p]));
@@ -353,8 +364,9 @@ export class OrderService {
             const product = productMap.get(item.productId) as any;
             if (!product) return item;
 
-            // Priority: Product Default -> Category Default -> null
-            const stationId = product.defaultStationId || product.category?.defaultStationId || null;
+            // Priority: Branch-Product Default -> Product Default -> Category Default -> null
+            const branchOverride = product.branchSettings?.[0]?.defaultStationId;
+            const stationId = branchOverride || product.defaultStationId || product.category?.defaultStationId || null;
             return { ...item, stationId };
         });
     }
@@ -526,6 +538,29 @@ export class OrderService {
             this.analyticsService.pushStatsUpdate(updated.tenantId, (updated as any).branchId).catch(() => { });
         }
 
+        // Notifications
+        if (this.notificationsService) {
+            const branchId = (updated as any).branchId ?? undefined;
+            const receiptNum = (updated as any).receiptNumber ?? '';
+            if (status === 'READY') {
+                this.notificationsService.create(updated.tenantId, {
+                    type: NotificationType.ORDER_READY,
+                    title: 'Order Ready',
+                    message: `Order #${receiptNum} is ready for pickup / service.`,
+                    branchId,
+                    meta: { orderId: updated.id, receiptNumber: receiptNum },
+                }).catch(() => { });
+            } else if (status === 'CANCELLED') {
+                this.notificationsService.create(updated.tenantId, {
+                    type: NotificationType.ORDER_CANCELLED,
+                    title: 'Order Cancelled',
+                    message: `Order #${receiptNum} was cancelled.`,
+                    branchId,
+                    meta: { orderId: updated.id, receiptNumber: receiptNum },
+                }).catch(() => { });
+            }
+        }
+
         return updated;
     }
 
@@ -665,6 +700,18 @@ export class OrderService {
             this.analyticsService.pushStatsUpdate(order.tenantId, (order as any).branchId).catch(() => { });
         }
 
+        // Notify managers
+        if (this.notificationsService) {
+            const receiptNum = (order as any).receiptNumber ?? '';
+            this.notificationsService.create(order.tenantId, {
+                type: NotificationType.ORDER_VOIDED,
+                title: 'Order Voided',
+                message: `Order #${receiptNum} was voided by ${actorEmail ?? 'staff'}.`,
+                branchId: (order as any).branchId ?? undefined,
+                meta: { orderId: id, actorId, actorEmail },
+            }).catch(() => { });
+        }
+
         return result;
     }
 
@@ -782,13 +829,23 @@ export class OrderService {
         const order = await this.getOrder(orderId);
         if (!order) throw new NotFoundException('Order not found');
 
-        const settings = await this.prisma.client.settings.findUnique({
-            where: { tenantId }
-        });
+        const branchId = order.branchId;
 
-        const tenant = await this.prisma.client.tenant.findUnique({
-            where: { id: tenantId }
-        });
+        const [globalSettings, branchSettings, tenant] = await Promise.all([
+            this.prisma.client.settings.findUnique({ where: { tenantId } }),
+            branchId ? (this.prisma.client as any).branchSettings.findUnique({ where: { branchId } }) : null,
+            this.prisma.client.tenant.findUnique({ where: { id: tenantId } })
+        ]);
+
+        // Merge settings for receipt
+        const settings = { ...globalSettings };
+        if (branchSettings) {
+            Object.keys(branchSettings).forEach(key => {
+                if (branchSettings[key] !== null && branchSettings[key] !== undefined && key !== 'id' && key !== 'branchId' && key !== 'tenantId') {
+                    (settings as any)[key] = branchSettings[key];
+                }
+            });
+        }
 
         const html = this.generateReceiptHtml(tenant, order, settings);
         

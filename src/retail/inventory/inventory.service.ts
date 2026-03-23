@@ -2,15 +2,15 @@ import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/commo
 import { PrismaService } from '../../prisma/prisma.service';
 import { TenantService } from '../../tenant/tenant.service';
 import { CreateWarehouseDto, AdjustStockDto, StocktakeDto } from './dto/inventory.dto';
-// MovementType import removed to avoid lint issues
-import { KdsGateway } from '../../restaurant/kds/kds.gateway';
+import { NotificationsService } from '../../notifications/notifications.service';
+import { NotificationType } from '../../notifications/dto/notifications.dto';
 
 @Injectable()
 export class InventoryService {
     constructor(
         private prisma: PrismaService,
         private tenantService: TenantService,
-        private kdsGateway: KdsGateway,
+        private notificationsService: NotificationsService,
     ) { }
 
     async createWarehouse(dto: CreateWarehouseDto) {
@@ -103,14 +103,18 @@ export class InventoryService {
             });
 
             // 3. Emit low stock alert if applicable
-            if (stockLevel.quantity <= 5) {
-                try {
-                    this.kdsGateway.server.to(`tenant:${tenantId}`).emit('inventory_alert', {
-                        type: 'LOW_STOCK',
-                        productId: dto.productId,
-                        current: stockLevel.quantity,
-                    });
-                } catch { }
+            if (stockLevel.quantity <= stockLevel.minThreshold) {
+                // Fetch product name for a useful message
+                const product = await tx.product.findUnique({
+                    where: { id: dto.productId },
+                    select: { name: true },
+                });
+                this.notificationsService.create(tenantId, {
+                    type: NotificationType.LOW_STOCK,
+                    title: 'Low Stock Alert',
+                    message: `${product?.name ?? dto.productId} is running low (${stockLevel.quantity} remaining).`,
+                    meta: { productId: dto.productId, current: stockLevel.quantity, threshold: stockLevel.minThreshold },
+                }).catch(() => { });
             }
 
             return stockLevel;

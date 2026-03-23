@@ -1,10 +1,10 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Tenant {
@@ -15,6 +15,7 @@ model Tenant {
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
   branches         Branch[]
+  branchSettings   BranchSettings[]
   categories       Category[]
   customers        Customer[]
   discounts        Discount[]
@@ -22,7 +23,9 @@ model Tenant {
   invoiceCounters  InvoiceCounter[]
   kitchenStations  KitchenStation[]
   menus            Menu[]
+  notifications    Notification[]
   orders           Order[]
+  orderFeedbacks   OrderFeedback[]
   printers         Printer[]
   products         Product[]
   promoCodes       PromoCode[]
@@ -31,6 +34,10 @@ model Tenant {
   purchaseOrders   PurchaseOrder[]
   receiptCounters  ReceiptCounter[]
   reservations     Reservation[]
+  roles            Role[]
+  rolePermissions  RolePermission[]
+  scheduledReports ScheduledReport[]
+  scheduledShifts  ScheduledShift[]
   serialNumbers    SerialNumber[]
   settings         Settings?
   shifts           Shift[]
@@ -38,18 +45,12 @@ model Tenant {
   stockTransfers   StockTransfer[]
   tables           Table[]
   tableSections    TableSection[]
-  branchSettings   BranchSettings[]
   users            User[]
   userPermissions  UserPermission[]
-  roles            Role[]
-  rolePermissions  RolePermission[]
   vendors          Vendor[]
   vendorProducts   VendorProduct[]
   waitingEntries   WaitingEntry[]
   warehouses       Warehouse[]
-  scheduledReports ScheduledReport[]
-  scheduledShifts  ScheduledShift[]
-  orderFeedbacks   OrderFeedback[]
 }
 
 model Branch {
@@ -61,13 +62,14 @@ model Branch {
   tenantId             String
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
-  nameAr               String?
   /// Hour (0-23) at which a new business day begins. Default 0 = midnight.
   /// Set to e.g. 3 for a restaurant that closes at 3 AM so that orders
   /// between midnight and 03:00 still belong to the previous calendar day.
   businessDayStartHour Int              @default(0)
+  nameAr               String?
   tenant               Tenant           @relation(fields: [tenantId], references: [id])
   productSettings      BranchProduct[]
+  settings             BranchSettings?
   drawerSessions       DrawerSession[]
   kitchenStations      KitchenStation[]
   menus                Menu[]
@@ -76,14 +78,13 @@ model Branch {
   purchaseOrders       PurchaseOrder[]
   receiptCounters      ReceiptCounter[]
   reservations         Reservation[]
+  scheduledShifts      ScheduledShift[]
   shifts               Shift[]
   tables               Table[]
   tableSections        TableSection[]
   users                User[]
   waitingEntries       WaitingEntry[]
   warehouses           Warehouse[]
-  scheduledShifts      ScheduledShift[]
-  settings             BranchSettings?
 
   @@unique([name, tenantId])
 }
@@ -100,30 +101,30 @@ model Settings {
   taxRate                     Decimal? @default(0)
   receiptFontSize             Int      @default(12)
   receiptQrCodeUrl            String?
-  receiptLanguage             String   @default("en")
   receiptShowCustomer         Boolean  @default(true)
   receiptShowLogo             Boolean  @default(true)
   receiptShowOrderNumber      Boolean  @default(true)
   receiptShowTable            Boolean  @default(true)
-  receiptShowTimestamp        Boolean  @default(true)
-  receiptShowOrderType        Boolean  @default(true)
-  receiptShowOperator         Boolean  @default(true)
-  receiptShowItemsDescription Boolean  @default(true)
-  receiptShowItemsQty         Boolean  @default(true)
-  receiptShowItemsPrice       Boolean  @default(true)
-  receiptShowSubtotal         Boolean  @default(true)
-  receiptShowTax              Boolean  @default(true)
-  receiptShowServiceCharge    Boolean  @default(true)
-  receiptShowDiscount         Boolean  @default(true)
-  receiptShowTotal            Boolean  @default(true)
-  receiptShowPaymentMethod    Boolean  @default(true)
-  receiptShowBarcode          Boolean  @default(true)
   aboutUsText                 String?
   bannerImageUrl              String?
   contactEmail                String?
   contactPhone                String?
   facebookUrl                 String?
   instagramUrl                String?
+  receiptLanguage             String   @default("en")
+  receiptShowBarcode          Boolean  @default(true)
+  receiptShowDiscount         Boolean  @default(true)
+  receiptShowItemsDescription Boolean  @default(true)
+  receiptShowItemsPrice       Boolean  @default(true)
+  receiptShowItemsQty         Boolean  @default(true)
+  receiptShowOperator         Boolean  @default(true)
+  receiptShowOrderType        Boolean  @default(true)
+  receiptShowPaymentMethod    Boolean  @default(true)
+  receiptShowServiceCharge    Boolean  @default(true)
+  receiptShowSubtotal         Boolean  @default(true)
+  receiptShowTax              Boolean  @default(true)
+  receiptShowTimestamp        Boolean  @default(true)
+  receiptShowTotal            Boolean  @default(true)
   twitterUrl                  String?
   tenant                      Tenant   @relation(fields: [tenantId], references: [id])
 }
@@ -133,8 +134,6 @@ model BranchSettings {
   branchId                    String   @unique
   tenantId                    String
   isActive                    Boolean  @default(true)
-  
-  // Overrides
   taxRate                     Decimal?
   serviceFee                  Decimal?
   receiptHeader               String?
@@ -157,10 +156,8 @@ model BranchSettings {
   receiptShowTotal            Boolean?
   receiptShowPaymentMethod    Boolean?
   receiptShowBarcode          Boolean?
-
   createdAt                   DateTime @default(now())
   updatedAt                   DateTime @updatedAt
-
   branch                      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   tenant                      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -168,27 +165,28 @@ model BranchSettings {
 }
 
 model User {
-  id             String           @id @default(uuid())
-  email          String           @unique
-  password       String
-  name           String
-  role           UserRole         @default(STAFF)
-  roleId         String?
-  tenantId       String
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  branchId       String?
-  pinCode        String?
-  drawerSessions DrawerSession[]
-  orders         Order[]
-  shifts         Shift[]
-  sessions       UserSession[]
-  branch         Branch?          @relation(fields: [branchId], references: [id])
-  customRole     Role?            @relation(fields: [roleId], references: [id])
-  tenant         Tenant           @relation(fields: [tenantId], references: [id])
-  permissions    UserPermission[]
+  id              String           @id @default(uuid())
+  email           String           @unique
+  password        String
+  name            String
+  role            UserRole         @default(STAFF)
+  tenantId        String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  branchId        String?
+  pinCode         String?
+  roleId          String?
+  isActive        Boolean          @default(true)
+  drawerSessions  DrawerSession[]
+  orders          Order[]
   scheduledShifts ScheduledShift[]
-  kitchenStations KitchenStation[]
+  shifts          Shift[]
+  branch          Branch?          @relation(fields: [branchId], references: [id])
+  customRole      Role?            @relation(fields: [roleId], references: [id])
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+  permissions     UserPermission[]
+  sessions        UserSession[]
+  kitchenStations KitchenStation[] @relation("KitchenStationToUser")
 
   @@unique([pinCode, tenantId])
   @@index([pinCode, tenantId])
@@ -215,8 +213,8 @@ model Role {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  users       User[]
   permissions RolePermission[]
+  users       User[]
 
   @@unique([name, tenantId])
 }
@@ -226,8 +224,8 @@ model RolePermission {
   roleId   String
   action   String
   tenantId String
-  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   role     Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, action])
   @@index([roleId])
@@ -235,19 +233,19 @@ model RolePermission {
 }
 
 model Category {
-  id            String         @id @default(uuid())
-  name          String
-  tenantId      String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  description   String?
-  descriptionAr String?
-  nameAr        String?
-  tenant        Tenant         @relation(fields: [tenantId], references: [id])
-  menus         MenuCategory[]
-  products      Product[]
+  id               String          @id @default(uuid())
+  name             String
+  tenantId         String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  description      String?
+  descriptionAr    String?
+  nameAr           String?
   defaultStationId String?
   defaultStation   KitchenStation? @relation("CategoryDefaultStation", fields: [defaultStationId], references: [id])
+  tenant           Tenant          @relation(fields: [tenantId], references: [id])
+  menus            MenuCategory[]
+  products         Product[]
 
   @@unique([name, tenantId])
 }
@@ -295,9 +293,11 @@ model Product {
   productType        ProductType         @default(STANDARD)
   descriptionAr      String?
   nameAr             String?
+  defaultStationId   String?
   branchSettings     BranchProduct[]
   orderItems         OrderItem[]
   category           Category            @relation(fields: [categoryId], references: [id])
+  defaultStation     KitchenStation?     @relation("ProductDefaultStation", fields: [defaultStationId], references: [id])
   tenant             Tenant              @relation(fields: [tenantId], references: [id])
   modifiers          ProductModifier[]
   usedInRecipes      ProductRecipe[]     @relation("RecipeIngredient")
@@ -309,23 +309,23 @@ model Product {
   stockTransfers     StockTransfer[]
   variants           Variant[]
   vendorProducts     VendorProduct[]
-  defaultStationId   String?
-  defaultStation     KitchenStation?     @relation("ProductDefaultStation", fields: [defaultStationId], references: [id])
 
   @@unique([sku, tenantId])
   @@unique([barcode, tenantId])
 }
 
 model BranchProduct {
-  id            String   @id @default(uuid())
-  branchId      String
-  productId     String
-  isAvailable   Boolean  @default(true)
-  priceOverride Decimal?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  branch        Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id               String          @id @default(uuid())
+  branchId         String
+  productId        String
+  isAvailable      Boolean         @default(true)
+  priceOverride    Decimal?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  defaultStationId String?
+  branch           Branch          @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  defaultStation   KitchenStation? @relation("BranchProductDefaultStation", fields: [defaultStationId], references: [id])
+  product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([branchId, productId])
 }
@@ -395,27 +395,27 @@ model Order {
   branchId         String?
   guestName        String?
   guestPhone       String?
-  orderType        OrderType             @default(IN_STORE)
+  deliveryAddress  String?
   discountAmount   Decimal?              @default(0)
+  /// Permanent globally-unique invoice number e.g. INV-20250313-0042
+  invoiceNumber    String?               @unique
   offerCode        String?
+  /// Short daily receipt number (1-999, resets each business day per branch)
+  receiptNumber    Int?
   serviceFeeAmount Decimal?              @default(0)
   taxAmount        Decimal?              @default(0)
   userId           String?
-  deliveryAddress  String?
-  /// Short daily receipt number (1-999, resets each business day per branch)
-  receiptNumber    Int?
-  /// Permanent globally-unique invoice number e.g. INV-20250313-0042
-  invoiceNumber    String?               @unique
+  orderType        OrderType             @default(IN_STORE)
   branch           Branch?               @relation(fields: [branchId], references: [id])
   customer         Customer?             @relation(fields: [customerId], references: [id])
   table            Table?                @relation(fields: [tableId], references: [id])
   tenant           Tenant                @relation(fields: [tenantId], references: [id])
   user             User?                 @relation(fields: [userId], references: [id])
+  feedback         OrderFeedback?
   items            OrderItem[]
   payments         Payment[]
   promoRedemptions PromoCodeRedemption[]
   refunds          Refund[]
-  feedback         OrderFeedback?
 
   @@index([tenantId, branchId, receiptNumber])
   @@index([invoiceNumber])
@@ -430,8 +430,8 @@ model OrderItem {
   productId     String
   stationId     String?
   note          String?
-  variantId     String?
   courseName    String?
+  variantId     String?
   order         Order               @relation(fields: [orderId], references: [id])
   product       Product             @relation(fields: [productId], references: [id])
   station       KitchenStation?     @relation(fields: [stationId], references: [id])
@@ -442,19 +442,20 @@ model OrderItem {
 }
 
 model KitchenStation {
-  id         String      @id @default(uuid())
-  name       String
-  tenantId   String
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  branchId   String?
-  nameAr     String?
-  branch          Branch?         @relation(fields: [branchId], references: [id])
-  tenant          Tenant          @relation(fields: [tenantId], references: [id])
-  orderItems      OrderItem[]
-  defaultForProducts   Product[]  @relation("ProductDefaultStation")
-  defaultForCategories Category[] @relation("CategoryDefaultStation")
-  assignedStaff   User[]
+  id                       String          @id @default(uuid())
+  name                     String
+  tenantId                 String
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  branchId                 String?
+  nameAr                   String?
+  defaultForBranchProducts BranchProduct[] @relation("BranchProductDefaultStation")
+  defaultForCategories     Category[]      @relation("CategoryDefaultStation")
+  branch                   Branch?         @relation(fields: [branchId], references: [id])
+  tenant                   Tenant          @relation(fields: [tenantId], references: [id])
+  orderItems               OrderItem[]
+  defaultForProducts       Product[]       @relation("ProductDefaultStation")
+  assignedStaff            User[]          @relation("KitchenStationToUser")
 
   @@unique([name, tenantId, branchId])
 }
@@ -481,10 +482,10 @@ model Customer {
   email            String?
   phone            String?               @unique
   points           Int                   @default(0)
-  totalSpend       Decimal               @default(0)
-  loyaltyTier      LoyaltyTier           @default(BRONZE)
   tenantId         String
   createdAt        DateTime              @default(now())
+  loyaltyTier      LoyaltyTier           @default(BRONZE)
+  totalSpend       Decimal               @default(0)
   tenant           Tenant                @relation(fields: [tenantId], references: [id])
   addresses        CustomerAddress[]
   loyaltyHistory   CustomerLoyalty[]
@@ -492,12 +493,6 @@ model Customer {
   promoRedemptions PromoCodeRedemption[]
   reservations     Reservation[]
   waitingEntries   WaitingEntry[]
-}
-
-enum LoyaltyTier {
-  BRONZE
-  SILVER
-  GOLD
 }
 
 model CustomerLoyalty {
@@ -752,7 +747,7 @@ model InvoiceCounter {
 
 /// Per-branch daily receipt counter (1-999, resets each business day).
 model ReceiptCounter {
-  id       String @id @default(uuid())
+  id       String  @id @default(uuid())
   tenantId String
   branchId String?
   /// Business date string YYYYMMDD (adjusted by branch businessDayStartHour)
@@ -973,6 +968,91 @@ model OrderItemModifier {
   option    ProductModifierOption @relation(fields: [optionId], references: [id])
 }
 
+model AuditLog {
+  id           String   @id @default(uuid())
+  tenantId     String
+  userId       String?
+  userEmail    String?
+  action       String
+  resourceType String?
+  resourceId   String?
+  meta         Json?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model UserSession {
+  id                 String   @id @default(uuid())
+  userId             String
+  tenantId           String
+  jti                String   @unique
+  deviceName         String?
+  ipAddress          String?
+  isActive           Boolean  @default(true)
+  lastSeenAt         DateTime @default(now())
+  createdAt          DateTime @default(now())
+  hashedRefreshToken String?
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([jti])
+}
+
+model ScheduledReport {
+  id             String       @id @default(uuid())
+  tenantId       String
+  type           ReportType
+  format         ReportFormat @default(PDF)
+  recipientEmail String
+  isActive       Boolean      @default(true)
+  lastSentAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  tenant         Tenant       @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+}
+
+model ScheduledShift {
+  id        String               @id @default(uuid())
+  userId    String
+  tenantId  String
+  branchId  String
+  startAt   DateTime
+  endAt     DateTime
+  status    ScheduledShiftStatus @default(PUBLISHED)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  branch    Branch               @relation(fields: [branchId], references: [id])
+  tenant    Tenant               @relation(fields: [tenantId], references: [id])
+  user      User                 @relation(fields: [userId], references: [id])
+
+  @@index([userId, startAt])
+  @@index([tenantId])
+}
+
+model OrderFeedback {
+  id        String   @id @default(uuid())
+  orderId   String   @unique
+  tenantId  String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+enum LoyaltyTier {
+  BRONZE
+  SILVER
+  GOLD
+}
+
 enum PurchaseOrderStatus {
   PENDING
   ORDERED
@@ -988,8 +1068,6 @@ enum UserRole {
   STAFF
   CASHIER
 }
-
-
 
 enum OrderStatus {
   PENDING
@@ -1083,56 +1161,6 @@ enum CashMovementType {
   CLOSING
 }
 
-model AuditLog {
-  id           String   @id @default(uuid())
-  tenantId     String
-  userId       String?
-  userEmail    String?
-  action       String   // e.g. "auth.login", "order.void", "permission.update"
-  resourceType String?  // e.g. "Order", "User", "Settings"
-  resourceId   String?
-  meta         Json?    // arbitrary extra context (old/new values etc.)
-  ipAddress    String?
-  createdAt    DateTime @default(now())
-
-  @@index([tenantId])
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model UserSession {
-  id         String    @id @default(uuid())
-  userId     String
-  tenantId   String
-  jti                String    @unique // JWT ID — used to revoke the token
-  deviceName         String? // e.g. "Chrome on macOS"
-  ipAddress          String?
-  hashedRefreshToken String? // Securely hashed refresh token for rotation
-  isActive           Boolean   @default(true)
-  lastSeenAt         DateTime  @default(now())
-  createdAt          DateTime  @default(now())
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([tenantId])
-  @@index([jti])
-}
-
-model ScheduledReport {
-  id             String       @id @default(uuid())
-  tenantId       String
-  type           ReportType
-  format         ReportFormat @default(PDF)
-  recipientEmail String
-  isActive       Boolean      @default(true)
-  lastSentAt     DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  tenant         Tenant       @relation(fields: [tenantId], references: [id])
-
-  @@index([tenantId])
-}
-
 enum ReportType {
   DAILY_SALES
   WEEKLY_SALES
@@ -1144,37 +1172,32 @@ enum ReportFormat {
   CSV
 }
 
-model ScheduledShift {
-  id        String               @id @default(uuid())
-  userId    String
-  tenantId  String
-  branchId  String
-  startAt   DateTime
-  endAt     DateTime
-  status    ScheduledShiftStatus @default(PUBLISHED)
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-  user      User                 @relation(fields: [userId], references: [id])
-  tenant    Tenant               @relation(fields: [tenantId], references: [id])
-  branch    Branch               @relation(fields: [branchId], references: [id])
-
-  @@index([userId, startAt])
-  @@index([tenantId])
-}
-
 enum ScheduledShiftStatus {
   DRAFT
   PUBLISHED
   CANCELLED
 }
 
-model OrderFeedback {
-  id        String   @id @default(uuid())
-  orderId   String   @unique
+enum NotificationType {
+  ORDER_READY
+  LOW_STOCK
+  ORDER_CANCELLED
+  ORDER_VOIDED
+  MANAGER_ALERT
+}
+
+model Notification {
+  id        String           @id @default(uuid())
   tenantId  String
-  rating    Int
-  comment   String?
-  createdAt DateTime @default(now())
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branchId  String?
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  meta      Json?
+  createdAt DateTime         @default(now())
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, isRead])
+  @@index([tenantId, createdAt])
 }
