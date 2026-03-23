@@ -123,31 +123,126 @@ export class AiService {
      * Product recommendations based on "Frequently Bought Together"
      */
     async getRecommendations(productId: string) {
+        return this.getUpsellRecommendations([productId]);
+    }
+
+    /**
+     * Product recommendations for multiple items in a cart
+     */
+    async getUpsellRecommendations(productIds: string[]) {
+        if (!productIds || productIds.length === 0) return [];
+        
         const tenantId = this.tenantService.getTenantId();
 
-        const ordersWithProduct = await (this.prisma as any).order.findMany({
-            where: { tenantId, items: { some: { productId } }, status: 'COMPLETED' },
+        // Find orders containing ANY of the cart's product IDs
+        const ordersWithProducts = await (this.prisma as any).order.findMany({
+            where: { 
+                tenantId, 
+                items: { some: { productId: { in: productIds } } }, 
+                status: 'COMPLETED' 
+            },
             include: { items: { select: { productId: true } } },
-            take: 100
+            take: 200 // Look at recent 200 orders for relevance
         });
 
         const productCounts: Record<string, number> = {};
-        ordersWithProduct.forEach((order: any) => {
+        
+        // Tally up items in those orders, excluding items already in the cart
+        ordersWithProducts.forEach((order: any) => {
             order.items.forEach((item: any) => {
-                if (item.productId !== productId) {
+                if (!productIds.includes(item.productId)) {
                     productCounts[item.productId] = (productCounts[item.productId] || 0) + 1;
                 }
             });
         });
 
+        // Sort by frequency and take top 5
         const sorted = Object.entries(productCounts)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
 
         const recommendedIds = sorted.map(([id]) => id);
+        
+        if (recommendedIds.length === 0) return [];
+
         return (this.prisma as any).product.findMany({
             where: { id: { in: recommendedIds } },
-            select: { id: true, name: true, price: true, imageUrl: true }
+            select: { id: true, name: true, price: true }
         });
+    }
+
+    /**
+     * Predictive Inventory: Recommends restock quantities based on sales velocity
+     */
+    async getInventoryPredictions() {
+        const tenantId = this.tenantService.getTenantId();
+        const fourteenDaysAgo = new Date();
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+        // 1. Get all products for the tenant
+        const products = await (this.prisma as any).product.findMany({
+            where: { tenantId, isActive: true },
+            select: { id: true, name: true, minStockLevel: true, price: true }
+        });
+
+        // 2. Get sales for the last 14 days for all these products
+        const sales = await (this.prisma as any).orderItem.findMany({
+            where: {
+                order: { tenantId, createdAt: { gte: fourteenDaysAgo }, status: 'COMPLETED' }
+            },
+            select: { productId: true, quantity: true }
+        });
+
+        // 3. Get current stock levels for all products
+        const stockLevels = await (this.prisma as any).stockLevel.findMany({
+            where: { warehouse: { tenantId } },
+            select: { productId: true, quantity: true }
+        });
+
+        // Tally current stock per product
+        const stockMap: Record<string, number> = {};
+        stockLevels.forEach((s: any) => {
+            stockMap[s.productId] = (stockMap[s.productId] || 0) + s.quantity;
+        });
+
+        // Tally sales per product
+        const salesMap: Record<string, number> = {};
+        sales.forEach((s: any) => {
+            salesMap[s.productId] = (salesMap[s.productId] || 0) + s.quantity;
+        });
+
+        const predictions = products.map((product: any) => {
+            const currentStock = stockMap[product.id] || 0;
+            const totalSold14d = salesMap[product.id] || 0;
+            const avgDailySales = totalSold14d / 14;
+
+            // We only care about items that are low or have sales velocity
+            if (avgDailySales === 0 && currentStock > (product.minStockLevel || 5)) {
+                return null;
+            }
+
+            const daysRemaining = avgDailySales > 0 ? currentStock / avgDailySales : (currentStock > 0 ? 99 : 0);
+            
+            // Restock threshold: less than 7 days of stock left OR below minimum threshold
+            const isBelowMin = currentStock <= (product.minStockLevel || 5);
+            const isRunningOut = daysRemaining < 7;
+            
+            if (!isBelowMin && !isRunningOut) return null;
+
+            // Recommended restock: Amount needed for next 14 days
+            const recommendedRestock = Math.max(10, Math.round(avgDailySales * 14));
+
+            return {
+                id: product.id,
+                name: product.name,
+                currentStock,
+                avgDailySales: avgDailySales.toFixed(2),
+                daysRemaining: daysRemaining >= 99 ? '∞' : Math.round(daysRemaining),
+                recommendedRestock,
+                status: (daysRemaining < 3 || isBelowMin) ? 'CRITICAL' : 'WARNING'
+            };
+        }).filter(Boolean);
+
+        return predictions;
     }
 }

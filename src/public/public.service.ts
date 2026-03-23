@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePublicOrderDto } from './dto/public.dto';
+import { SplitBillDto } from '../order/dto/order.dto';
 import * as QRCode from 'qrcode';
 
 @Injectable()
@@ -123,8 +124,9 @@ export class PublicService {
                 guestName: dto.customerName,
                 guestPhone: dto.customerPhone,
                 tableId: dto.tableId || undefined,
-                branchId: dto.branchId || undefined, // Support branch linking
-                orderType: dto.orderType || 'IN_STORE', // Default to in-store if table provided
+                branchId: dto.branchId || undefined, 
+                orderType: dto.orderType || 'IN_STORE',
+                source: (dto.source as any) || 'QR_CODE', 
                 status: 'PENDING',
                 items: {
                     create: dto.items.map((item: any) => ({
@@ -182,5 +184,106 @@ export class PublicService {
                 comment: dto.comment,
             },
         });
+    }
+
+    async getTableOrder(tableId: string) {
+        const order = await (this.prisma as any).order.findFirst({
+            where: {
+                tableId,
+                status: { in: ['PENDING', 'PREPARING', 'READY', 'HELD'] }
+            },
+            include: {
+                items: {
+                    include: {
+                        product: { select: { name: true, price: true } }
+                    }
+                },
+                tenant: { select: { name: true, id: true } }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (!order) return null; // Return null instead of throwing 404
+        return order;
+    }
+
+    async getTable(id: string) {
+        const table = await (this.prisma as any).table.findUnique({
+            where: { id },
+            include: {
+                section: {
+                    select: { branchId: true }
+                }
+            }
+        });
+
+        if (!table) throw new NotFoundException('Table not found');
+        return {
+            id: table.id,
+            number: table.number,
+            branchId: table.section?.branchId || table.branchId || null
+        };
+    }
+
+    async splitOrder(orderId: string, dto: SplitBillDto) {
+        // Reuse the logic from OrderService but with public access
+        // For simplicity, we can just call order services or just re-implement.
+        // I'll re-implement the simple version here to avoid service circular deps if any.
+        const order = await (this.prisma as any).order.findUnique({
+            where: { id: orderId },
+            include: { items: true },
+        });
+
+        if (!order) throw new NotFoundException('Order not found');
+
+        const results = [];
+        if (dto.splitType === 'EQUAL') {
+            const splitAmount = Number(order.totalAmount) / dto.splits.length;
+            for (const split of dto.splits) {
+                const child = await (this.prisma as any).order.create({
+                    data: {
+                        tenantId: order.tenantId,
+                        branchId: order.branchId,
+                        tableId: order.tableId,
+                        totalAmount: splitAmount,
+                        status: 'PENDING',
+                        isSplit: true,
+                        parentOrderId: order.id,
+                        orderType: order.orderType,
+                        source: 'QR_CODE',
+                    }
+                });
+                results.push(child);
+            }
+        } else if (dto.splitType === 'BY_ITEM') {
+            for (const split of dto.splits) {
+                if (!split.itemIds) continue;
+                const items = order.items.filter((i: any) => split.itemIds!.includes(i.id));
+                const splitTotal = items.reduce((sum: number, i: any) => sum + Number(i.price) * i.quantity, 0);
+
+                const child = await (this.prisma as any).order.create({
+                    data: {
+                        tenantId: order.tenantId,
+                        branchId: order.branchId,
+                        tableId: order.tableId,
+                        totalAmount: splitTotal,
+                        status: 'PENDING',
+                        isSplit: true,
+                        parentOrderId: order.id,
+                        orderType: order.orderType,
+                        source: 'QR_CODE',
+                        items: {
+                            create: items.map((i: any) => ({
+                                productId: i.productId,
+                                quantity: i.quantity,
+                                price: i.price,
+                            }))
+                        }
+                    }
+                });
+                results.push(child);
+            }
+        }
+        return results;
     }
 }

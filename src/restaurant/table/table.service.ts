@@ -2,6 +2,7 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TenantService } from '../../tenant/tenant.service';
 import { CreateTableDto, UpdateTableDto } from './dto/table.dto';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class TableService {
@@ -183,5 +184,40 @@ export class TableService {
         return (this.prisma.client as any).table.delete({
             where: { id },
         });
+    }
+
+    async generateTableQRCodes() {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+
+        const tables = await (this.prisma.client as any).table.findMany({
+            where: { tenantId }
+        });
+
+        // Use process.env.PUBLIC_FRONTEND_URL if available, otherwise fallback
+        const frontendUrl = process.env.PUBLIC_FRONTEND_URL || 'http://localhost:3001';
+
+        for (const table of tables) {
+            const qrUrl = `${frontendUrl}/en/m/${tenantId}?table=${table.id}`;
+            const qrBase64 = await QRCode.toDataURL(qrUrl, {
+                errorCorrectionLevel: 'H',
+                margin: 2,
+                width: 512,
+                color: {
+                    dark: '#0f172a', // slate-900
+                    light: '#ffffff'
+                }
+            });
+
+            await (this.prisma.client as any).table.update({
+                where: { id: table.id },
+                data: { qrCodeUrl: qrBase64 }
+            });
+        }
+
+        return {
+            message: `Successfully generated ${tables.length} QR codes`,
+            baseUrl: frontendUrl
+        };
     }
 }

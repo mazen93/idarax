@@ -58,6 +58,7 @@ export class ProductService {
         return this.db.create({
             data: {
                 ...rest,
+                defaultStationId: rest.defaultStationId || null,
                 costPrice,
                 variants: variants?.length ? {
                     create: variants.map(v => ({
@@ -111,7 +112,10 @@ export class ProductService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
 
-        const products = await this.db.findMany({
+        // Use rawClient to avoid the global query extension injecting tenantId/branchId
+        // into nested include queries (e.g. stockLevels → warehouse), which causes
+        // a "column (not available)" error with the Prisma WASM adapter-pg engine.
+        const products = await this.prisma.product.findMany({
             where: { tenantId },
             include: {
                 variants: true,
@@ -130,12 +134,12 @@ export class ProductService {
 
         // Apply branch overrides: filter unavailable, merge price override
         return products
-            .filter(p => {
+            .filter((p: any) => {
                 const setting = (p as any).branchSettings?.[0];
                 // No override = available by default
                 return !setting || setting.isAvailable;
             })
-            .map(p => {
+            .map((p: any) => {
                 const setting = (p as any).branchSettings?.[0];
                 const { branchSettings, ...product } = p as any;
                 return {
@@ -274,7 +278,9 @@ export class ProductService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
 
-        const products = await this.db.findMany({
+        // Use unextended client (this.prisma) to avoid the global query extension injecting filters
+        // into nested include queries for related models.
+        const products = await this.prisma.product.findMany({
             where: { tenantId },
             select: {
                 id: true,
@@ -287,7 +293,7 @@ export class ProductService {
             },
         });
 
-        return products.map(p => {
+        return products.map((p: any) => {
             const setting = (p as any).branchSettings?.[0];
             return {
                 productId: p.id,
@@ -298,6 +304,7 @@ export class ProductService {
                 isSellable: p.isSellable,
                 isAvailable: setting ? setting.isAvailable : true, // default available
                 priceOverride: setting?.priceOverride ?? null,
+                defaultStationId: setting?.defaultStationId ?? null,
             };
         });
     }
@@ -317,10 +324,12 @@ export class ProductService {
                 productId,
                 isAvailable: dto.isAvailable,
                 priceOverride: dto.priceOverride ?? null,
+                defaultStationId: dto.defaultStationId ?? null,
             },
             update: {
                 isAvailable: dto.isAvailable,
                 priceOverride: dto.priceOverride ?? null,
+                defaultStationId: dto.defaultStationId ?? null,
             },
         });
     }

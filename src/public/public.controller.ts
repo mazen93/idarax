@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { PublicService } from './public.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CreatePublicOrderDto } from './dto/public.dto';
+import { SplitBillDto } from '../order/dto/order.dto';
 
 @ApiTags('Public Menu')
 @Controller('public')
@@ -22,11 +23,15 @@ export class PublicController {
 
     @Get('menu/:tenantId')
     @ApiOperation({ summary: 'Get public menu categories and products' })
-    getMenu(
+    async getMenu(
         @Param('tenantId') tenantId: string,
         @Query('branchId') branchId?: string
     ) {
-        return this.publicService.getMenu(tenantId, branchId);
+        const [tenant, categories] = await Promise.all([
+            this.publicService.getTenantBranding(tenantId),
+            this.publicService.getMenu(tenantId, branchId)
+        ]);
+        return { tenant, categories };
     }
 
     @Post('order/:tenantId')
@@ -45,5 +50,24 @@ export class PublicController {
     @ApiOperation({ summary: 'Submit feedback for an order' })
     createFeedback(@Param('id') id: string, @Body() dto: { rating: number, comment?: string }) {
         return this.publicService.createOrderFeedback(id, dto);
+    }
+
+    @Get('table/:tableId/order')
+    @ApiOperation({ summary: 'Get active order for a table (Public)' })
+    getTableOrder(@Param('tableId') tableId: string) {
+        return this.publicService.getTableOrder(tableId);
+    }
+
+    @Get('table/:id')
+    @ApiOperation({ summary: 'Get table details (Public)' })
+    getTable(@Param('id') id: string) {
+        return this.publicService.getTable(id);
+    }
+
+    @Post('order/:orderId/split')
+    @ApiOperation({ summary: 'Split an order (Public)' })
+    splitOrder(@Param('orderId') id: string, @Body() dto: SplitBillDto) {
+        // Reuse SplitBillDto from order module
+        return this.publicService.splitOrder(id, dto);
     }
 }
