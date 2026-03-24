@@ -176,4 +176,24 @@ export class AnalyticsController {
         const { startDate, endDate } = this.parseDateRange(start, end);
         return this.analyticsService.getStaffLeaderboard(startDate, endDate);
     }
+
+    @Get('reports/kitchen-performance')
+    @Permissions(Actions.REPORTS.VIEW_ALL)
+    getKitchenPerformance(
+        @Query('start') start?: string,
+        @Query('end') end?: string,
+    ) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getKitchenPerformance(startDate, endDate);
+    }
+
+    @Get('reports/product-profitability')
+    @Permissions(Actions.REPORTS.VIEW_ALL)
+    getProductProfitability(
+        @Query('start') start?: string,
+        @Query('end') end?: string,
+    ) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getProductProfitability(startDate, endDate);
+    }
 }

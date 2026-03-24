@@ -23,6 +23,7 @@ export class KdsService {
             data: {
                 ...rest,
                 tenantId,
+                branchId: rest.branchId || this.tenantService.getBranchId(),
                 assignedStaff: staffIds ? {
                     connect: staffIds.map(id => ({ id }))
                 } : undefined,
@@ -35,8 +36,13 @@ export class KdsService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
 
+        const branchId = this.tenantService.getBranchId();
+
         return (this.prisma.client as any).kitchenStation.findMany({
-            where: { tenantId },
+            where: { 
+                tenantId,
+                ...(branchId ? { branchId } : {})
+             },
             include: { assignedStaff: true }
         });
     }
@@ -92,14 +98,29 @@ export class KdsService {
             }
         }
 
+        const updateData: any = { status: dto.status };
+        if (dto.status === 'PREPARING' && !item.startedAt) {
+            updateData.startedAt = new Date();
+        } else if (dto.status === 'READY' && !item.completedAt) {
+            updateData.completedAt = new Date();
+        }
+
         const updatedItem = await (this.prisma.client as any).orderItem.update({
             where: { id: itemId },
-            data: { status: dto.status },
+            data: updateData,
             include: {
                 order: { include: { table: true } },
+                variant: true,
+                modifiers: {
+                    include: {
+                        option: {
+                            include: { modifier: true }
+                        }
+                    }
+                },
                 product: {
                     include: {
-                        usedInRecipes: { include: { ingredient: { select: { name: true } } } }
+                        recipeComponents: { include: { ingredient: { select: { name: true } } } }
                     }
                 },
             },
@@ -133,12 +154,24 @@ export class KdsService {
                     branchId: this.tenantService.getBranchId(),
                 },
                 status: { notIn: ['SERVED', 'CANCELLED'] },
+                OR: [
+                    { fireAt: null },
+                    { fireAt: { lte: new Date() } }
+                ]
             },
             include: {
                 order: { include: { table: true } },
+                variant: true,
+                modifiers: {
+                    include: {
+                        option: {
+                            include: { modifier: true }
+                        }
+                    }
+                },
                 product: {
                     include: {
-                        usedInRecipes: { include: { ingredient: { select: { name: true } } } }
+                        recipeComponents: { include: { ingredient: { select: { name: true } } } }
                     }
                 },
             },

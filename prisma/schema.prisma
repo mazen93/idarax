@@ -51,6 +51,7 @@ model Tenant {
   vendorProducts   VendorProduct[]
   waitingEntries   WaitingEntry[]
   warehouses       Warehouse[]
+  marketingCampaigns MarketingCampaign[]
 }
 
 model Branch {
@@ -242,6 +243,7 @@ model Category {
   descriptionAr    String?
   nameAr           String?
   defaultStationId String?
+  defaultPrepTime  Int             @default(0)
   defaultStation   KitchenStation? @relation("CategoryDefaultStation", fields: [defaultStationId], references: [id])
   tenant           Tenant          @relation(fields: [tenantId], references: [id])
   menus            MenuCategory[]
@@ -294,6 +296,7 @@ model Product {
   descriptionAr      String?
   nameAr             String?
   defaultStationId   String?
+  prepTime           Int                 @default(0)
   branchSettings     BranchProduct[]
   orderItems         OrderItem[]
   category           Category            @relation(fields: [categoryId], references: [id])
@@ -356,6 +359,7 @@ model Table {
   isMerged      Boolean       @default(false)
   parentTableId String?
   sectionId     String?
+  qrCodeUrl     String?  // URL for self-service QR ordering
   orders        Order[]
   reservations  Reservation[]
   branch        Branch?       @relation(fields: [branchId], references: [id])
@@ -406,6 +410,11 @@ model Order {
   taxAmount        Decimal?              @default(0)
   userId           String?
   orderType        OrderType             @default(IN_STORE)
+  source           OrderSource           @default(POS)
+  externalPlatform String?               // e.g. "TALABAT", "UBEREATS"
+  externalOrderId  String?               // Original ID from the platform
+  isSplit          Boolean               @default(false)
+  parentOrderId    String?               // References the original order if split
   branch           Branch?               @relation(fields: [branchId], references: [id])
   customer         Customer?             @relation(fields: [customerId], references: [id])
   table            Table?                @relation(fields: [tableId], references: [id])
@@ -432,6 +441,10 @@ model OrderItem {
   note          String?
   courseName    String?
   variantId     String?
+  costPrice     Decimal             @default(0)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  fireAt        DateTime?
   order         Order               @relation(fields: [orderId], references: [id])
   product       Product             @relation(fields: [productId], references: [id])
   station       KitchenStation?     @relation(fields: [stationId], references: [id])
@@ -493,6 +506,7 @@ model Customer {
   promoRedemptions PromoCodeRedemption[]
   reservations     Reservation[]
   waitingEntries   WaitingEntry[]
+  marketingCampaigns MarketingCampaign[]
 }
 
 model CustomerLoyalty {
@@ -1089,6 +1103,14 @@ enum OrderType {
   IN_STORE
 }
 
+enum OrderSource {
+  POS
+  QR_CODE
+  DELIVERY_PARTNER
+  KIOSK
+  MOBILE_APP
+}
+
 enum TenantType {
   RESTAURANT
   RETAIL
@@ -1200,4 +1222,19 @@ model Notification {
 
   @@index([tenantId, isRead])
   @@index([tenantId, createdAt])
+}
+
+model MarketingCampaign {
+  id             String    @id @default(uuid())
+  tenantId       String
+  customerId     String
+  campaignType   String    // e.g., 'SLIPPING_REENGAGEMENT'
+  status         String    // e.g., 'SENT'
+  sentAt         DateTime  @default(now())
+  metadata       Json?     // store discount code applied, etc.
+  
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId, customerId])
 }

@@ -103,8 +103,9 @@ export class OrderService {
 
             const totalPaidNow = paymentsData.reduce((sum, p) => sum + Number(p.amount), 0);
 
-            // Resolve stationIds for items if not provided
-            const resolvedItems = await this.resolveStationIds(tx, dto.items);
+            // Resolve stationIds, prepTimes, and base costs
+            const resolvedItemsRaw = await this.resolveStationIds(tx, dto.items);
+            const resolvedItems = this.calculateFireTimes(resolvedItemsRaw);
 
             if (existingOrder) {
                 const totalPaidAmount = Number(existingOrder.paidAmount) + totalPaidNow;
@@ -129,9 +130,11 @@ export class OrderService {
                                 variantId: item.variantId || null,
                                 quantity: item.quantity,
                                 price: item.price,
+                                costPrice: item.costPrice || 0,
                                 stationId: item.stationId || null,
                                 note: item.note || null,
                                 courseName: item.courseName || null,
+                                fireAt: item.fireAt || null,
                             })),
                         },
                         payments: {
@@ -202,9 +205,11 @@ export class OrderService {
                                 variantId: item.variantId || null,
                                 quantity: item.quantity,
                                 price: item.price,
+                                costPrice: item.costPrice || 0,
                                 stationId: item.stationId || null,
                                 note: item.note || null,
                                 courseName: item.courseName || null,
+                                fireAt: item.fireAt || null,
                                 modifiers: item.modifiers ? {
                                     create: item.modifiers.map((m: any) => ({
                                         optionId: m.optionId,
@@ -357,7 +362,7 @@ export class OrderService {
 
         const productMap = new Map(products.map((p: any) => [p.id, p]));
 
-        return items.map(item => {
+        return Promise.all(items.map(async item => {
             // If item already has a stationId from POS, keep it
             if (item.stationId) return item;
 
@@ -367,7 +372,50 @@ export class OrderService {
             // Priority: Branch-Product Default -> Product Default -> Category Default -> null
             const branchOverride = product.branchSettings?.[0]?.defaultStationId;
             const stationId = branchOverride || product.defaultStationId || product.category?.defaultStationId || null;
-            return { ...item, stationId };
+            
+            // Calculate Prep Time
+            const prepTime = product.prepTime || product.category?.defaultPrepTime || 0;
+            
+            // Calculate Exact BOM Cost
+            const costPrice = await this.calculateBOMCost(tx, product);
+
+            return { ...item, stationId, prepTime, costPrice };
+        }));
+    }
+
+    private async calculateBOMCost(tx: any, product: any) {
+        if (!product) return 0;
+
+        // Fetch recipe components
+        const recipe = await tx.productRecipe.findMany({
+            where: { parentId: product.id },
+            include: { ingredient: { select: { costPrice: true } } }
+        });
+
+        if (!recipe || recipe.length === 0) {
+            return Number(product.costPrice) || 0;
+        }
+
+        // Sum up costs: quantity * ingredient.costPrice
+        const totalBOMCost = recipe.reduce((sum: number, component: any) => {
+            const ingredientCost = Number(component.ingredient?.costPrice) || 0;
+            return sum + (Number(component.quantity) * ingredientCost);
+        }, 0);
+
+        return totalBOMCost;
+    }
+
+    private calculateFireTimes(items: any[]) {
+        if (!items || items.length === 0) return items;
+
+        const maxPrepTime = Math.max(...items.map(i => i.prepTime || 0));
+        const now = new Date();
+
+        return items.map(item => {
+            const itemPrepTime = item.prepTime || 0;
+            const delayMinutes = maxPrepTime - itemPrepTime;
+            const fireAt = new Date(now.getTime() + delayMinutes * 60000);
+            return { ...item, fireAt };
         });
     }
 
@@ -593,25 +641,70 @@ export class OrderService {
     }
 
     async splitBill(dto: SplitBillDto) {
-        const order = await this.db.findUnique({
+        const order = await (this.prisma.client as any).order.findUnique({
             where: { id: dto.orderId },
             include: { items: true },
         });
 
-        if (!order) {
-            throw new NotFoundException('Order not found');
-        }
+        if (!order) throw new NotFoundException('Order not found');
+
+        const results = [];
+        const tenantId = this.tenantService.getTenantId();
 
         if (dto.splitType === 'EQUAL') {
             const splitAmount = Number(order.totalAmount) / dto.splits.length;
-            return dto.splits.map(split => ({
-                customerId: split.customerId,
-                amount: splitAmount,
-            }));
+            for (const split of dto.splits) {
+                const child = await (this.prisma.client as any).order.create({
+                    data: {
+                        tenantId: order.tenantId,
+                        branchId: order.branchId,
+                        tableId: order.tableId,
+                        customerId: split.customerId || null,
+                        totalAmount: splitAmount,
+                        status: 'PENDING',
+                        isSplit: true,
+                        parentOrderId: order.id,
+                        orderType: order.orderType,
+                        source: order.source,
+                    }
+                });
+                results.push(child);
+            }
+        } else if (dto.splitType === 'BY_ITEM') {
+            for (const split of dto.splits) {
+                if (!split.itemIds) continue;
+                const items = order.items.filter((i: any) => split.itemIds!.includes(i.id));
+                const splitTotal = items.reduce((sum: number, i: any) => sum + Number(i.price) * i.quantity, 0);
+
+                const child = await (this.prisma.client as any).order.create({
+                    data: {
+                        tenantId: order.tenantId,
+                        branchId: order.branchId,
+                        tableId: order.tableId,
+                        customerId: split.customerId || null,
+                        totalAmount: splitTotal,
+                        status: 'PENDING',
+                        isSplit: true,
+                        parentOrderId: order.id,
+                        orderType: order.orderType,
+                        source: order.source,
+                        items: {
+                            create: items.map((i: any) => ({
+                                productId: i.productId,
+                                quantity: i.quantity,
+                                price: i.price,
+                                variantId: i.variantId,
+                                stationId: i.stationId,
+                                note: i.note,
+                            }))
+                        }
+                    }
+                });
+                results.push(child);
+            }
         }
 
-        // Logic for other split types would go here
-        return dto.splits;
+        return results;
     }
 
     async getOrder(id: string) {
