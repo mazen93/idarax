@@ -143,4 +143,14 @@ export class UpdateSettingsDto {
     @IsOptional()
     @IsBoolean()
     receiptShowBarcode?: boolean;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    drovoTenantId?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    drovoApiKey?: string;
 }

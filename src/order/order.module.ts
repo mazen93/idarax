@@ -15,12 +15,14 @@ import { CrmModule } from '../crm/crm.module';
 import { KdsModule } from '../restaurant/kds/kds.module';
 import { MailModule } from '../mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { DrovoModule } from '../delivery-aggregator/drovo.module';
 
 @Module({
   imports: [PrismaModule, TenantModule, InventoryModule, OfferModule, StaffModule, AuditLogModule, CrmModule, KdsModule, MailModule, NotificationsModule,
     BullModule.registerQueue({
       name: 'orders',
     }),
+    DrovoModule,
   ],
   providers: [OrderService, OrderProcessor, RefundService, NumberingService],
   controllers: [OrderController],

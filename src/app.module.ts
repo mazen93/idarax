@@ -45,6 +45,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 
 import { ScheduleModule } from '@nestjs/schedule';
 import { DeliveryAggregatorModule } from './delivery-aggregator/delivery-aggregator.module';
+import { DrovoModule } from './delivery-aggregator/drovo.module';
 
 @Module({
   imports: [
@@ -100,6 +101,7 @@ import { DeliveryAggregatorModule } from './delivery-aggregator/delivery-aggrega
     MailModule,
     NotificationsModule,
     DeliveryAggregatorModule,
+    DrovoModule,
   ],
   controllers: [AppController],
   providers: [

@@ -14,6 +14,7 @@ import { KdsGateway } from '../restaurant/kds/kds.gateway';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/dto/notifications.dto';
+import { DrovoService } from '../delivery-aggregator/drovo.service';
 
 @Injectable()
 export class OrderService {
@@ -30,6 +31,7 @@ export class OrderService {
         @Optional() private crmService?: CrmService,
         @Optional() private kdsGateway?: KdsGateway,
         @Optional() private notificationsService?: NotificationsService,
+        @Optional() private drovoService?: DrovoService,
     ) { }
 
     private get db() {
@@ -339,6 +341,14 @@ export class OrderService {
                         }
                     }
                 }
+            }
+
+            // 7. Dispatch to Drovo if applicable
+            if (this.drovoService && order.orderType === 'DELIVERY') {
+                // Fire and forget so we don't delay POS response
+                this.drovoService.dispatchOrder(order.id, tenantId).catch(err => {
+                    console.error('Failed to trigger Drovo dispatch background task:', err);
+                });
             }
 
             return order;

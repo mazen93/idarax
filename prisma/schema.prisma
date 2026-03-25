@@ -12,6 +12,7 @@ model Tenant {
   name               String
   domain             String?               @unique
   type               TenantType
+  hasDeliveryIntegration Boolean           @default(false)
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   branches           Branch[]
@@ -127,6 +128,8 @@ model Settings {
   receiptShowTimestamp        Boolean  @default(true)
   receiptShowTotal            Boolean  @default(true)
   twitterUrl                  String?
+  drovoTenantId               String?
+  drovoApiKey                 String?
   tenant                      Tenant   @relation(fields: [tenantId], references: [id])
 }
 
