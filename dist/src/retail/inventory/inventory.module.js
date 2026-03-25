@@ -13,12 +13,13 @@ const common_1 = require("@nestjs/common");
 const inventory_service_1 = require("./inventory.service");
 const inventory_controller_1 = require("./inventory.controller");
 const kds_module_1 = require("../../restaurant/kds/kds.module");
+const notifications_module_1 = require("../../notifications/notifications.module");
 let InventoryModule = class InventoryModule {
 };
 exports.InventoryModule = InventoryModule;
 exports.InventoryModule = InventoryModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule, kds_module_1.KdsModule],
+        imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule, kds_module_1.KdsModule, notifications_module_1.NotificationsModule],
         providers: [inventory_service_1.InventoryService],
         controllers: [inventory_controller_1.InventoryController],
         exports: [inventory_service_1.InventoryService],

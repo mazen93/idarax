@@ -62,6 +62,7 @@ let ProductService = class ProductService {
         return this.db.create({
             data: {
                 ...rest,
+                defaultStationId: rest.defaultStationId || null,
                 costPrice,
                 variants: variants?.length ? {
                     create: variants.map(v => ({
@@ -108,7 +109,7 @@ let ProductService = class ProductService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
-        const products = await this.db.findMany({
+        const products = await this.prisma.product.findMany({
             where: { tenantId },
             include: {
                 variants: true,
@@ -123,11 +124,11 @@ let ProductService = class ProductService {
             return products;
         }
         return products
-            .filter(p => {
+            .filter((p) => {
             const setting = p.branchSettings?.[0];
             return !setting || setting.isAvailable;
         })
-            .map(p => {
+            .map((p) => {
             const setting = p.branchSettings?.[0];
             const { branchSettings, ...product } = p;
             return {
@@ -244,7 +245,7 @@ let ProductService = class ProductService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
-        const products = await this.db.findMany({
+        const products = await this.prisma.product.findMany({
             where: { tenantId },
             select: {
                 id: true,
@@ -256,7 +257,7 @@ let ProductService = class ProductService {
                 branchSettings: { where: { branchId } },
             },
         });
-        return products.map(p => {
+        return products.map((p) => {
             const setting = p.branchSettings?.[0];
             return {
                 productId: p.id,
@@ -267,6 +268,7 @@ let ProductService = class ProductService {
                 isSellable: p.isSellable,
                 isAvailable: setting ? setting.isAvailable : true,
                 priceOverride: setting?.priceOverride ?? null,
+                defaultStationId: setting?.defaultStationId ?? null,
             };
         });
     }
@@ -281,10 +283,12 @@ let ProductService = class ProductService {
                 productId,
                 isAvailable: dto.isAvailable,
                 priceOverride: dto.priceOverride ?? null,
+                defaultStationId: dto.defaultStationId ?? null,
             },
             update: {
                 isAvailable: dto.isAvailable,
                 priceOverride: dto.priceOverride ?? null,
+                defaultStationId: dto.defaultStationId ?? null,
             },
         });
     }

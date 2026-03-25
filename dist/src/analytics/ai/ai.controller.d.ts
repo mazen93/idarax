@@ -34,4 +34,6 @@ export declare class AiController {
         totalProjected: number;
         avgDailyHistorical: number;
     }>;
+    upsell(productIds: string): Promise<any>;
+    inventoryPredictions(): Promise<any>;
 }

@@ -10,13 +10,13 @@ export declare class RecipeController {
     }): Promise<{
         ingredient: {
             name: string;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        quantity: import("@prisma/client-runtime-utils").Decimal;
+        quantity: import("@prisma/client/runtime/library").Decimal;
         variantId: string | null;
         parentId: string;
         ingredientId: string;
@@ -26,13 +26,13 @@ export declare class RecipeController {
         ingredient: {
             name: string;
             sku: string | null;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        quantity: import("@prisma/client-runtime-utils").Decimal;
+        quantity: import("@prisma/client/runtime/library").Decimal;
         variantId: string | null;
         parentId: string;
         ingredientId: string;
@@ -42,7 +42,7 @@ export declare class RecipeController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        quantity: import("@prisma/client-runtime-utils").Decimal;
+        quantity: import("@prisma/client/runtime/library").Decimal;
         variantId: string | null;
         parentId: string;
         ingredientId: string;

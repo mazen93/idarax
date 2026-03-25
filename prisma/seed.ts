@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
+
 
 // Use a plain PrismaClient for seeding to bypass tenant injection requirements
 const prisma = new PrismaClient();

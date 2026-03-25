@@ -52,7 +52,7 @@ export declare class VendorController {
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        costPrice: import("@prisma/client-runtime-utils").Decimal;
+        costPrice: import("@prisma/client/runtime/library").Decimal;
         productId: string;
         vendorId: string;
     }>;
@@ -61,7 +61,7 @@ export declare class VendorController {
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        costPrice: import("@prisma/client-runtime-utils").Decimal;
+        costPrice: import("@prisma/client/runtime/library").Decimal;
         productId: string;
         vendorId: string;
     }>;
@@ -76,12 +76,13 @@ export declare class VendorController {
             description: string | null;
             descriptionAr: string | null;
             defaultStationId: string | null;
-            price: import("@prisma/client-runtime-utils").Decimal;
+            price: import("@prisma/client/runtime/library").Decimal;
             sku: string | null;
             barcode: string | null;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
             isSellable: boolean;
-            productType: import("@prisma/client").$Enums.ProductType;
+            productType: import(".prisma/client").$Enums.ProductType;
+            prepTime: number;
             categoryId: string;
         };
     } & {
@@ -89,7 +90,7 @@ export declare class VendorController {
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        costPrice: import("@prisma/client-runtime-utils").Decimal;
+        costPrice: import("@prisma/client/runtime/library").Decimal;
         productId: string;
         vendorId: string;
     })[]>;

@@ -16,15 +16,16 @@ export declare class TransferService {
             description: string | null;
             descriptionAr: string | null;
             defaultStationId: string | null;
-            price: import("@prisma/client-runtime-utils").Decimal;
+            price: import("@prisma/client/runtime/library").Decimal;
             sku: string | null;
             barcode: string | null;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
             isSellable: boolean;
-            productType: import("@prisma/client").$Enums.ProductType;
+            productType: import(".prisma/client").$Enums.ProductType;
+            prepTime: number;
             categoryId: string;
         };
-        destination: {
+        source: {
             id: string;
             tenantId: string;
             createdAt: Date;
@@ -34,7 +35,7 @@ export declare class TransferService {
             branchId: string | null;
             location: string | null;
         };
-        source: {
+        destination: {
             id: string;
             tenantId: string;
             createdAt: Date;
@@ -61,7 +62,7 @@ export declare class TransferService {
             name: string;
             sku: string | null;
         };
-        destination: {
+        source: {
             id: string;
             tenantId: string;
             createdAt: Date;
@@ -71,7 +72,7 @@ export declare class TransferService {
             branchId: string | null;
             location: string | null;
         };
-        source: {
+        destination: {
             id: string;
             tenantId: string;
             createdAt: Date;
@@ -103,15 +104,16 @@ export declare class TransferService {
             description: string | null;
             descriptionAr: string | null;
             defaultStationId: string | null;
-            price: import("@prisma/client-runtime-utils").Decimal;
+            price: import("@prisma/client/runtime/library").Decimal;
             sku: string | null;
             barcode: string | null;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
             isSellable: boolean;
-            productType: import("@prisma/client").$Enums.ProductType;
+            productType: import(".prisma/client").$Enums.ProductType;
+            prepTime: number;
             categoryId: string;
         };
-        destination: {
+        source: {
             id: string;
             tenantId: string;
             createdAt: Date;
@@ -121,7 +123,7 @@ export declare class TransferService {
             branchId: string | null;
             location: string | null;
         };
-        source: {
+        destination: {
             id: string;
             tenantId: string;
             createdAt: Date;

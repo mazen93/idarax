@@ -27,6 +27,8 @@ class CreateUserDto {
     roleId;
     pinCode;
     permissions;
+    branchId;
+    isActive;
 }
 exports.CreateUserDto = CreateUserDto;
 __decorate([
@@ -70,6 +72,18 @@ __decorate([
     (0, class_validator_1.IsString)({ each: true }),
     __metadata("design:type", Array)
 ], CreateUserDto.prototype, "permissions", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateUserDto.prototype, "branchId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateUserDto.prototype, "isActive", void 0);
 class UpdateUserDto {
     name;
     email;
@@ -78,6 +92,8 @@ class UpdateUserDto {
     roleId;
     pinCode;
     permissions;
+    branchId;
+    isActive;
 }
 exports.UpdateUserDto = UpdateUserDto;
 __decorate([
@@ -123,4 +139,16 @@ __decorate([
     (0, class_validator_1.IsString)({ each: true }),
     __metadata("design:type", Array)
 ], UpdateUserDto.prototype, "permissions", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "branchId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateUserDto.prototype, "isActive", void 0);
 //# sourceMappingURL=user.dto.js.map

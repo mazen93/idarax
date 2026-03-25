@@ -105,6 +105,7 @@ export class DrawerService {
                 amount: dto.amount,
                 type: dto.type,
                 reason: dto.reason,
+                referenceId: dto.referenceId,
             },
         });
     }

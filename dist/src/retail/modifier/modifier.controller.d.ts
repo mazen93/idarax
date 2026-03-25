@@ -10,7 +10,7 @@ export declare class ModifierController {
             updatedAt: Date;
             nameAr: string | null;
             sortOrder: number;
-            priceAdjust: import("@prisma/client-runtime-utils").Decimal;
+            priceAdjust: import("@prisma/client/runtime/library").Decimal;
             modifierId: string;
         }[];
     } & {
@@ -37,7 +37,7 @@ export declare class ModifierController {
             updatedAt: Date;
             nameAr: string | null;
             sortOrder: number;
-            priceAdjust: import("@prisma/client-runtime-utils").Decimal;
+            priceAdjust: import("@prisma/client/runtime/library").Decimal;
             modifierId: string;
         }[];
     } & {
@@ -64,7 +64,7 @@ export declare class ModifierController {
             updatedAt: Date;
             nameAr: string | null;
             sortOrder: number;
-            priceAdjust: import("@prisma/client-runtime-utils").Decimal;
+            priceAdjust: import("@prisma/client/runtime/library").Decimal;
             modifierId: string;
         }[];
     } & {
@@ -100,7 +100,7 @@ export declare class ModifierController {
         updatedAt: Date;
         nameAr: string | null;
         sortOrder: number;
-        priceAdjust: import("@prisma/client-runtime-utils").Decimal;
+        priceAdjust: import("@prisma/client/runtime/library").Decimal;
         modifierId: string;
     }>;
     updateOption(optionId: string, dto: {
@@ -114,7 +114,7 @@ export declare class ModifierController {
         updatedAt: Date;
         nameAr: string | null;
         sortOrder: number;
-        priceAdjust: import("@prisma/client-runtime-utils").Decimal;
+        priceAdjust: import("@prisma/client/runtime/library").Decimal;
         modifierId: string;
     }>;
     deleteOption(optionId: string): Promise<{
@@ -124,7 +124,7 @@ export declare class ModifierController {
         updatedAt: Date;
         nameAr: string | null;
         sortOrder: number;
-        priceAdjust: import("@prisma/client-runtime-utils").Decimal;
+        priceAdjust: import("@prisma/client/runtime/library").Decimal;
         modifierId: string;
     }>;
 }

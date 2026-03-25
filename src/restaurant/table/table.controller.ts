@@ -58,6 +58,12 @@ export class TableController {
         return this.tableService.checkout(id);
     }
 
+    @Post('generate-qrcodes')
+    @Permissions(Actions.TABLES.MANAGE)
+    generateQRCodes() {
+        return this.tableService.generateTableQRCodes();
+    }
+
     @Delete(':id')
     @Permissions(Actions.TABLES.MANAGE)
     remove(@Param('id') id: string) {

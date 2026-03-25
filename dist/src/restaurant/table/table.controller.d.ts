@@ -14,5 +14,9 @@ export declare class TableController {
         message: string;
         orders: any;
     }>;
+    generateQRCodes(): Promise<{
+        message: string;
+        baseUrl: string;
+    }>;
     remove(id: string): Promise<any>;
 }

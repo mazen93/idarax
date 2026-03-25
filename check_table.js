@@ -1,0 +1,1 @@
+const { PrismaClient } = require("@prisma/client"); const prisma = new PrismaClient(); async function main() { const table = await prisma.table.findUnique({ where: { id: "f3d186a6-2f79-4531-88d7-82c58638912f" } }); console.log(JSON.stringify(table)); process.exit(0); } main();

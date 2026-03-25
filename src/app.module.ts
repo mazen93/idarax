@@ -43,8 +43,12 @@ import { AuditLogModule } from './common/audit-log/audit-log.module';
 import { MailModule } from './mail/mail.module';
 import { NotificationsModule } from './notifications/notifications.module';
 
+import { ScheduleModule } from '@nestjs/schedule';
+import { DeliveryAggregatorModule } from './delivery-aggregator/delivery-aggregator.module';
+
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         name: 'default',
@@ -95,6 +99,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AuditLogModule,
     MailModule,
     NotificationsModule,
+    DeliveryAggregatorModule,
   ],
   controllers: [AppController],
   providers: [

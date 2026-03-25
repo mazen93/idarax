@@ -9,6 +9,8 @@ import { randomUUID } from 'crypto';
 import { AuditLogService } from '../common/audit-log/audit-log.service';
 import { SessionService } from './session.service';
 import { RoleDefaultPermissions } from './permissions.constants';
+import { TenantService } from '../tenant/tenant.service';
+
 
 @Injectable()
 export class AuthService {
@@ -18,7 +20,9 @@ export class AuthService {
         private tokenBlacklist: TokenBlacklistService,
         private auditLog: AuditLogService,
         private sessionService: SessionService,
+        private tenantService: TenantService,
     ) { }
+
 
     async register(dto: RegisterDto) {
         const existingUser = await this.prisma.client.user.findUnique({
@@ -45,11 +49,31 @@ export class AuthService {
     }
 
     async login(dto: LoginDto) {
-        const user = await this.prisma.client.user.findUnique({
+        // Use the base prisma model (bypassing the tenant filter) to find the user globally by email
+        const user = await (this.prisma as any).user.findUnique({
             where: { email: dto.email },
         });
 
         if (!user) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
+
+        if (!user.isActive) {
+            throw new UnauthorizedException('Account is inactive');
+        }
+
+        // If a tenant context was provided (e.g. from x-tenant-id header), 
+        // verify that the user belongs to that specific tenant.
+        const requestedTenantId = this.tenantService.getTenantId();
+        if (requestedTenantId && user.tenantId !== requestedTenantId) {
+            // Log this as a failed login attempt for the user in the audit logs
+            await this.auditLog.log({
+                tenantId: user.tenantId,
+                userId: user.id,
+                userEmail: user.email,
+                action: 'auth.login.denied',
+                meta: { reason: 'tenant_mismatch', requestedTenantId },
+            });
             throw new UnauthorizedException('Invalid credentials');
         }
 
@@ -212,9 +236,10 @@ export class AuthService {
             throw new UnauthorizedException('Security breach detected. All sessions revoked.');
         }
 
-        const user = await this.prisma.client.user.findUnique({
+        const user = await (this.prisma as any).user.findUnique({
             where: { id: session.userId }
         });
+
 
         if (!user) {
             throw new UnauthorizedException('User no longer exists');
@@ -245,6 +270,10 @@ export class AuthService {
 
         if (!user) {
             throw new UnauthorizedException('Invalid PIN or Store ID');
+        }
+
+        if (!user.isActive) {
+            throw new UnauthorizedException('Account is inactive');
         }
 
         return this.signToken(user.id, user.email, user.tenantId, user.role, user.name, user.branchId ?? undefined);

@@ -52,7 +52,10 @@ let ShiftService = class ShiftService {
                 }
             }
         });
-        return shift ?? null;
+        return {
+            shift: shift ?? null,
+            serverTime: new Date(),
+        };
     }
     async clockOut(userId, dto) {
         const tenantId = this.tenantService.getTenantId();

@@ -7,4 +7,8 @@ export class UpsertBranchProductDto {
     @IsOptional()
     @IsNumber()
     priceOverride?: number | null;
+
+    @IsOptional()
+    @IsString()
+    defaultStationId?: string | null;
 }

@@ -12,6 +12,8 @@ export declare class CreateUserDto {
     roleId?: string;
     pinCode?: string;
     permissions?: string[];
+    branchId?: string;
+    isActive?: boolean;
 }
 export declare class UpdateUserDto {
     name?: string;
@@ -21,4 +23,6 @@ export declare class UpdateUserDto {
     roleId?: string;
     pinCode?: string;
     permissions?: string[];
+    branchId?: string;
+    isActive?: boolean;
 }

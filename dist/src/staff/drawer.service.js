@@ -102,6 +102,7 @@ let DrawerService = DrawerService_1 = class DrawerService {
                 amount: dto.amount,
                 type: dto.type,
                 reason: dto.reason,
+                referenceId: dto.referenceId,
             },
         });
     }

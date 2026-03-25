@@ -33,6 +33,13 @@ let AiController = class AiController {
     revenueForecast() {
         return this.aiService.predictRevenue(7);
     }
+    upsell(productIds) {
+        const idsArray = productIds ? productIds.split(',').map(id => id.trim()).filter(id => id) : [];
+        return this.aiService.getUpsellRecommendations(idsArray);
+    }
+    inventoryPredictions() {
+        return this.aiService.getInventoryPredictions();
+    }
 };
 exports.AiController = AiController;
 __decorate([
@@ -61,6 +68,23 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AiController.prototype, "revenueForecast", null);
+__decorate([
+    (0, common_1.Get)('upsell'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.POS.ACCESS),
+    (0, swagger_1.ApiOperation)({ summary: 'Get frequently bought together products for cart upselling' }),
+    __param(0, (0, common_1.Query)('productIds')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AiController.prototype, "upsell", null);
+__decorate([
+    (0, common_1.Get)('inventory-predictions'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.INVENTORY.VIEW),
+    (0, swagger_1.ApiOperation)({ summary: 'Get predictive inventory recommendations' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AiController.prototype, "inventoryPredictions", null);
 exports.AiController = AiController = __decorate([
     (0, swagger_1.ApiTags)('AI Insights'),
     (0, swagger_1.ApiBearerAuth)(),

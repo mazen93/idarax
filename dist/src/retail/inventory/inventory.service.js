@@ -13,15 +13,16 @@ exports.InventoryService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const tenant_service_1 = require("../../tenant/tenant.service");
-const kds_gateway_1 = require("../../restaurant/kds/kds.gateway");
+const notifications_service_1 = require("../../notifications/notifications.service");
+const notifications_dto_1 = require("../../notifications/dto/notifications.dto");
 let InventoryService = class InventoryService {
     prisma;
     tenantService;
-    kdsGateway;
-    constructor(prisma, tenantService, kdsGateway) {
+    notificationsService;
+    constructor(prisma, tenantService, notificationsService) {
         this.prisma = prisma;
         this.tenantService = tenantService;
-        this.kdsGateway = kdsGateway;
+        this.notificationsService = notificationsService;
     }
     async createWarehouse(dto) {
         const tenantId = this.tenantService.getTenantId();
@@ -101,15 +102,17 @@ let InventoryService = class InventoryService {
                     tenantId,
                 },
             });
-            if (stockLevel.quantity <= 5) {
-                try {
-                    this.kdsGateway.server.to(`tenant:${tenantId}`).emit('inventory_alert', {
-                        type: 'LOW_STOCK',
-                        productId: dto.productId,
-                        current: stockLevel.quantity,
-                    });
-                }
-                catch { }
+            if (stockLevel.quantity <= stockLevel.minThreshold) {
+                const product = await tx.product.findUnique({
+                    where: { id: dto.productId },
+                    select: { name: true },
+                });
+                this.notificationsService.create(tenantId, {
+                    type: notifications_dto_1.NotificationType.LOW_STOCK,
+                    title: 'Low Stock Alert',
+                    message: `${product?.name ?? dto.productId} is running low (${stockLevel.quantity} remaining).`,
+                    meta: { productId: dto.productId, current: stockLevel.quantity, threshold: stockLevel.minThreshold },
+                }).catch(() => { });
             }
             return stockLevel;
         });
@@ -190,6 +193,6 @@ exports.InventoryService = InventoryService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         tenant_service_1.TenantService,
-        kds_gateway_1.KdsGateway])
+        notifications_service_1.NotificationsService])
 ], InventoryService);
 //# sourceMappingURL=inventory.service.js.map

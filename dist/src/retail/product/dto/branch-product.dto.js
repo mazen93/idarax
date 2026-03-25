@@ -14,6 +14,7 @@ const class_validator_1 = require("class-validator");
 class UpsertBranchProductDto {
     isAvailable;
     priceOverride;
+    defaultStationId;
 }
 exports.UpsertBranchProductDto = UpsertBranchProductDto;
 __decorate([
@@ -25,4 +26,9 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Object)
 ], UpsertBranchProductDto.prototype, "priceOverride", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], UpsertBranchProductDto.prototype, "defaultStationId", void 0);
 //# sourceMappingURL=branch-product.dto.js.map

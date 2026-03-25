@@ -12,6 +12,7 @@ export declare class CategoryController {
         nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        defaultPrepTime: number;
         defaultStationId: string | null;
     }>;
     findAll(): Promise<({
@@ -30,6 +31,7 @@ export declare class CategoryController {
         nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        defaultPrepTime: number;
         defaultStationId: string | null;
     })[]>;
     update(id: string, dto: UpdateCategoryDto): Promise<{
@@ -41,6 +43,7 @@ export declare class CategoryController {
         nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        defaultPrepTime: number;
         defaultStationId: string | null;
     }>;
     remove(id: string): Promise<{
@@ -52,6 +55,7 @@ export declare class CategoryController {
         nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        defaultPrepTime: number;
         defaultStationId: string | null;
     }>;
 }

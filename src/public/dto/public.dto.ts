@@ -40,6 +40,14 @@ export class CreatePublicOrderDto {
     @IsOptional()
     orderType?: string; // PICKUP, DELIVERY, DINE_IN
 
+    @IsString()
+    @IsOptional()
+    source?: string;
+    
+    @IsString()
+    @IsOptional()
+    note?: string;
+
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => PublicOrderItemDto)

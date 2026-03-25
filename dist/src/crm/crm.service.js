@@ -267,6 +267,15 @@ let CrmService = class CrmService {
             return { newTier, pointsEarned: pointsToEarn };
         });
     }
+    async getActiveCampaigns() {
+        const tenantId = this.tenantService.getTenantId();
+        return this.prisma.marketingCampaign.findMany({
+            where: { tenantId },
+            include: { customer: { select: { id: true, name: true, phone: true } } },
+            orderBy: { sentAt: 'desc' },
+            take: 50
+        });
+    }
 };
 exports.CrmService = CrmService;
 exports.CrmService = CrmService = __decorate([

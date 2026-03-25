@@ -10,5 +10,7 @@ export declare class CreatePublicOrderDto {
     tableId?: string;
     branchId?: string;
     orderType?: string;
+    source?: string;
+    note?: string;
     items: PublicOrderItemDto[];
 }

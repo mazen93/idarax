@@ -38,6 +38,8 @@ export class CloseDrawerDto {
 export enum CashMovementType {
     CASH_IN = 'CASH_IN',
     CASH_OUT = 'CASH_OUT',
+    SALE = 'SALE',
+    REFUND = 'REFUND',
 }
 
 export class AddMovementDto {
@@ -54,4 +56,9 @@ export class AddMovementDto {
     @IsOptional()
     @IsString()
     reason?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    referenceId?: string;
 }

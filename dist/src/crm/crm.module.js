@@ -12,13 +12,14 @@ const tenant_module_1 = require("../tenant/tenant.module");
 const common_1 = require("@nestjs/common");
 const crm_service_1 = require("./crm.service");
 const crm_controller_1 = require("./crm.controller");
+const crm_schedule_1 = require("./crm.schedule");
 let CrmModule = class CrmModule {
 };
 exports.CrmModule = CrmModule;
 exports.CrmModule = CrmModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule],
-        providers: [crm_service_1.CrmService],
+        providers: [crm_service_1.CrmService, crm_schedule_1.CrmSchedule],
         controllers: [crm_controller_1.CrmController]
     })
 ], CrmModule);

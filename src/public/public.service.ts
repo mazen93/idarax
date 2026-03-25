@@ -116,17 +116,74 @@ export class PublicService {
     }
 
     async createGuestOrder(tenantId: string, dto: CreatePublicOrderDto) {
-        // Basic order creation logic for guests
-        return (this.prisma as any).order.create({
+        const tenant = await this.prisma.tenant.findUnique({
+            where: { id: tenantId },
+            include: { settings: true }
+        });
+
+        if (!tenant) throw new NotFoundException('Tenant not found');
+
+        // 1. Customer Integration: Look up or create customer by phone
+        let customerId = null;
+        if (dto.customerPhone) {
+            let customer = await this.prisma.customer.findFirst({
+                where: { 
+                    phone: dto.customerPhone,
+                    tenantId: tenantId
+                }
+            });
+
+            if (!customer) {
+                // Check if phone exists at all (since it's unique globally in schema)
+                const existingPhone = await this.prisma.customer.findUnique({
+                    where: { phone: dto.customerPhone }
+                });
+
+                if (!existingPhone) {
+                    customer = await this.prisma.customer.create({
+                        data: {
+                            name: dto.customerName,
+                            phone: dto.customerPhone,
+                            tenantId: tenantId,
+                        }
+                    });
+                    customerId = customer.id;
+                } else {
+                    // Phone exists for another tenant, link if possible or just use guest details
+                    // For now, we link if same tenant, otherwise we just leave as guest
+                    if (existingPhone.tenantId === tenantId) {
+                        customerId = existingPhone.id;
+                    }
+                }
+            } else {
+                customerId = customer.id;
+            }
+        }
+
+        // 2. Financial Calculations
+        const taxRate = Number(tenant.settings?.taxRate || 0);
+        const serviceFeeRate = Number(tenant.settings?.serviceFee || 0);
+        
+        const subtotal = Number(dto.totalAmount);
+        const serviceFeeAmount = (dto.orderType === 'DINE_IN') ? (subtotal * (serviceFeeRate / 100)) : 0;
+        const taxAmount = (subtotal + serviceFeeAmount) * (taxRate / 100);
+        const finalTotal = subtotal + taxAmount + serviceFeeAmount;
+
+        // 3. Create Order
+        const order = await (this.prisma as any).order.create({
             data: {
                 tenantId,
-                totalAmount: dto.totalAmount,
+                customerId,
+                totalAmount: finalTotal,
+                taxAmount,
+                serviceFeeAmount,
                 guestName: dto.customerName,
                 guestPhone: dto.customerPhone,
                 tableId: dto.tableId || undefined,
                 branchId: dto.branchId || undefined, 
-                orderType: dto.orderType || 'IN_STORE',
-                source: (dto.source as any) || 'QR_CODE', 
+                orderType: (dto.orderType === 'PICKUP' ? 'TAKEAWAY' : (dto.orderType || 'IN_STORE')) as any,
+                source: (dto.source === 'WEB_STORE' ? 'MOBILE_APP' : (dto.source || 'QR_CODE')) as any, 
+                note: dto.note,
                 status: 'PENDING',
                 items: {
                     create: dto.items.map((item: any) => ({
@@ -140,6 +197,16 @@ export class PublicService {
                 items: true,
             },
         });
+
+        // 4. Update Table Status if applicable
+        if (dto.tableId) {
+            await (this.prisma as any).table.update({
+                where: { id: dto.tableId },
+                data: { status: 'OCCUPIED' }
+            }).catch((err: any) => console.error('Failed to update table status:', err));
+        }
+
+        return order;
     }
 
     async generateTableQr(tenantId: string, tableId: string) {

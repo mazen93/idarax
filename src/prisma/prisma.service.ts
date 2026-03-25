@@ -1,7 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
 import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()
@@ -9,22 +7,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   private _extendedClient;
 
   constructor(private tenantService: TenantService) {
-    const connectionString = process.env.DATABASE_URL || 'postgresql://idarax_user:idarax_password@127.0.0.1:5433/idarax_db?schema=public';
-    
-    // The pg warning often comes from misconfigured pools when using adapter-pg
-    // We'll ensure we use a stable pool configuration
-    const pool = new Pool({ 
-      connectionString,
-      max: 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
-    });
-    
-    const adapter = new PrismaPg(pool);
-    console.log(`🔌 Initializing Prisma with pg Pool on: ${connectionString.split('@')[1]}`);
+    super({ log: ['warn', 'error'] });
 
-    super({ adapter, log: ['warn', 'error'] });
+    // Capture in local var so it's accessible inside the $extends callback closure
+    const rawClient = this;
 
+    // Extended client — automatically injects tenantId / branchId
     this._extendedClient = this.$extends({
       query: {
         $allModels: {
@@ -34,40 +22,61 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
             if (!tenantId) return query(args);
 
-            const modelsWithTenant = ['Order', 'Table', 'Product', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'StockMovement', 'StockTransfer', 'Promotion', 'PromoCode', 'Customer', 'Vendor', 'Category', 'Discount', 'Settings', 'UserPermission', 'Menu'];
+            const modelsWithTenant = ['Order', 'Table', 'Product', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'StockMovement', 'StockTransfer', 'Promotion', 'PromoCode', 'Customer', 'Vendor', 'Category', 'Discount', 'Settings', 'UserPermission', 'Menu', 'BranchSettings'];
             const modelsWithBranch = ['Order', 'Table', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'Menu'];
 
-            // Add tenantId/branchId to filters for read/update/delete operations
-            if (['findMany', 'findFirst', 'findUnique', 'count', 'update', 'updateMany', 'delete', 'deleteMany'].includes(operation)) {
-              let queryArgs = args as any;
+            const needsTenant = modelsWithTenant.includes(model);
+            const needsBranch = branchId && modelsWithBranch.includes(model);
 
-              // findUnique doesn't support non-unique fields in where, convert to findFirst
-              if (operation === 'findUnique' && (modelsWithTenant.includes(model) || (branchId && modelsWithBranch.includes(model)))) {
-                operation = 'findFirst';
+            if (['findMany', 'findFirst', 'findUnique', 'count', 'update', 'updateMany', 'delete', 'deleteMany'].includes(operation)) {
+              const queryArgs = args as any;
+
+              // findUnique cannot have extra non-unique fields in where clause.
+              // Redirect to findFirst on the raw (unextended) client to avoid infinite recursion.
+              if (operation === 'findUnique' && (needsTenant || needsBranch)) {
+                const where: any = { ...queryArgs.where };
+                if (needsTenant) where.tenantId = tenantId;
+                if (needsBranch) {
+                  if (model === 'User') {
+                    // ADMIN (Tenant Owner) / SUPER_ADMIN are tenant-wide — they bypass branch scoping.
+                    where.AND = [
+                      { tenantId },
+                      { OR: [{ branchId }, { branchId: null }, { role: 'ADMIN' }, { role: 'SUPER_ADMIN' }] },
+                    ];
+                  } else {
+                    where.branchId = branchId;
+                  }
+                }
+                const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
+                return (rawClient as any)[modelKey].findFirst({ ...queryArgs, where });
               }
 
-              if (modelsWithTenant.includes(model)) {
+              if (needsTenant) {
                 queryArgs.where = { ...queryArgs.where, tenantId };
               }
 
-              if (branchId && modelsWithBranch.includes(model)) {
-                queryArgs.where = { ...queryArgs.where, branchId };
+              if (needsBranch) {
+                if (model === 'User') {
+                  // ADMIN (Tenant Owner) / SUPER_ADMIN are tenant-wide — they bypass branch scoping.
+                  // This means the POS lock screen owner PIN works on any branch.
+                  queryArgs.where = {
+                    ...queryArgs.where,
+                    AND: [
+                      { tenantId },
+                      { OR: [{ branchId }, { branchId: null }, { role: 'ADMIN' }, { role: 'SUPER_ADMIN' }] },
+                    ],
+                  };
+                } else {
+                  queryArgs.where = { ...queryArgs.where, branchId };
+                }
               }
             }
 
-            // Automatically inject tenantId/branchId into create operations
             if (operation === 'create' || operation === 'createMany') {
               const queryArgs = args as any;
               const injectData: any = {};
-
-              if (modelsWithTenant.includes(model)) {
-                injectData.tenantId = tenantId;
-              }
-
-              if (branchId && modelsWithBranch.includes(model)) {
-                injectData.branchId = branchId;
-              }
-
+              if (needsTenant) injectData.tenantId = tenantId;
+              if (needsBranch) injectData.branchId = branchId;
               if (Object.keys(injectData).length > 0) {
                 if (Array.isArray(queryArgs.data)) {
                   queryArgs.data = queryArgs.data.map((item: any) => ({ ...item, ...injectData }));
@@ -84,8 +93,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     });
   }
 
+  /** Extended client — auto-injects tenant/branch filters. Use for most operations. */
   get client() {
     return this._extendedClient;
+  }
+
+  /** Unextended base client — pass tenant filters manually. Use for complex nested include queries. */
+  get rawClient() {
+    return this as any;
   }
 
   async onModuleInit() {

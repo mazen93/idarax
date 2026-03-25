@@ -24,27 +24,68 @@ let SettingsService = class SettingsService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
-        const settings = await this.prisma.settings.findUnique({
+        const branchId = this.tenantService.getBranchId();
+        const globalSettings = await this.prisma.settings.findUnique({
             where: { tenantId },
             include: { tenant: true }
         });
-        if (!settings) {
+        if (!globalSettings) {
             return this.prisma.settings.create({
                 data: { tenantId },
                 include: { tenant: true }
             });
         }
-        return settings;
+        if (branchId) {
+            const branchSettings = await this.prisma.client.branchSettings.findUnique({
+                where: { branchId }
+            });
+            if (branchSettings) {
+                const merged = { ...globalSettings };
+                Object.keys(branchSettings).forEach(key => {
+                    if (branchSettings[key] !== null && branchSettings[key] !== undefined && key !== 'id' && key !== 'branchId' && key !== 'tenantId') {
+                        merged[key] = branchSettings[key];
+                    }
+                });
+                return merged;
+            }
+        }
+        return globalSettings;
     }
     async update(dto) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
+        const branchId = this.tenantService.getBranchId();
         const { name, ...settingsData } = dto;
-        if (name) {
+        if (name && !branchId) {
             await this.prisma.tenant.update({
                 where: { id: tenantId },
                 data: { name }
+            });
+        }
+        if (branchId) {
+            const branchFields = [
+                'taxRate', 'serviceFee', 'receiptHeader', 'receiptFooter', 'receiptLanguage',
+                'receiptShowCustomer', 'receiptShowLogo', 'receiptShowOrderNumber', 'receiptShowTable',
+                'receiptShowTimestamp', 'receiptShowOrderType', 'receiptShowOperator',
+                'receiptShowItemsDescription', 'receiptShowItemsQty', 'receiptShowItemsPrice',
+                'receiptShowSubtotal', 'receiptShowTax', 'receiptShowServiceCharge',
+                'receiptShowDiscount', 'receiptShowTotal', 'receiptShowPaymentMethod', 'receiptShowBarcode'
+            ];
+            const branchData = {};
+            for (const field of branchFields) {
+                if (settingsData[field] !== undefined) {
+                    branchData[field] = settingsData[field];
+                }
+            }
+            return this.prisma.client.branchSettings.upsert({
+                where: { branchId },
+                create: {
+                    branchId,
+                    tenantId,
+                    ...branchData
+                },
+                update: branchData
             });
         }
         return this.prisma.settings.upsert({

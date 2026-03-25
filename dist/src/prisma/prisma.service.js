@@ -12,24 +12,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PrismaService = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
-const pg_1 = require("pg");
-const adapter_pg_1 = require("@prisma/adapter-pg");
 const tenant_service_1 = require("../tenant/tenant.service");
 let PrismaService = class PrismaService extends client_1.PrismaClient {
     tenantService;
     _extendedClient;
     constructor(tenantService) {
-        const connectionString = process.env.DATABASE_URL || 'postgresql://idarax_user:idarax_password@127.0.0.1:5433/idarax_db?schema=public';
-        const pool = new pg_1.Pool({
-            connectionString,
-            max: 10,
-            idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 2000,
-        });
-        const adapter = new adapter_pg_1.PrismaPg(pool);
-        console.log(`🔌 Initializing Prisma with pg Pool on: ${connectionString.split('@')[1]}`);
-        super({ adapter, log: ['warn', 'error'] });
+        super({ log: ['warn', 'error'] });
         this.tenantService = tenantService;
+        const rawClient = this;
         this._extendedClient = this.$extends({
             query: {
                 $allModels: {
@@ -38,29 +28,55 @@ let PrismaService = class PrismaService extends client_1.PrismaClient {
                         const branchId = tenantService.getBranchId();
                         if (!tenantId)
                             return query(args);
-                        const modelsWithTenant = ['Order', 'Table', 'Product', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'StockMovement', 'StockTransfer', 'Promotion', 'PromoCode', 'Customer', 'Vendor', 'Category', 'Discount', 'Settings', 'UserPermission', 'Menu'];
+                        const modelsWithTenant = ['Order', 'Table', 'Product', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'StockMovement', 'StockTransfer', 'Promotion', 'PromoCode', 'Customer', 'Vendor', 'Category', 'Discount', 'Settings', 'UserPermission', 'Menu', 'BranchSettings'];
                         const modelsWithBranch = ['Order', 'Table', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'Menu'];
+                        const needsTenant = modelsWithTenant.includes(model);
+                        const needsBranch = branchId && modelsWithBranch.includes(model);
                         if (['findMany', 'findFirst', 'findUnique', 'count', 'update', 'updateMany', 'delete', 'deleteMany'].includes(operation)) {
-                            let queryArgs = args;
-                            if (operation === 'findUnique' && (modelsWithTenant.includes(model) || (branchId && modelsWithBranch.includes(model)))) {
-                                operation = 'findFirst';
+                            const queryArgs = args;
+                            if (operation === 'findUnique' && (needsTenant || needsBranch)) {
+                                const where = { ...queryArgs.where };
+                                if (needsTenant)
+                                    where.tenantId = tenantId;
+                                if (needsBranch) {
+                                    if (model === 'User') {
+                                        where.AND = [
+                                            { tenantId },
+                                            { OR: [{ branchId }, { branchId: null }, { role: 'ADMIN' }, { role: 'SUPER_ADMIN' }] },
+                                        ];
+                                    }
+                                    else {
+                                        where.branchId = branchId;
+                                    }
+                                }
+                                const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
+                                return rawClient[modelKey].findFirst({ ...queryArgs, where });
                             }
-                            if (modelsWithTenant.includes(model)) {
+                            if (needsTenant) {
                                 queryArgs.where = { ...queryArgs.where, tenantId };
                             }
-                            if (branchId && modelsWithBranch.includes(model)) {
-                                queryArgs.where = { ...queryArgs.where, branchId };
+                            if (needsBranch) {
+                                if (model === 'User') {
+                                    queryArgs.where = {
+                                        ...queryArgs.where,
+                                        AND: [
+                                            { tenantId },
+                                            { OR: [{ branchId }, { branchId: null }, { role: 'ADMIN' }, { role: 'SUPER_ADMIN' }] },
+                                        ],
+                                    };
+                                }
+                                else {
+                                    queryArgs.where = { ...queryArgs.where, branchId };
+                                }
                             }
                         }
                         if (operation === 'create' || operation === 'createMany') {
                             const queryArgs = args;
                             const injectData = {};
-                            if (modelsWithTenant.includes(model)) {
+                            if (needsTenant)
                                 injectData.tenantId = tenantId;
-                            }
-                            if (branchId && modelsWithBranch.includes(model)) {
+                            if (needsBranch)
                                 injectData.branchId = branchId;
-                            }
                             if (Object.keys(injectData).length > 0) {
                                 if (Array.isArray(queryArgs.data)) {
                                     queryArgs.data = queryArgs.data.map((item) => ({ ...item, ...injectData }));
@@ -78,6 +94,9 @@ let PrismaService = class PrismaService extends client_1.PrismaClient {
     }
     get client() {
         return this._extendedClient;
+    }
+    get rawClient() {
+        return this;
     }
     async onModuleInit() {
         await this.$connect();

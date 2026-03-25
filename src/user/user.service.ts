@@ -20,10 +20,11 @@ export class UserService {
         if (existing) throw new ConflictException('Email already in use');
 
         if (dto.pinCode) {
-            const existingPin = await this.prisma.client.user.findFirst({
+            // Check uniqueness across the ENTIRE tenant (bypass branch-level filter)
+            const existingPin = await (this.prisma as any).user.findFirst({
                 where: { pinCode: dto.pinCode, tenantId }
             });
-            if (existingPin) throw new ConflictException('PIN code already in use by another staff member');
+            if (existingPin) throw new ConflictException(`PIN code "${dto.pinCode}" is already in use by another staff member "${existingPin.name}" in this business.`);
         }
 
         const hashedPassword = await bcrypt.hash(dto.password || 'password123', 10);
@@ -37,11 +38,20 @@ export class UserService {
         };
         if (dto.role) data.role = dto.role as UserRole;
         if (dto.roleId) data.roleId = dto.roleId;
+        if (dto.branchId) data.branchId = dto.branchId;
+        if (dto.isActive !== undefined) data.isActive = dto.isActive;
 
-        const user = await this.prisma.client.user.create({
-            data,
-            select: { id: true, name: true, email: true, role: true, roleId: true, createdAt: true, pinCode: true }
-        });
+        let user;
+        try {
+            user = await this.prisma.client.user.create({
+                data,
+                select: { id: true, name: true, email: true, role: true, roleId: true, createdAt: true, pinCode: true, isActive: true }
+            });
+        } catch (error) {
+            console.error('FAILED TO CREATE USER. Data:', JSON.stringify(data, null, 2));
+            console.error('Prisma Error:', error);
+            throw error;
+        }
 
         // Create permission records if provided
         if (dto.permissions && dto.permissions.length > 0) {
@@ -70,7 +80,7 @@ export class UserService {
         const users = await this.prisma.client.user.findMany({
             where: { tenantId },
             select: {
-                id: true, name: true, email: true, role: true, roleId: true, createdAt: true, branchId: true, pinCode: true,
+                id: true, name: true, email: true, role: true, roleId: true, createdAt: true, branchId: true, pinCode: true, isActive: true,
                 customRole: { select: { id: true, name: true, permissions: { select: { action: true } } } },
                 permissions: { select: { action: true } }
             },
@@ -126,22 +136,24 @@ export class UserService {
 
         if (dto.pinCode !== undefined) {
             if (dto.pinCode !== null) {
-                const existingPin = await this.prisma.client.user.findFirst({
+                // Check uniqueness across the ENTIRE tenant (bypass branch-level filter)
+                const existingPin = await (this.prisma as any).user.findFirst({
                     where: {
                         pinCode: dto.pinCode,
                         tenantId,
                         id: { not: id }
                     }
                 });
-                if (existingPin) throw new ConflictException('PIN code already in use by another staff member');
+                if (existingPin) throw new ConflictException(`PIN code "${dto.pinCode}" is already in use by staff member "${existingPin.name}".`);
             }
             data.pinCode = dto.pinCode;
         }
+        if (dto.isActive !== undefined) data.isActive = dto.isActive;
 
         const updatedUser = await this.prisma.client.user.update({
             where: { id },
             data,
-            select: { id: true, name: true, email: true, role: true, roleId: true, createdAt: true, branchId: true, pinCode: true }
+            select: { id: true, name: true, email: true, role: true, roleId: true, createdAt: true, branchId: true, pinCode: true, isActive: true }
         });
 
         // Replace permissions if provided

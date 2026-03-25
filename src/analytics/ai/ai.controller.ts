@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { Permissions } from '../../auth/permissions.decorator';
@@ -31,5 +31,20 @@ export class AiController {
     @ApiOperation({ summary: 'Predict revenue for next few days' })
     revenueForecast() {
         return this.aiService.predictRevenue(7);
+    }
+
+    @Get('upsell')
+    @Permissions(Actions.POS.ACCESS)
+    @ApiOperation({ summary: 'Get frequently bought together products for cart upselling' })
+    upsell(@Query('productIds') productIds: string) {
+        const idsArray = productIds ? productIds.split(',').map(id => id.trim()).filter(id => id) : [];
+        return this.aiService.getUpsellRecommendations(idsArray);
+    }
+
+    @Get('inventory-predictions')
+    @Permissions(Actions.INVENTORY.VIEW)
+    @ApiOperation({ summary: 'Get predictive inventory recommendations' })
+    inventoryPredictions() {
+        return this.aiService.getInventoryPredictions();
     }
 }

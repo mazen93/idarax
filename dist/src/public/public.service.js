@@ -147,15 +147,64 @@ let PublicService = class PublicService {
         })).filter(cat => cat.products.length > 0);
     }
     async createGuestOrder(tenantId, dto) {
-        return this.prisma.order.create({
+        const tenant = await this.prisma.tenant.findUnique({
+            where: { id: tenantId },
+            include: { settings: true }
+        });
+        if (!tenant)
+            throw new common_1.NotFoundException('Tenant not found');
+        let customerId = null;
+        if (dto.customerPhone) {
+            let customer = await this.prisma.customer.findFirst({
+                where: {
+                    phone: dto.customerPhone,
+                    tenantId: tenantId
+                }
+            });
+            if (!customer) {
+                const existingPhone = await this.prisma.customer.findUnique({
+                    where: { phone: dto.customerPhone }
+                });
+                if (!existingPhone) {
+                    customer = await this.prisma.customer.create({
+                        data: {
+                            name: dto.customerName,
+                            phone: dto.customerPhone,
+                            tenantId: tenantId,
+                        }
+                    });
+                    customerId = customer.id;
+                }
+                else {
+                    if (existingPhone.tenantId === tenantId) {
+                        customerId = existingPhone.id;
+                    }
+                }
+            }
+            else {
+                customerId = customer.id;
+            }
+        }
+        const taxRate = Number(tenant.settings?.taxRate || 0);
+        const serviceFeeRate = Number(tenant.settings?.serviceFee || 0);
+        const subtotal = Number(dto.totalAmount);
+        const serviceFeeAmount = (dto.orderType === 'DINE_IN') ? (subtotal * (serviceFeeRate / 100)) : 0;
+        const taxAmount = (subtotal + serviceFeeAmount) * (taxRate / 100);
+        const finalTotal = subtotal + taxAmount + serviceFeeAmount;
+        const order = await this.prisma.order.create({
             data: {
                 tenantId,
-                totalAmount: dto.totalAmount,
+                customerId,
+                totalAmount: finalTotal,
+                taxAmount,
+                serviceFeeAmount,
                 guestName: dto.customerName,
                 guestPhone: dto.customerPhone,
                 tableId: dto.tableId || undefined,
                 branchId: dto.branchId || undefined,
-                orderType: dto.orderType || 'IN_STORE',
+                orderType: (dto.orderType === 'PICKUP' ? 'TAKEAWAY' : (dto.orderType || 'IN_STORE')),
+                source: (dto.source === 'WEB_STORE' ? 'MOBILE_APP' : (dto.source || 'QR_CODE')),
+                note: dto.note,
                 status: 'PENDING',
                 items: {
                     create: dto.items.map((item) => ({
@@ -169,6 +218,13 @@ let PublicService = class PublicService {
                 items: true,
             },
         });
+        if (dto.tableId) {
+            await this.prisma.table.update({
+                where: { id: dto.tableId },
+                data: { status: 'OCCUPIED' }
+            }).catch((err) => console.error('Failed to update table status:', err));
+        }
+        return order;
     }
     async generateTableQr(tenantId, tableId) {
         const table = await this.prisma.table.findUnique({
@@ -201,6 +257,101 @@ let PublicService = class PublicService {
                 comment: dto.comment,
             },
         });
+    }
+    async getTableOrder(tableId) {
+        const order = await this.prisma.order.findFirst({
+            where: {
+                tableId,
+                status: { in: ['PENDING', 'PREPARING', 'READY', 'HELD'] }
+            },
+            include: {
+                items: {
+                    include: {
+                        product: { select: { name: true, price: true } }
+                    }
+                },
+                tenant: { select: { name: true, id: true } }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        if (!order)
+            return null;
+        return order;
+    }
+    async getTable(id) {
+        const table = await this.prisma.table.findUnique({
+            where: { id },
+            include: {
+                section: {
+                    select: { branchId: true }
+                }
+            }
+        });
+        if (!table)
+            throw new common_1.NotFoundException('Table not found');
+        return {
+            id: table.id,
+            number: table.number,
+            branchId: table.section?.branchId || table.branchId || null
+        };
+    }
+    async splitOrder(orderId, dto) {
+        const order = await this.prisma.order.findUnique({
+            where: { id: orderId },
+            include: { items: true },
+        });
+        if (!order)
+            throw new common_1.NotFoundException('Order not found');
+        const results = [];
+        if (dto.splitType === 'EQUAL') {
+            const splitAmount = Number(order.totalAmount) / dto.splits.length;
+            for (const split of dto.splits) {
+                const child = await this.prisma.order.create({
+                    data: {
+                        tenantId: order.tenantId,
+                        branchId: order.branchId,
+                        tableId: order.tableId,
+                        totalAmount: splitAmount,
+                        status: 'PENDING',
+                        isSplit: true,
+                        parentOrderId: order.id,
+                        orderType: order.orderType,
+                        source: 'QR_CODE',
+                    }
+                });
+                results.push(child);
+            }
+        }
+        else if (dto.splitType === 'BY_ITEM') {
+            for (const split of dto.splits) {
+                if (!split.itemIds)
+                    continue;
+                const items = order.items.filter((i) => split.itemIds.includes(i.id));
+                const splitTotal = items.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0);
+                const child = await this.prisma.order.create({
+                    data: {
+                        tenantId: order.tenantId,
+                        branchId: order.branchId,
+                        tableId: order.tableId,
+                        totalAmount: splitTotal,
+                        status: 'PENDING',
+                        isSplit: true,
+                        parentOrderId: order.id,
+                        orderType: order.orderType,
+                        source: 'QR_CODE',
+                        items: {
+                            create: items.map((i) => ({
+                                productId: i.productId,
+                                quantity: i.quantity,
+                                price: i.price,
+                            }))
+                        }
+                    }
+                });
+                results.push(child);
+            }
+        }
+        return results;
     }
 };
 exports.PublicService = PublicService;

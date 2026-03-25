@@ -18,7 +18,7 @@ export declare class TenantAdminController {
         createdAt: Date;
         name: string;
         domain: string | null;
-        type: import("@prisma/client").$Enums.TenantType;
+        type: import(".prisma/client").$Enums.TenantType;
         updatedAt: Date;
     })[]>;
 }

@@ -53,18 +53,21 @@ const crypto_1 = require("crypto");
 const audit_log_service_1 = require("../common/audit-log/audit-log.service");
 const session_service_1 = require("./session.service");
 const permissions_constants_1 = require("./permissions.constants");
+const tenant_service_1 = require("../tenant/tenant.service");
 let AuthService = class AuthService {
     prisma;
     jwtService;
     tokenBlacklist;
     auditLog;
     sessionService;
-    constructor(prisma, jwtService, tokenBlacklist, auditLog, sessionService) {
+    tenantService;
+    constructor(prisma, jwtService, tokenBlacklist, auditLog, sessionService, tenantService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
         this.tokenBlacklist = tokenBlacklist;
         this.auditLog = auditLog;
         this.sessionService = sessionService;
+        this.tenantService = tenantService;
     }
     async register(dto) {
         const existingUser = await this.prisma.client.user.findUnique({
@@ -86,10 +89,24 @@ let AuthService = class AuthService {
         return this.signToken(user.id, user.email, user.tenantId, user.role, user.name, user.branchId ?? undefined);
     }
     async login(dto) {
-        const user = await this.prisma.client.user.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: { email: dto.email },
         });
         if (!user) {
+            throw new common_1.UnauthorizedException('Invalid credentials');
+        }
+        if (!user.isActive) {
+            throw new common_1.UnauthorizedException('Account is inactive');
+        }
+        const requestedTenantId = this.tenantService.getTenantId();
+        if (requestedTenantId && user.tenantId !== requestedTenantId) {
+            await this.auditLog.log({
+                tenantId: user.tenantId,
+                userId: user.id,
+                userEmail: user.email,
+                action: 'auth.login.denied',
+                meta: { reason: 'tenant_mismatch', requestedTenantId },
+            });
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
         const passwordMatches = await bcrypt.compare(dto.password, user.password);
@@ -210,7 +227,7 @@ let AuthService = class AuthService {
             await this.sessionService.revokeAllSessions(session.userId);
             throw new common_1.UnauthorizedException('Security breach detected. All sessions revoked.');
         }
-        const user = await this.prisma.client.user.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: { id: session.userId }
         });
         if (!user) {
@@ -228,6 +245,9 @@ let AuthService = class AuthService {
         });
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid PIN or Store ID');
+        }
+        if (!user.isActive) {
+            throw new common_1.UnauthorizedException('Account is inactive');
         }
         return this.signToken(user.id, user.email, user.tenantId, user.role, user.name, user.branchId ?? undefined);
     }
@@ -275,6 +295,7 @@ exports.AuthService = AuthService = __decorate([
         jwt_1.JwtService,
         token_blacklist_service_1.TokenBlacklistService,
         audit_log_service_1.AuditLogService,
-        session_service_1.SessionService])
+        session_service_1.SessionService,
+        tenant_service_1.TenantService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

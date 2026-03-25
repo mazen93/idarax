@@ -36,4 +36,6 @@ export declare class AiService {
         avgDailyHistorical: number;
     }>;
     getRecommendations(productId: string): Promise<any>;
+    getUpsellRecommendations(productIds: string[]): Promise<any>;
+    getInventoryPredictions(): Promise<any>;
 }

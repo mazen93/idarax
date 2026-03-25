@@ -40,6 +40,8 @@ class CreatePublicOrderDto {
     tableId;
     branchId;
     orderType;
+    source;
+    note;
     items;
 }
 exports.CreatePublicOrderDto = CreatePublicOrderDto;
@@ -73,6 +75,16 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreatePublicOrderDto.prototype, "orderType", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreatePublicOrderDto.prototype, "source", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreatePublicOrderDto.prototype, "note", void 0);
 __decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ValidateNested)({ each: true }),

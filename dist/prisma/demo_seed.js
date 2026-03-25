@@ -35,14 +35,9 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const bcrypt = __importStar(require("bcryptjs"));
-const pg_1 = require("pg");
-const adapter_pg_1 = require("@prisma/adapter-pg");
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
-const connectionString = process.env.DATABASE_URL;
-const pool = new pg_1.Pool({ connectionString });
-const adapter = new adapter_pg_1.PrismaPg(pool);
-const prisma = new client_1.PrismaClient({ adapter });
+const prisma = new client_1.PrismaClient();
 async function main() {
     console.log('🚀 Starting Demo Data Seed...');
     const demoUser = await prisma.user.findUnique({

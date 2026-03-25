@@ -48,6 +48,9 @@ let TableController = class TableController {
     checkout(id) {
         return this.tableService.checkout(id);
     }
+    generateQRCodes() {
+        return this.tableService.generateTableQRCodes();
+    }
     remove(id) {
         return this.tableService.remove(id);
     }
@@ -119,6 +122,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], TableController.prototype, "checkout", null);
+__decorate([
+    (0, common_1.Post)('generate-qrcodes'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.TABLES.MANAGE),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], TableController.prototype, "generateQRCodes", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.TABLES.MANAGE),

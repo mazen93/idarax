@@ -393,6 +393,15 @@ let AnalyticsService = class AnalyticsService {
     async getTaxLiability(startDate, endDate, filterBranchId) {
         const tenantId = this.tenantService.getTenantId();
         const branchId = this.getQueryBranchId(filterBranchId);
+        const tenantSettings = await this.prisma.settings.findUnique({ where: { tenantId } });
+        const branchSettingsList = await this.prisma.client.branchSettings.findMany({ where: { tenantId } });
+        const globalTaxRate = Number(tenantSettings?.taxRate || 0);
+        const branchTaxRates = {};
+        branchSettingsList.forEach((bs) => {
+            if (bs.taxRate !== null && bs.taxRate !== undefined) {
+                branchTaxRates[bs.branchId] = Number(bs.taxRate);
+            }
+        });
         const orders = await this.prisma.order.findMany({
             where: {
                 tenantId,
@@ -403,12 +412,16 @@ let AnalyticsService = class AnalyticsService {
         });
         const summary = orders.reduce((acc, order) => {
             const date = order.createdAt.toISOString().split('T')[0];
-            const key = `${date}_VAT10`;
+            const orderBranchId = order.branchId;
+            const taxRate = (orderBranchId && branchTaxRates[orderBranchId] !== undefined)
+                ? branchTaxRates[orderBranchId]
+                : globalTaxRate;
+            const key = `${date}_VAT${taxRate}`;
             if (!acc[key]) {
                 acc[key] = {
                     report_date: date,
-                    tax_code: 'VAT 10%',
-                    tax_rate: 10,
+                    tax_code: `VAT ${taxRate}%`,
+                    tax_rate: taxRate,
                     taxable_amount: 0,
                     non_taxable_amount: 0,
                     tax_collected: 0,
@@ -520,6 +533,67 @@ let AnalyticsService = class AnalyticsService {
             leaderboard[o.userId].orderCount += 1;
         });
         return Object.values(leaderboard).sort((a, b) => b.revenue - a.revenue);
+    }
+    async getKitchenPerformance(startDate, endDate) {
+        const tenantId = this.tenantService.getTenantId();
+        const branchId = this.tenantService.getBranchId();
+        const completedItems = await this.prisma.orderItem.findMany({
+            where: {
+                order: {
+                    tenantId,
+                    ...(branchId ? { branchId } : {}),
+                    createdAt: { gte: startDate, lte: endDate },
+                },
+                status: 'READY',
+                startedAt: { not: null },
+                completedAt: { not: null },
+            },
+            include: { station: true, product: true }
+        });
+        const stationStats = {};
+        completedItems.forEach((item) => {
+            const stationId = item.stationId || 'unassigned';
+            const stationName = item.station?.name || 'Unassigned';
+            if (!stationStats[stationId]) {
+                stationStats[stationId] = { stationName, totalItems: 0, totalPrepTimeMs: 0, avgPrepTimeMinutes: 0 };
+            }
+            const prepTime = item.completedAt.getTime() - item.startedAt.getTime();
+            stationStats[stationId].totalItems += 1;
+            stationStats[stationId].totalPrepTimeMs += prepTime;
+            stationStats[stationId].avgPrepTimeMinutes = (stationStats[stationId].totalPrepTimeMs / stationStats[stationId].totalItems) / 60000;
+        });
+        return Object.values(stationStats).sort((a, b) => b.avgPrepTimeMinutes - a.avgPrepTimeMinutes);
+    }
+    async getProductProfitability(startDate, endDate) {
+        const tenantId = this.tenantService.getTenantId();
+        const branchId = this.tenantService.getBranchId();
+        const items = await this.prisma.orderItem.findMany({
+            where: {
+                order: {
+                    tenantId,
+                    ...(branchId ? { branchId } : {}),
+                    createdAt: { gte: startDate, lte: endDate },
+                    status: { not: 'CANCELLED' }
+                }
+            },
+            include: { product: { select: { name: true } } }
+        });
+        const productStats = {};
+        items.forEach((item) => {
+            const productId = item.productId;
+            if (!productStats[productId]) {
+                productStats[productId] = { name: item.product.name, quantity: 0, totalRevenue: 0, totalCost: 0, totalProfit: 0, margin: 0 };
+            }
+            const qty = item.quantity;
+            const rev = Number(item.price) * qty;
+            const cost = Number(item.costPrice || 0) * qty;
+            productStats[productId].quantity += qty;
+            productStats[productId].totalRevenue += rev;
+            productStats[productId].totalCost += cost;
+            productStats[productId].totalProfit += (rev - cost);
+            productStats[productId].margin = (productStats[productId].totalProfit / productStats[productId].totalRevenue) * 100;
+        });
+        return Object.values(productStats).sort((a, b) => b.totalProfit - a.totalProfit);
     }
     async pushStatsUpdate(tenantId, branchId) {
         try {

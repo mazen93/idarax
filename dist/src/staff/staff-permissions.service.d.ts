@@ -6,7 +6,7 @@ export declare class StaffPermissionsService {
         id: string;
         name: string;
         email: string;
-        role: import("@prisma/client").$Enums.UserRole;
+        role: import(".prisma/client").$Enums.UserRole;
         branchId: string | null;
         permissions: {
             action: string;
@@ -73,6 +73,7 @@ export declare class StaffPermissionsService {
             EDIT: string;
             DELETE: string;
             ASSIGN_ROLES: string;
+            EDIT_STATUS: string;
         };
         SETTINGS: {
             VIEW: string;

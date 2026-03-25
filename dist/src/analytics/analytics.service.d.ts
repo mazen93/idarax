@@ -41,5 +41,19 @@ export declare class AnalyticsService {
         revenue: number;
         orderCount: number;
     }[]>;
+    getKitchenPerformance(startDate: Date, endDate: Date): Promise<{
+        stationName: string;
+        totalItems: number;
+        totalPrepTimeMs: number;
+        avgPrepTimeMinutes: number;
+    }[]>;
+    getProductProfitability(startDate: Date, endDate: Date): Promise<{
+        name: string;
+        quantity: number;
+        totalRevenue: number;
+        totalCost: number;
+        totalProfit: number;
+        margin: number;
+    }[]>;
     pushStatsUpdate(tenantId: string, branchId?: string): Promise<void>;
 }

@@ -46,8 +46,12 @@ export class ShiftService {
                 }
             }
         });
-        // Return null explicitly so NestJS serialises it as JSON `null`
-        return shift ?? null;
+        
+        // Return shift and current server time to help frontend synchronize clocks
+        return {
+            shift: shift ?? null,
+            serverTime: new Date(),
+        };
     }
 
     async clockOut(userId: string, dto: ClockOutDto) {

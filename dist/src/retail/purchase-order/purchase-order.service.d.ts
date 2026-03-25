@@ -19,7 +19,7 @@ export declare class PurchaseOrderService {
         };
         items: {
             id: string;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
             productId: string;
             quantity: number;
             purchaseOrderId: string;
@@ -32,8 +32,8 @@ export declare class PurchaseOrderService {
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
-        status: import("@prisma/client").$Enums.PurchaseOrderStatus;
-        totalAmount: import("@prisma/client-runtime-utils").Decimal;
+        status: import(".prisma/client").$Enums.PurchaseOrderStatus;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
         note: string | null;
         warehouseId: string | null;
         vendorId: string;
@@ -73,17 +73,18 @@ export declare class PurchaseOrderService {
                 description: string | null;
                 descriptionAr: string | null;
                 defaultStationId: string | null;
-                price: import("@prisma/client-runtime-utils").Decimal;
+                price: import("@prisma/client/runtime/library").Decimal;
                 sku: string | null;
                 barcode: string | null;
-                costPrice: import("@prisma/client-runtime-utils").Decimal;
+                costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
-                productType: import("@prisma/client").$Enums.ProductType;
+                productType: import(".prisma/client").$Enums.ProductType;
+                prepTime: number;
                 categoryId: string;
             };
         } & {
             id: string;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
             productId: string;
             quantity: number;
             purchaseOrderId: string;
@@ -96,8 +97,8 @@ export declare class PurchaseOrderService {
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
-        status: import("@prisma/client").$Enums.PurchaseOrderStatus;
-        totalAmount: import("@prisma/client-runtime-utils").Decimal;
+        status: import(".prisma/client").$Enums.PurchaseOrderStatus;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
         note: string | null;
         warehouseId: string | null;
         vendorId: string;
@@ -111,8 +112,8 @@ export declare class PurchaseOrderService {
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
-        status: import("@prisma/client").$Enums.PurchaseOrderStatus;
-        totalAmount: import("@prisma/client-runtime-utils").Decimal;
+        status: import(".prisma/client").$Enums.PurchaseOrderStatus;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
         note: string | null;
         warehouseId: string | null;
         vendorId: string;

@@ -20,8 +20,8 @@ export declare class BranchService {
         updatedAt: Date;
         address: string | null;
         phone: string | null;
-        nameAr: string | null;
         businessDayStartHour: number;
+        nameAr: string | null;
     })[]>;
     findOne(id: string): Promise<{
         id: string;
@@ -32,8 +32,8 @@ export declare class BranchService {
         updatedAt: Date;
         address: string | null;
         phone: string | null;
-        nameAr: string | null;
         businessDayStartHour: number;
+        nameAr: string | null;
     }>;
     create(dto: any): Promise<{
         id: string;
@@ -44,8 +44,8 @@ export declare class BranchService {
         updatedAt: Date;
         address: string | null;
         phone: string | null;
-        nameAr: string | null;
         businessDayStartHour: number;
+        nameAr: string | null;
     }>;
     update(id: string, dto: any): Promise<{
         id: string;
@@ -56,8 +56,8 @@ export declare class BranchService {
         updatedAt: Date;
         address: string | null;
         phone: string | null;
-        nameAr: string | null;
         businessDayStartHour: number;
+        nameAr: string | null;
     }>;
     remove(id: string): Promise<{
         id: string;
@@ -68,7 +68,7 @@ export declare class BranchService {
         updatedAt: Date;
         address: string | null;
         phone: string | null;
-        nameAr: string | null;
         businessDayStartHour: number;
+        nameAr: string | null;
     }>;
 }

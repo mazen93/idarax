@@ -7,6 +7,9 @@ export declare class ShiftController {
     clockOut(req: any, dto: ClockOutDto): Promise<any>;
     startBreak(req: any, dto: StartBreakDto): Promise<any>;
     endBreak(req: any): Promise<any>;
-    getCurrent(req: any): Promise<any>;
+    getCurrent(req: any): Promise<{
+        shift: any;
+        serverTime: Date;
+    }>;
     getAll(from?: string, to?: string, branchId?: string): Promise<any>;
 }

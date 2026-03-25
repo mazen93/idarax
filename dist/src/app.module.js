@@ -50,6 +50,9 @@ const import_module_1 = require("./retail/import/import.module");
 const menu_module_1 = require("./retail/menu/menu.module");
 const audit_log_module_1 = require("./common/audit-log/audit-log.module");
 const mail_module_1 = require("./mail/mail.module");
+const notifications_module_1 = require("./notifications/notifications.module");
+const schedule_1 = require("@nestjs/schedule");
+const delivery_aggregator_module_1 = require("./delivery-aggregator/delivery-aggregator.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(tenant_middleware_1.TenantMiddleware).forRoutes('*');
@@ -59,6 +62,7 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            schedule_1.ScheduleModule.forRoot(),
             throttler_1.ThrottlerModule.forRoot([
                 {
                     name: 'default',
@@ -108,6 +112,8 @@ exports.AppModule = AppModule = __decorate([
             menu_module_1.MenuModule,
             audit_log_module_1.AuditLogModule,
             mail_module_1.MailModule,
+            notifications_module_1.NotificationsModule,
+            delivery_aggregator_module_1.DeliveryAggregatorModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

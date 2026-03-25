@@ -17,7 +17,7 @@ export declare class ProductController {
                 updatedAt: Date;
                 nameAr: string | null;
                 sortOrder: number;
-                priceAdjust: import("@prisma/client-runtime-utils").Decimal;
+                priceAdjust: import("@prisma/client/runtime/library").Decimal;
                 modifierId: string;
             }[];
         } & {
@@ -42,19 +42,20 @@ export declare class ProductController {
                 description: string | null;
                 descriptionAr: string | null;
                 defaultStationId: string | null;
-                price: import("@prisma/client-runtime-utils").Decimal;
+                price: import("@prisma/client/runtime/library").Decimal;
                 sku: string | null;
                 barcode: string | null;
-                costPrice: import("@prisma/client-runtime-utils").Decimal;
+                costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
-                productType: import("@prisma/client").$Enums.ProductType;
+                productType: import(".prisma/client").$Enums.ProductType;
+                prepTime: number;
                 categoryId: string;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            quantity: import("@prisma/client-runtime-utils").Decimal;
+            quantity: import("@prisma/client/runtime/library").Decimal;
             variantId: string | null;
             parentId: string;
             ingredientId: string;
@@ -63,9 +64,9 @@ export declare class ProductController {
         variants: {
             id: string;
             name: string;
-            price: import("@prisma/client-runtime-utils").Decimal | null;
+            price: import("@prisma/client/runtime/library").Decimal | null;
             sku: string | null;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
             productId: string;
         }[];
     } & {
@@ -78,12 +79,13 @@ export declare class ProductController {
         description: string | null;
         descriptionAr: string | null;
         defaultStationId: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: import("@prisma/client/runtime/library").Decimal;
         sku: string | null;
         barcode: string | null;
-        costPrice: import("@prisma/client-runtime-utils").Decimal;
+        costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
-        productType: import("@prisma/client").$Enums.ProductType;
+        productType: import(".prisma/client").$Enums.ProductType;
+        prepTime: number;
         categoryId: string;
     }>;
     findAll(branchId?: string): Promise<any[]>;
@@ -96,7 +98,7 @@ export declare class ProductController {
                 updatedAt: Date;
                 nameAr: string | null;
                 sortOrder: number;
-                priceAdjust: import("@prisma/client-runtime-utils").Decimal;
+                priceAdjust: import("@prisma/client/runtime/library").Decimal;
                 modifierId: string;
             }[];
         } & {
@@ -113,9 +115,9 @@ export declare class ProductController {
         variants: {
             id: string;
             name: string;
-            price: import("@prisma/client-runtime-utils").Decimal | null;
+            price: import("@prisma/client/runtime/library").Decimal | null;
             sku: string | null;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
             productId: string;
         }[];
     } & {
@@ -128,37 +130,37 @@ export declare class ProductController {
         description: string | null;
         descriptionAr: string | null;
         defaultStationId: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: import("@prisma/client/runtime/library").Decimal;
         sku: string | null;
         barcode: string | null;
-        costPrice: import("@prisma/client-runtime-utils").Decimal;
+        costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
-        productType: import("@prisma/client").$Enums.ProductType;
+        productType: import(".prisma/client").$Enums.ProductType;
+        prepTime: number;
         categoryId: string;
     }) | null>;
     getBranchSettings(branchId: string): Promise<{
-        productId: string;
-        name: string;
-        basePrice: import("@prisma/client-runtime-utils").Decimal;
-        category: {
-            id: string;
-            name: string;
-        };
-        productType: import("@prisma/client").$Enums.ProductType;
-        isSellable: boolean;
+        productId: any;
+        name: any;
+        basePrice: any;
+        category: any;
+        productType: any;
+        isSellable: any;
         isAvailable: any;
         priceOverride: any;
+        defaultStationId: any;
     }[]>;
     upsertBranchSetting(branchId: string, productId: string, dto: UpsertBranchProductDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
         branchId: string;
+        defaultStationId: string | null;
         productId: string;
         isAvailable: boolean;
-        priceOverride: import("@prisma/client-runtime-utils").Decimal | null;
+        priceOverride: import("@prisma/client/runtime/library").Decimal | null;
     }>;
-    resetBranchSetting(branchId: string, productId: string): Promise<import("@prisma/client/runtime/client").GetBatchResult>;
+    resetBranchSetting(branchId: string, productId: string): Promise<import("@prisma/client/runtime/library").GetBatchResult>;
     findOne(id: string): Promise<{
         category: {
             id: string;
@@ -172,7 +174,7 @@ export declare class ProductController {
                 updatedAt: Date;
                 nameAr: string | null;
                 sortOrder: number;
-                priceAdjust: import("@prisma/client-runtime-utils").Decimal;
+                priceAdjust: import("@prisma/client/runtime/library").Decimal;
                 modifierId: string;
             }[];
         } & {
@@ -197,19 +199,20 @@ export declare class ProductController {
                 description: string | null;
                 descriptionAr: string | null;
                 defaultStationId: string | null;
-                price: import("@prisma/client-runtime-utils").Decimal;
+                price: import("@prisma/client/runtime/library").Decimal;
                 sku: string | null;
                 barcode: string | null;
-                costPrice: import("@prisma/client-runtime-utils").Decimal;
+                costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
-                productType: import("@prisma/client").$Enums.ProductType;
+                productType: import(".prisma/client").$Enums.ProductType;
+                prepTime: number;
                 categoryId: string;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            quantity: import("@prisma/client-runtime-utils").Decimal;
+            quantity: import("@prisma/client/runtime/library").Decimal;
             variantId: string | null;
             parentId: string;
             ingredientId: string;
@@ -218,9 +221,9 @@ export declare class ProductController {
         variants: {
             id: string;
             name: string;
-            price: import("@prisma/client-runtime-utils").Decimal | null;
+            price: import("@prisma/client/runtime/library").Decimal | null;
             sku: string | null;
-            costPrice: import("@prisma/client-runtime-utils").Decimal;
+            costPrice: import("@prisma/client/runtime/library").Decimal;
             productId: string;
         }[];
     } & {
@@ -233,12 +236,13 @@ export declare class ProductController {
         description: string | null;
         descriptionAr: string | null;
         defaultStationId: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: import("@prisma/client/runtime/library").Decimal;
         sku: string | null;
         barcode: string | null;
-        costPrice: import("@prisma/client-runtime-utils").Decimal;
+        costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
-        productType: import("@prisma/client").$Enums.ProductType;
+        productType: import(".prisma/client").$Enums.ProductType;
+        prepTime: number;
         categoryId: string;
     }>;
     update(id: string, dto: UpdateProductDto): Promise<any>;
@@ -252,12 +256,13 @@ export declare class ProductController {
         description: string | null;
         descriptionAr: string | null;
         defaultStationId: string | null;
-        price: import("@prisma/client-runtime-utils").Decimal;
+        price: import("@prisma/client/runtime/library").Decimal;
         sku: string | null;
         barcode: string | null;
-        costPrice: import("@prisma/client-runtime-utils").Decimal;
+        costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
-        productType: import("@prisma/client").$Enums.ProductType;
+        productType: import(".prisma/client").$Enums.ProductType;
+        prepTime: number;
         categoryId: string;
     }>;
 }

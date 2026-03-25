@@ -102,6 +102,14 @@ let AnalyticsController = class AnalyticsController {
         const { startDate, endDate } = this.parseDateRange(start, end);
         return this.analyticsService.getStaffLeaderboard(startDate, endDate);
     }
+    getKitchenPerformance(start, end) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getKitchenPerformance(startDate, endDate);
+    }
+    getProductProfitability(start, end) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getProductProfitability(startDate, endDate);
+    }
 };
 exports.AnalyticsController = AnalyticsController;
 __decorate([
@@ -233,6 +241,24 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getStaffLeaderboard", null);
+__decorate([
+    (0, common_1.Get)('reports/kitchen-performance'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    __param(0, (0, common_1.Query)('start')),
+    __param(1, (0, common_1.Query)('end')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AnalyticsController.prototype, "getKitchenPerformance", null);
+__decorate([
+    (0, common_1.Get)('reports/product-profitability'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    __param(0, (0, common_1.Query)('start')),
+    __param(1, (0, common_1.Query)('end')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AnalyticsController.prototype, "getProductProfitability", null);
 exports.AnalyticsController = AnalyticsController = __decorate([
     (0, common_1.Controller)('analytics'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),

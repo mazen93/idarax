@@ -23,12 +23,13 @@ const audit_log_module_1 = require("../common/audit-log/audit-log.module");
 const crm_module_1 = require("../crm/crm.module");
 const kds_module_1 = require("../restaurant/kds/kds.module");
 const mail_module_1 = require("../mail/mail.module");
+const notifications_module_1 = require("../notifications/notifications.module");
 let OrderModule = class OrderModule {
 };
 exports.OrderModule = OrderModule;
 exports.OrderModule = OrderModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule, inventory_module_1.InventoryModule, offer_module_1.OfferModule, staff_module_1.StaffModule, audit_log_module_1.AuditLogModule, crm_module_1.CrmModule, kds_module_1.KdsModule, mail_module_1.MailModule,
+        imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule, inventory_module_1.InventoryModule, offer_module_1.OfferModule, staff_module_1.StaffModule, audit_log_module_1.AuditLogModule, crm_module_1.CrmModule, kds_module_1.KdsModule, mail_module_1.MailModule, notifications_module_1.NotificationsModule,
             bull_1.BullModule.registerQueue({
                 name: 'orders',
             }),

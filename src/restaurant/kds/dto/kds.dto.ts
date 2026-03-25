@@ -9,6 +9,10 @@ export class CreateKitchenStationDto {
     @IsString({ each: true })
     @IsOptional()
     staffIds?: string[];
+
+    @IsString()
+    @IsOptional()
+    branchId?: string;
 }
 
 export class CreateOrderItemDto {

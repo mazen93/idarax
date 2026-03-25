@@ -1,6 +1,7 @@
 export declare class CreateKitchenStationDto {
     name: string;
     staffIds?: string[];
+    branchId?: string;
 }
 export declare class CreateOrderItemDto {
     orderId: string;

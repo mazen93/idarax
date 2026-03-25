@@ -9,10 +9,13 @@ export declare class CloseDrawerDto {
 }
 export declare enum CashMovementType {
     CASH_IN = "CASH_IN",
-    CASH_OUT = "CASH_OUT"
+    CASH_OUT = "CASH_OUT",
+    SALE = "SALE",
+    REFUND = "REFUND"
 }
 export declare class AddMovementDto {
     amount: number;
     type: CashMovementType;
     reason?: string;
+    referenceId?: string;
 }

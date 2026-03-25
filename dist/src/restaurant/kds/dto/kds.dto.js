@@ -14,6 +14,7 @@ const class_validator_1 = require("class-validator");
 class CreateKitchenStationDto {
     name;
     staffIds;
+    branchId;
 }
 exports.CreateKitchenStationDto = CreateKitchenStationDto;
 __decorate([
@@ -27,6 +28,11 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Array)
 ], CreateKitchenStationDto.prototype, "staffIds", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateKitchenStationDto.prototype, "branchId", void 0);
 class CreateOrderItemDto {
     orderId;
     productId;

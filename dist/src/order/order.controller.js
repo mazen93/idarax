@@ -165,11 +165,12 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], OrderController.prototype, "findActiveByTable", null);
 __decorate([
-    (0, common_1.Post)('async'),
+    (0, common_1.Post)('split'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.ORDERS.CREATE),
+    (0, swagger_1.ApiOperation)({ summary: 'Split an existing order into multiple sub-orders' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [order_dto_1.SplitBillDto]),
     __metadata("design:returntype", void 0)
 ], OrderController.prototype, "split", null);
 __decorate([

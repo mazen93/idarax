@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsOptional, IsEnum, IsArray } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsEnum, IsArray, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum UserRole {
@@ -42,6 +42,16 @@ export class CreateUserDto {
     @IsArray()
     @IsString({ each: true })
     permissions?: string[];
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    branchId?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsBoolean()
+    isActive?: boolean;
 }
 
 export class UpdateUserDto {
@@ -80,4 +90,14 @@ export class UpdateUserDto {
     @IsArray()
     @IsString({ each: true })
     permissions?: string[];
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    branchId?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsBoolean()
+    isActive?: boolean;
 }

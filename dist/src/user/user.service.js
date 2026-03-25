@@ -62,11 +62,11 @@ let UserService = class UserService {
         if (existing)
             throw new common_1.ConflictException('Email already in use');
         if (dto.pinCode) {
-            const existingPin = await this.prisma.client.user.findFirst({
+            const existingPin = await this.prisma.user.findFirst({
                 where: { pinCode: dto.pinCode, tenantId }
             });
             if (existingPin)
-                throw new common_1.ConflictException('PIN code already in use by another staff member');
+                throw new common_1.ConflictException(`PIN code "${dto.pinCode}" is already in use by another staff member "${existingPin.name}" in this business.`);
         }
         const hashedPassword = await bcrypt.hash(dto.password || 'password123', 10);
         const data = {
@@ -80,10 +80,22 @@ let UserService = class UserService {
             data.role = dto.role;
         if (dto.roleId)
             data.roleId = dto.roleId;
-        const user = await this.prisma.client.user.create({
-            data,
-            select: { id: true, name: true, email: true, role: true, roleId: true, createdAt: true, pinCode: true }
-        });
+        if (dto.branchId)
+            data.branchId = dto.branchId;
+        if (dto.isActive !== undefined)
+            data.isActive = dto.isActive;
+        let user;
+        try {
+            user = await this.prisma.client.user.create({
+                data,
+                select: { id: true, name: true, email: true, role: true, roleId: true, createdAt: true, pinCode: true, isActive: true }
+            });
+        }
+        catch (error) {
+            console.error('FAILED TO CREATE USER. Data:', JSON.stringify(data, null, 2));
+            console.error('Prisma Error:', error);
+            throw error;
+        }
         if (dto.permissions && dto.permissions.length > 0) {
             await this.prisma.client.userPermission.createMany({
                 data: dto.permissions.map(p => ({
@@ -107,7 +119,7 @@ let UserService = class UserService {
         const users = await this.prisma.client.user.findMany({
             where: { tenantId },
             select: {
-                id: true, name: true, email: true, role: true, roleId: true, createdAt: true, branchId: true, pinCode: true,
+                id: true, name: true, email: true, role: true, roleId: true, createdAt: true, branchId: true, pinCode: true, isActive: true,
                 customRole: { select: { id: true, name: true, permissions: { select: { action: true } } } },
                 permissions: { select: { action: true } }
             },
@@ -162,7 +174,7 @@ let UserService = class UserService {
             data.password = await bcrypt.hash(dto.password, 10);
         if (dto.pinCode !== undefined) {
             if (dto.pinCode !== null) {
-                const existingPin = await this.prisma.client.user.findFirst({
+                const existingPin = await this.prisma.user.findFirst({
                     where: {
                         pinCode: dto.pinCode,
                         tenantId,
@@ -170,14 +182,16 @@ let UserService = class UserService {
                     }
                 });
                 if (existingPin)
-                    throw new common_1.ConflictException('PIN code already in use by another staff member');
+                    throw new common_1.ConflictException(`PIN code "${dto.pinCode}" is already in use by staff member "${existingPin.name}".`);
             }
             data.pinCode = dto.pinCode;
         }
+        if (dto.isActive !== undefined)
+            data.isActive = dto.isActive;
         const updatedUser = await this.prisma.client.user.update({
             where: { id },
             data,
-            select: { id: true, name: true, email: true, role: true, roleId: true, createdAt: true, branchId: true, pinCode: true }
+            select: { id: true, name: true, email: true, role: true, roleId: true, createdAt: true, branchId: true, pinCode: true, isActive: true }
         });
         if (dto.permissions !== undefined) {
             await this.prisma.client.userPermission.deleteMany({ where: { userId: id } });

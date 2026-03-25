@@ -53,6 +53,7 @@ export declare const Actions: {
         EDIT: string;
         DELETE: string;
         ASSIGN_ROLES: string;
+        EDIT_STATUS: string;
     };
     SETTINGS: {
         VIEW: string;

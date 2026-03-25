@@ -19,4 +19,5 @@ export declare class CrmController {
     createAddress(dto: CreateCustomerAddressDto): Promise<any>;
     updateAddress(id: string, dto: UpdateCustomerAddressDto): Promise<any>;
     deleteAddress(id: string): Promise<any>;
+    getActiveCampaigns(): Promise<any>;
 }

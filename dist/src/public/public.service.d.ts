@@ -1,16 +1,17 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePublicOrderDto } from './dto/public.dto';
+import { SplitBillDto } from '../order/dto/order.dto';
 export declare class PublicService {
     private prisma;
     constructor(prisma: PrismaService);
     getTenantBranding(tenantId: string): Promise<{
         id: string;
         name: string;
-        type: import("@prisma/client").$Enums.TenantType;
+        type: import(".prisma/client").$Enums.TenantType;
         logoUrl: string | null | undefined;
         currency: string;
-        taxRate: import("@prisma/client-runtime-utils").Decimal | null | undefined;
-        serviceFee: import("@prisma/client-runtime-utils").Decimal | null | undefined;
+        taxRate: import("@prisma/client/runtime/library").Decimal | null | undefined;
+        serviceFee: import("@prisma/client/runtime/library").Decimal | null | undefined;
         aboutUsText: string | null | undefined;
         bannerImageUrl: string | null | undefined;
         facebookUrl: string | null | undefined;
@@ -38,9 +39,9 @@ export declare class PublicService {
             variants: {
                 id: string;
                 name: string;
-                price: import("@prisma/client-runtime-utils").Decimal | null;
+                price: import("@prisma/client/runtime/library").Decimal | null;
                 sku: string | null;
-                costPrice: import("@prisma/client-runtime-utils").Decimal;
+                costPrice: import("@prisma/client/runtime/library").Decimal;
                 productId: string;
             }[];
         }[];
@@ -52,6 +53,7 @@ export declare class PublicService {
         nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        defaultPrepTime: number;
         defaultStationId: string | null;
     }[]>;
     createGuestOrder(tenantId: string, dto: CreatePublicOrderDto): Promise<any>;
@@ -64,4 +66,11 @@ export declare class PublicService {
         rating: number;
         comment?: string;
     }): Promise<any>;
+    getTableOrder(tableId: string): Promise<any>;
+    getTable(id: string): Promise<{
+        id: any;
+        number: any;
+        branchId: any;
+    }>;
+    splitOrder(orderId: string, dto: SplitBillDto): Promise<any[]>;
 }

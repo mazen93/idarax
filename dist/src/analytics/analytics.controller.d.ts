@@ -37,4 +37,18 @@ export declare class AnalyticsController {
         revenue: number;
         orderCount: number;
     }[]>;
+    getKitchenPerformance(start?: string, end?: string): Promise<{
+        stationName: string;
+        totalItems: number;
+        totalPrepTimeMs: number;
+        avgPrepTimeMinutes: number;
+    }[]>;
+    getProductProfitability(start?: string, end?: string): Promise<{
+        name: string;
+        quantity: number;
+        totalRevenue: number;
+        totalCost: number;
+        totalProfit: number;
+        margin: number;
+    }[]>;
 }

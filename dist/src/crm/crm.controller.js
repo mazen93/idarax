@@ -51,6 +51,9 @@ let CrmController = class CrmController {
     deleteAddress(id) {
         return this.crmService.deleteAddress(id);
     }
+    getActiveCampaigns() {
+        return this.crmService.getActiveCampaigns();
+    }
 };
 exports.CrmController = CrmController;
 __decorate([
@@ -127,6 +130,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CrmController.prototype, "deleteAddress", null);
+__decorate([
+    (0, common_1.Get)('campaigns/active'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.VIEW),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "getActiveCampaigns", null);
 exports.CrmController = CrmController = __decorate([
     (0, common_1.Controller)('crm'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

@@ -17,4 +17,8 @@ export declare class TableService {
     }>;
     update(id: string, dto: UpdateTableDto): Promise<any>;
     remove(id: string): Promise<any>;
+    generateTableQRCodes(): Promise<{
+        message: string;
+        baseUrl: string;
+    }>;
 }

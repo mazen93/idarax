@@ -62,11 +62,14 @@ var CashMovementType;
 (function (CashMovementType) {
     CashMovementType["CASH_IN"] = "CASH_IN";
     CashMovementType["CASH_OUT"] = "CASH_OUT";
+    CashMovementType["SALE"] = "SALE";
+    CashMovementType["REFUND"] = "REFUND";
 })(CashMovementType || (exports.CashMovementType = CashMovementType = {}));
 class AddMovementDto {
     amount;
     type;
     reason;
+    referenceId;
 }
 exports.AddMovementDto = AddMovementDto;
 __decorate([
@@ -86,4 +89,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], AddMovementDto.prototype, "reason", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], AddMovementDto.prototype, "referenceId", void 0);
 //# sourceMappingURL=drawer.dto.js.map

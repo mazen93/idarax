@@ -63,4 +63,10 @@ export class CrmController {
     deleteAddress(@Param('id') id: string) {
         return this.crmService.deleteAddress(id);
     }
+
+    @Get('campaigns/active')
+    @Permissions(Actions.CUSTOMERS.VIEW)
+    getActiveCampaigns() {
+        return this.crmService.getActiveCampaigns();
+    }
 }

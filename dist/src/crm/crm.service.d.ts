@@ -22,4 +22,5 @@ export declare class CrmService {
     updateAddress(id: string, dto: UpdateCustomerAddressDto): Promise<any>;
     deleteAddress(id: string): Promise<any>;
     processLoyaltyForOrder(customerId: string, orderAmount: number, orderId: string): Promise<any>;
+    getActiveCampaigns(): Promise<any>;
 }

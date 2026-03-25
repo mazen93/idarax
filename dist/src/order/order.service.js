@@ -25,6 +25,8 @@ const analytics_service_1 = require("../analytics/analytics.service");
 const crm_service_1 = require("../crm/crm.service");
 const kds_gateway_1 = require("../restaurant/kds/kds.gateway");
 const mail_service_1 = require("../mail/mail.service");
+const notifications_service_1 = require("../notifications/notifications.service");
+const notifications_dto_1 = require("../notifications/dto/notifications.dto");
 let OrderService = class OrderService {
     prisma;
     tenantService;
@@ -37,7 +39,8 @@ let OrderService = class OrderService {
     analyticsService;
     crmService;
     kdsGateway;
-    constructor(prisma, tenantService, offerService, numberingService, mailService, orderQueue, drawerService, auditLog, analyticsService, crmService, kdsGateway) {
+    notificationsService;
+    constructor(prisma, tenantService, offerService, numberingService, mailService, orderQueue, drawerService, auditLog, analyticsService, crmService, kdsGateway, notificationsService) {
         this.prisma = prisma;
         this.tenantService = tenantService;
         this.offerService = offerService;
@@ -49,6 +52,7 @@ let OrderService = class OrderService {
         this.analyticsService = analyticsService;
         this.crmService = crmService;
         this.kdsGateway = kdsGateway;
+        this.notificationsService = notificationsService;
     }
     get db() {
         return this.prisma.client.order;
@@ -109,8 +113,12 @@ let OrderService = class OrderService {
                         status: (dto.paidAmount !== undefined && dto.paidAmount > 0) ? 'COMPLETED' : 'PENDING'
                     }];
             const totalPaidNow = paymentsData.reduce((sum, p) => sum + Number(p.amount), 0);
-            const resolvedItems = await this.resolveStationIds(tx, dto.items);
+            const resolvedItemsRaw = await this.resolveStationIds(tx, dto.items);
+            const resolvedItems = this.calculateFireTimes(resolvedItemsRaw);
             if (existingOrder) {
+                const totalPaidAmount = Number(existingOrder.paidAmount) + totalPaidNow;
+                const totalOrderAmount = Number(existingOrder.totalAmount) + finalTotalAmount;
+                const isFullyPaid = Math.round(totalPaidAmount * 100) >= Math.round(totalOrderAmount * 100);
                 order = await tx.order.update({
                     where: { id: existingOrder.id },
                     data: {
@@ -128,15 +136,17 @@ let OrderService = class OrderService {
                                 variantId: item.variantId || null,
                                 quantity: item.quantity,
                                 price: item.price,
+                                costPrice: item.costPrice || 0,
                                 stationId: item.stationId || null,
                                 note: item.note || null,
                                 courseName: item.courseName || null,
+                                fireAt: item.fireAt || null,
                             })),
                         },
                         payments: {
                             create: paymentsData.filter(p => p.amount > 0)
                         },
-                        status: existingOrder.status,
+                        status: (existingOrder.status === 'PENDING' && isFullyPaid) ? 'COMPLETED' : existingOrder.status,
                     },
                     include: {
                         items: {
@@ -152,6 +162,7 @@ let OrderService = class OrderService {
                 });
             }
             else {
+                const isFullyPaid = Math.round(totalPaidNow * 100) >= Math.round(finalTotalAmount * 100);
                 const settings = await tx.settings.findUnique({
                     where: { tenantId },
                     select: { timezone: true },
@@ -172,7 +183,7 @@ let OrderService = class OrderService {
                         customerId: dto.customerId || null,
                         totalAmount: finalTotalAmount,
                         paidAmount: totalPaidNow,
-                        status: dto.status || 'PENDING',
+                        status: dto.status || (isFullyPaid ? 'COMPLETED' : 'PENDING'),
                         orderType: dto.orderType || (dto.tableId ? 'DINE_IN' : 'IN_STORE'),
                         paymentMethod: dto.splitPayments?.length ? 'MULTI' : (dto.paymentMethod || 'CASH'),
                         guestName: dto.guestName,
@@ -192,9 +203,11 @@ let OrderService = class OrderService {
                                 variantId: item.variantId || null,
                                 quantity: item.quantity,
                                 price: item.price,
+                                costPrice: item.costPrice || 0,
                                 stationId: item.stationId || null,
                                 note: item.note || null,
                                 courseName: item.courseName || null,
+                                fireAt: item.fireAt || null,
                                 modifiers: item.modifiers ? {
                                     create: item.modifiers.map((m) => ({
                                         optionId: m.optionId,
@@ -315,19 +328,56 @@ let OrderService = class OrderService {
         if (!items || items.length === 0)
             return [];
         const productIds = items.map(item => item.productId).filter(Boolean);
+        const branchId = this.tenantService.getBranchId();
         const products = await tx.product.findMany({
             where: { id: { in: productIds } },
-            include: { category: true }
+            include: {
+                category: true,
+                branchSettings: branchId ? {
+                    where: { branchId }
+                } : false
+            }
         });
         const productMap = new Map(products.map((p) => [p.id, p]));
-        return items.map(item => {
+        return Promise.all(items.map(async (item) => {
             if (item.stationId)
                 return item;
             const product = productMap.get(item.productId);
             if (!product)
                 return item;
-            const stationId = product.defaultStationId || product.category?.defaultStationId || null;
-            return { ...item, stationId };
+            const branchOverride = product.branchSettings?.[0]?.defaultStationId;
+            const stationId = branchOverride || product.defaultStationId || product.category?.defaultStationId || null;
+            const prepTime = product.prepTime || product.category?.defaultPrepTime || 0;
+            const costPrice = await this.calculateBOMCost(tx, product);
+            return { ...item, stationId, prepTime, costPrice };
+        }));
+    }
+    async calculateBOMCost(tx, product) {
+        if (!product)
+            return 0;
+        const recipe = await tx.productRecipe.findMany({
+            where: { parentId: product.id },
+            include: { ingredient: { select: { costPrice: true } } }
+        });
+        if (!recipe || recipe.length === 0) {
+            return Number(product.costPrice) || 0;
+        }
+        const totalBOMCost = recipe.reduce((sum, component) => {
+            const ingredientCost = Number(component.ingredient?.costPrice) || 0;
+            return sum + (Number(component.quantity) * ingredientCost);
+        }, 0);
+        return totalBOMCost;
+    }
+    calculateFireTimes(items) {
+        if (!items || items.length === 0)
+            return items;
+        const maxPrepTime = Math.max(...items.map(i => i.prepTime || 0));
+        const now = new Date();
+        return items.map(item => {
+            const itemPrepTime = item.prepTime || 0;
+            const delayMinutes = maxPrepTime - itemPrepTime;
+            const fireAt = new Date(now.getTime() + delayMinutes * 60000);
+            return { ...item, fireAt };
         });
     }
     async deductStockRecursively(tx, tenantId, branchId, productId, quantity, orderId) {
@@ -469,6 +519,28 @@ let OrderService = class OrderService {
         if (this.analyticsService) {
             this.analyticsService.pushStatsUpdate(updated.tenantId, updated.branchId).catch(() => { });
         }
+        if (this.notificationsService) {
+            const branchId = updated.branchId ?? undefined;
+            const receiptNum = updated.receiptNumber ?? '';
+            if (status === 'READY') {
+                this.notificationsService.create(updated.tenantId, {
+                    type: notifications_dto_1.NotificationType.ORDER_READY,
+                    title: 'Order Ready',
+                    message: `Order #${receiptNum} is ready for pickup / service.`,
+                    branchId,
+                    meta: { orderId: updated.id, receiptNumber: receiptNum },
+                }).catch(() => { });
+            }
+            else if (status === 'CANCELLED') {
+                this.notificationsService.create(updated.tenantId, {
+                    type: notifications_dto_1.NotificationType.ORDER_CANCELLED,
+                    title: 'Order Cancelled',
+                    message: `Order #${receiptNum} was cancelled.`,
+                    branchId,
+                    meta: { orderId: updated.id, receiptNumber: receiptNum },
+                }).catch(() => { });
+            }
+        }
         return updated;
     }
     async assignTable(id, tableId) {
@@ -496,21 +568,68 @@ let OrderService = class OrderService {
         return updatedOrder;
     }
     async splitBill(dto) {
-        const order = await this.db.findUnique({
+        const order = await this.prisma.client.order.findUnique({
             where: { id: dto.orderId },
             include: { items: true },
         });
-        if (!order) {
+        if (!order)
             throw new common_1.NotFoundException('Order not found');
-        }
+        const results = [];
+        const tenantId = this.tenantService.getTenantId();
         if (dto.splitType === 'EQUAL') {
             const splitAmount = Number(order.totalAmount) / dto.splits.length;
-            return dto.splits.map(split => ({
-                customerId: split.customerId,
-                amount: splitAmount,
-            }));
+            for (const split of dto.splits) {
+                const child = await this.prisma.client.order.create({
+                    data: {
+                        tenantId: order.tenantId,
+                        branchId: order.branchId,
+                        tableId: order.tableId,
+                        customerId: split.customerId || null,
+                        totalAmount: splitAmount,
+                        status: 'PENDING',
+                        isSplit: true,
+                        parentOrderId: order.id,
+                        orderType: order.orderType,
+                        source: order.source,
+                    }
+                });
+                results.push(child);
+            }
         }
-        return dto.splits;
+        else if (dto.splitType === 'BY_ITEM') {
+            for (const split of dto.splits) {
+                if (!split.itemIds)
+                    continue;
+                const items = order.items.filter((i) => split.itemIds.includes(i.id));
+                const splitTotal = items.reduce((sum, i) => sum + Number(i.price) * i.quantity, 0);
+                const child = await this.prisma.client.order.create({
+                    data: {
+                        tenantId: order.tenantId,
+                        branchId: order.branchId,
+                        tableId: order.tableId,
+                        customerId: split.customerId || null,
+                        totalAmount: splitTotal,
+                        status: 'PENDING',
+                        isSplit: true,
+                        parentOrderId: order.id,
+                        orderType: order.orderType,
+                        source: order.source,
+                        items: {
+                            create: items.map((i) => ({
+                                productId: i.productId,
+                                quantity: i.quantity,
+                                price: i.price,
+                                variantId: i.variantId,
+                                stationId: i.stationId,
+                                note: i.note,
+                            }))
+                        }
+                    }
+                });
+                results.push(child);
+            }
+        }
+        return results;
     }
     async getOrder(id) {
         const order = await this.db.findUnique({
@@ -585,6 +704,16 @@ let OrderService = class OrderService {
         }
         if (this.analyticsService) {
             this.analyticsService.pushStatsUpdate(order.tenantId, order.branchId).catch(() => { });
+        }
+        if (this.notificationsService) {
+            const receiptNum = order.receiptNumber ?? '';
+            this.notificationsService.create(order.tenantId, {
+                type: notifications_dto_1.NotificationType.ORDER_VOIDED,
+                title: 'Order Voided',
+                message: `Order #${receiptNum} was voided by ${actorEmail ?? 'staff'}.`,
+                branchId: order.branchId ?? undefined,
+                meta: { orderId: id, actorId, actorEmail },
+            }).catch(() => { });
         }
         return result;
     }
@@ -680,12 +809,20 @@ let OrderService = class OrderService {
         const order = await this.getOrder(orderId);
         if (!order)
             throw new common_1.NotFoundException('Order not found');
-        const settings = await this.prisma.client.settings.findUnique({
-            where: { tenantId }
-        });
-        const tenant = await this.prisma.client.tenant.findUnique({
-            where: { id: tenantId }
-        });
+        const branchId = order.branchId;
+        const [globalSettings, branchSettings, tenant] = await Promise.all([
+            this.prisma.client.settings.findUnique({ where: { tenantId } }),
+            branchId ? this.prisma.client.branchSettings.findUnique({ where: { branchId } }) : null,
+            this.prisma.client.tenant.findUnique({ where: { id: tenantId } })
+        ]);
+        const settings = { ...globalSettings };
+        if (branchSettings) {
+            Object.keys(branchSettings).forEach(key => {
+                if (branchSettings[key] !== null && branchSettings[key] !== undefined && key !== 'id' && key !== 'branchId' && key !== 'tenantId') {
+                    settings[key] = branchSettings[key];
+                }
+            });
+        }
         const html = this.generateReceiptHtml(tenant, order, settings);
         try {
             await this.mailService.sendMail(email, `Receipt for Order #${order.receiptNumber || order.id.substring(0, 8).toUpperCase()}`, html);
@@ -783,6 +920,7 @@ exports.OrderService = OrderService = __decorate([
     __param(8, (0, common_1.Optional)()),
     __param(9, (0, common_1.Optional)()),
     __param(10, (0, common_1.Optional)()),
+    __param(11, (0, common_1.Optional)()),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         tenant_service_1.TenantService,
         offer_service_1.OfferService,
@@ -791,6 +929,7 @@ exports.OrderService = OrderService = __decorate([
         audit_log_service_1.AuditLogService,
         analytics_service_1.AnalyticsService,
         crm_service_1.CrmService,
-        kds_gateway_1.KdsGateway])
+        kds_gateway_1.KdsGateway,
+        notifications_service_1.NotificationsService])
 ], OrderService);
 //# sourceMappingURL=order.service.js.map

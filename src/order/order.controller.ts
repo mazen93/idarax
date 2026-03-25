@@ -85,9 +85,10 @@ export class OrderController {
         return this.orderService.findActiveByTable(tableId);
     }
 
-    @Post('async')
-    @Permissions(Actions.ORDERS.CREATE) // Actually splits bill, related to orders create/modify
-    split(@Body() dto: any) {
+    @Post('split')
+    @Permissions(Actions.ORDERS.CREATE)
+    @ApiOperation({ summary: 'Split an existing order into multiple sub-orders' })
+    split(@Body() dto: SplitBillDto) {
         return this.orderService.splitBill(dto);
     }
 
