@@ -5,10 +5,12 @@ import { NotificationsController } from './notifications.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { TenantModule } from '../tenant/tenant.module';
 
+import { PusherService } from './pusher.service';
+
 @Module({
   imports: [PrismaModule, TenantModule],
-  providers: [NotificationsService, NotificationsGateway],
+  providers: [NotificationsService, NotificationsGateway, PusherService],
   controllers: [NotificationsController],
-  exports: [NotificationsService],
+  exports: [NotificationsService, PusherService],
 })
 export class NotificationsModule {}

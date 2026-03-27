@@ -57,6 +57,12 @@ let SettingsService = class SettingsService {
             throw new common_1.ForbiddenException('Tenant ID missing');
         const branchId = this.tenantService.getBranchId();
         const { name, ...settingsData } = dto;
+        if (settingsData.drovoApiKey || settingsData.drovoTenantId) {
+            const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId } });
+            if (!tenant?.hasDeliveryIntegration) {
+                throw new common_1.ForbiddenException('Your subscription plan does not include Delivery Management integrations.');
+            }
+        }
         if (name && !branchId) {
             await this.prisma.tenant.update({
                 where: { id: tenantId },

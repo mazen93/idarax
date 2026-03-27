@@ -41,12 +41,21 @@ export declare class AnalyticsService {
         revenue: number;
         orderCount: number;
     }[]>;
-    getKitchenPerformance(startDate: Date, endDate: Date): Promise<{
-        stationName: string;
-        totalItems: number;
-        totalPrepTimeMs: number;
-        avgPrepTimeMinutes: number;
-    }[]>;
+    getKDS2Analytics(startDate: Date, endDate: Date): Promise<{
+        totalCompletedItems: any;
+        hourlyThroughput: {
+            hour: number;
+            count: number;
+        }[];
+        stations: {
+            name: string;
+            totalItems: number;
+            avgPrepMinutes: number;
+            efficiencyScore: number;
+            maxPrepMinutes: number;
+        }[];
+        busiestHour: string | null;
+    }>;
     getProductProfitability(startDate: Date, endDate: Date): Promise<{
         name: string;
         quantity: number;

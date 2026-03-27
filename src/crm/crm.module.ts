@@ -4,10 +4,12 @@ import { Module } from '@nestjs/common';
 import { CrmService } from './crm.service';
 import { CrmController } from './crm.controller';
 import { CrmSchedule } from './crm.schedule';
+import { DrovoModule } from '../delivery-aggregator/drovo.module';
 
 @Module({
-  imports: [PrismaModule, TenantModule],
+  imports: [PrismaModule, TenantModule, DrovoModule],
   providers: [CrmService, CrmSchedule],
-  controllers: [CrmController]
+  controllers: [CrmController],
+  exports: [CrmService]
 })
 export class CrmModule {}

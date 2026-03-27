@@ -104,6 +104,7 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateRecipeComponentDto.prototype, "quantity", void 0);
 __decorate([
@@ -192,6 +193,7 @@ class CreateProductDto {
     recipeComponents;
     modifiers;
     defaultStationId;
+    unit;
 }
 exports.CreateProductDto = CreateProductDto;
 __decorate([
@@ -289,6 +291,12 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "defaultStationId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, example: 'kg', description: 'Unit of measurement for raw material ingredients (kg, g, L, mL, slice, piece, unit)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "unit", void 0);
 class UpdateProductDto {
     name;
     nameAr;
@@ -304,6 +312,7 @@ class UpdateProductDto {
     variants;
     recipeComponents;
     defaultStationId;
+    unit;
 }
 exports.UpdateProductDto = UpdateProductDto;
 __decorate([
@@ -394,4 +403,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateProductDto.prototype, "defaultStationId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, example: 'kg' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProductDto.prototype, "unit", void 0);
 //# sourceMappingURL=product.dto.js.map

@@ -24,6 +24,7 @@ const crm_module_1 = require("../crm/crm.module");
 const kds_module_1 = require("../restaurant/kds/kds.module");
 const mail_module_1 = require("../mail/mail.module");
 const notifications_module_1 = require("../notifications/notifications.module");
+const drovo_module_1 = require("../delivery-aggregator/drovo.module");
 let OrderModule = class OrderModule {
 };
 exports.OrderModule = OrderModule;
@@ -33,6 +34,7 @@ exports.OrderModule = OrderModule = __decorate([
             bull_1.BullModule.registerQueue({
                 name: 'orders',
             }),
+            drovo_module_1.DrovoModule,
         ],
         providers: [order_service_1.OrderService, order_processor_1.OrderProcessor, refund_service_1.RefundService, numbering_service_1.NumberingService],
         controllers: [order_controller_1.OrderController],

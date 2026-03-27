@@ -23,6 +23,7 @@ export declare class TransferService {
             isSellable: boolean;
             productType: import(".prisma/client").$Enums.ProductType;
             prepTime: number;
+            unit: string | null;
             categoryId: string;
         };
         source: {
@@ -111,6 +112,7 @@ export declare class TransferService {
             isSellable: boolean;
             productType: import(".prisma/client").$Enums.ProductType;
             prepTime: number;
+            unit: string | null;
             categoryId: string;
         };
         source: {

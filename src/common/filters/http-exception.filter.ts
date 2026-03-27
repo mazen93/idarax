@@ -6,16 +6,36 @@ import {
     HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
+import * as Sentry from '@sentry/nestjs';
+import { TenantService } from '../../tenant/tenant.service';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+    constructor(private readonly tenantService: TenantService) {}
+
     catch(exception: unknown, host: ArgumentsHost) {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
+        const request = ctx.getRequest();
+        
         const status =
             exception instanceof HttpException
                 ? exception.getStatus()
                 : HttpStatus.INTERNAL_SERVER_ERROR;
+
+        const tenantId = this.tenantService.getTenantId();
+        const branchId = this.tenantService.getBranchId();
+
+        // Report to Sentry if it's a 500 error or an unhandled exception
+        if (status >= 500 || !(exception instanceof HttpException)) {
+            Sentry.withScope((scope) => {
+                scope.setTag('tenantId', tenantId || 'unknown');
+                scope.setTag('branchId', branchId || 'unknown');
+                scope.setExtra('url', request.url);
+                scope.setExtra('method', request.method);
+                Sentry.captureException(exception);
+            });
+        }
 
         let message = 'Internal server error';
         let messages: Record<string, string[]> | undefined = undefined;

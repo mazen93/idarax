@@ -153,4 +153,14 @@ export class UpdateSettingsDto {
     @IsOptional()
     @IsString()
     drovoApiKey?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    loyaltyRatioEarning?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    loyaltyRatioRedemption?: number;
 }

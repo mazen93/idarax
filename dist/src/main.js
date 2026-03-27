@@ -33,14 +33,23 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+const tracing_1 = require("./tracing");
+tracing_1.otelSDK.start();
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
+process.setMaxListeners(20);
 const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const transform_interceptor_1 = require("./common/interceptors/transform.interceptor");
-const http_exception_filter_1 = require("./common/filters/http-exception.filter");
+const nestjs_pino_1 = require("nestjs-pino");
+const Sentry = __importStar(require("@sentry/nestjs"));
 const prisma_service_1 = require("./prisma/prisma.service");
 const bcrypt = __importStar(require("bcryptjs"));
+Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [],
+    tracesSampleRate: 1.0,
+});
 async function seedDatabase(app) {
     const prisma = app.get(prisma_service_1.PrismaService);
     try {
@@ -62,9 +71,30 @@ async function seedDatabase(app) {
             },
         });
         const plans = [
-            { name: 'Starter', price: 29, features: ['Up to 20 tables', '3 staff accounts'] },
-            { name: 'Professional', price: 79, features: ['Unlimited tables', '20 staff accounts', 'AI analytics'] },
-            { name: 'Enterprise', price: 199, features: ['Everything in Pro', 'Unlimited staff'] },
+            {
+                name: 'Starter',
+                price: 29,
+                features: ['BASIC_ANALYTICS', 'STANDARD_POS']
+            },
+            {
+                name: 'Professional',
+                price: 79,
+                features: ['BASIC_ANALYTICS', 'STANDARD_POS', 'UPSELL_ENGINE', 'ADVANCED_REPORTING']
+            },
+            {
+                name: 'Enterprise',
+                price: 199,
+                features: [
+                    'BASIC_ANALYTICS',
+                    'STANDARD_POS',
+                    'UPSELL_ENGINE',
+                    'ADVANCED_REPORTING',
+                    'KDS_ANALYTICS',
+                    'WIN_BACK_MARKETING',
+                    'WHITE_LABELING',
+                    'OFFLINE_RESILIENCE'
+                ]
+            },
         ];
         for (const plan of plans) {
             await prisma.subscriptionPlan.upsert({
@@ -73,33 +103,13 @@ async function seedDatabase(app) {
                 create: { id: `plan-${plan.name.toLowerCase()}`, ...plan, isActive: true },
             });
         }
-        console.log('🌱 Seeded Superadmin Subscription Plans');
-        const sections = [
-            { section: 'hero', title: 'The Operating System for Modern Restaurants', content: 'Unify POS, KDS, & Analytics.' },
-        ];
-        for (const sec of sections) {
-            await prisma.landingContent.upsert({
-                where: { section: sec.section }, update: sec, create: sec,
-            });
-        }
+        const enterprisePlan = await prisma.subscriptionPlan.findUnique({ where: { id: 'plan-enterprise' } });
         const demoTenant = await prisma.tenant.upsert({
             where: { id: 'dummy-tenant-123' },
-            update: {},
-            create: {
-                id: 'dummy-tenant-123',
-                name: 'Demo Restaurant',
-                type: 'RESTAURANT',
-            },
+            update: { planId: 'plan-enterprise' },
+            create: { id: 'dummy-tenant-123', name: 'Demo Restaurant', type: 'RESTAURANT', planId: 'plan-enterprise' },
         });
         const demoPassword = await bcrypt.hash('Demo@12345', 10);
-        await prisma.user.updateMany({
-            where: {
-                tenantId: demoTenant.id,
-                pinCode: '123123',
-                NOT: { email: 'demo@restaurant.com' }
-            },
-            data: { pinCode: null }
-        });
         await prisma.user.upsert({
             where: { email: 'demo@restaurant.com' },
             update: { password: demoPassword, pinCode: '123123' },
@@ -112,81 +122,24 @@ async function seedDatabase(app) {
                 pinCode: '123123',
             },
         });
-        const categoryCount = await prisma.category.count({ where: { tenantId: demoTenant.id } });
-        if (categoryCount === 0) {
-            console.log('📦 Seeding sample categories and products...');
-            const catBreakfast = await prisma.category.create({
-                data: { name: 'Breakfast', nameAr: 'فطور', tenantId: demoTenant.id }
-            });
-            const catMain = await prisma.category.create({
-                data: { name: 'Main Courses', nameAr: 'الأطباق الرئيسية', tenantId: demoTenant.id }
-            });
-            await prisma.product.createMany({
-                data: [
-                    { name: 'Classic Pancakes', nameAr: 'بانكيك كلاسيك', price: 15.00, categoryId: catBreakfast.id, tenantId: demoTenant.id, sku: 'BK-01' },
-                    { name: 'Fresh Orange Juice', nameAr: 'عصير برتقال طازج', price: 10.00, categoryId: catBreakfast.id, tenantId: demoTenant.id, sku: 'DR-01' },
-                    { name: 'Beef Burger', nameAr: 'برجر لحم', price: 25.00, categoryId: catMain.id, tenantId: demoTenant.id, sku: 'MN-01' },
-                ]
-            });
-            await prisma.table.createMany({
-                data: [
-                    { number: 1, capacity: 4, tenantId: demoTenant.id, status: 'AVAILABLE' },
-                    { number: 2, capacity: 2, tenantId: demoTenant.id, status: 'AVAILABLE' },
-                ]
-            });
-            await prisma.menu.create({
-                data: {
-                    name: 'Breakfast Menu',
-                    nameAr: 'قائمة الفطور',
-                    startTime: '05:00',
-                    endTime: '12:00',
-                    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-                    tenantId: demoTenant.id,
-                    categories: {
-                        create: [{ categoryId: catBreakfast.id }]
-                    }
-                }
-            });
-            const demoBranch = await prisma.branch.upsert({
-                where: { name_tenantId: { name: 'Main Branch', tenantId: demoTenant.id } },
-                update: {},
-                create: {
-                    id: 'default-branch',
-                    name: 'Main Branch',
-                    tenantId: demoTenant.id,
-                    isActive: true,
-                },
-            });
-            await prisma.user.updateMany({
-                where: { tenantId: demoTenant.id },
-                data: { branchId: demoBranch.id }
-            });
-            console.log('🏛️ Seeded Main Branch for Demo Tenant');
-        }
         const demoBranch = await prisma.branch.upsert({
             where: { name_tenantId: { name: 'Main Branch', tenantId: demoTenant.id } },
             update: {},
-            create: {
-                id: 'default-branch',
-                name: 'Main Branch',
-                tenantId: demoTenant.id,
-                isActive: true,
-            },
+            create: { id: 'default-branch', name: 'Main Branch', tenantId: demoTenant.id, isActive: true },
         });
         await prisma.user.updateMany({
             where: { tenantId: demoTenant.id, branchId: null },
             data: { branchId: demoBranch.id }
         });
-        console.log('🏛️ Seeded Main Branch for Demo Tenant');
-        console.log('✅ Dummy Tenant Seeded: dummy-tenant-123 / demo@restaurant.com');
-        console.log('✅ Database seeded inside NestJS!');
+        console.log('✅ Database seeded!');
     }
     catch (error) {
         console.error('❌ Error during seeding:', error);
     }
 }
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const app = await core_1.NestFactory.create(app_module_1.AppModule, { bufferLogs: true });
+    app.useLogger(app.get(nestjs_pino_1.Logger));
     app.enableCors({
         origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -201,10 +154,9 @@ async function bootstrap() {
         errorHttpStatusCode: 422,
     }));
     app.useGlobalInterceptors(new transform_interceptor_1.TransformInterceptor());
-    app.useGlobalFilters(new http_exception_filter_1.HttpExceptionFilter());
     const config = new swagger_1.DocumentBuilder()
         .setTitle('Idarax Enterprise POS API')
-        .setDescription('Full API documentation for the Idarax POS system, including Retail, Restaurant, and Multi-tenancy features.')
+        .setDescription('Full API documentation for the Idarax POS system.')
         .setVersion('1.0')
         .addBearerAuth()
         .build();

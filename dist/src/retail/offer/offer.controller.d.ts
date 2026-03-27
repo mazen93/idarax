@@ -12,6 +12,7 @@ export declare class OfferController {
         type: import(".prisma/client").$Enums.PromotionType;
         updatedAt: Date;
         description: string | null;
+        customerSegment: string | null;
         applicableProductIds: string[];
         maxDiscountAmount: import("@prisma/client/runtime/library").Decimal | null;
         minOrderAmount: import("@prisma/client/runtime/library").Decimal | null;
@@ -20,7 +21,6 @@ export declare class OfferController {
         buyQuantity: number | null;
         getQuantity: number | null;
         discountValue: import("@prisma/client/runtime/library").Decimal | null;
-        customerSegment: string | null;
         freeItemProductId: string | null;
         happyHourDays: number[];
         happyHourEnd: string | null;
@@ -51,6 +51,7 @@ export declare class OfferController {
         type: import(".prisma/client").$Enums.PromotionType;
         updatedAt: Date;
         description: string | null;
+        customerSegment: string | null;
         applicableProductIds: string[];
         maxDiscountAmount: import("@prisma/client/runtime/library").Decimal | null;
         minOrderAmount: import("@prisma/client/runtime/library").Decimal | null;
@@ -59,7 +60,6 @@ export declare class OfferController {
         buyQuantity: number | null;
         getQuantity: number | null;
         discountValue: import("@prisma/client/runtime/library").Decimal | null;
-        customerSegment: string | null;
         freeItemProductId: string | null;
         happyHourDays: number[];
         happyHourEnd: string | null;
@@ -76,6 +76,7 @@ export declare class OfferController {
         type: import(".prisma/client").$Enums.PromotionType;
         updatedAt: Date;
         description: string | null;
+        customerSegment: string | null;
         applicableProductIds: string[];
         maxDiscountAmount: import("@prisma/client/runtime/library").Decimal | null;
         minOrderAmount: import("@prisma/client/runtime/library").Decimal | null;
@@ -84,7 +85,6 @@ export declare class OfferController {
         buyQuantity: number | null;
         getQuantity: number | null;
         discountValue: import("@prisma/client/runtime/library").Decimal | null;
-        customerSegment: string | null;
         freeItemProductId: string | null;
         happyHourDays: number[];
         happyHourEnd: string | null;
@@ -101,6 +101,7 @@ export declare class OfferController {
         type: import(".prisma/client").$Enums.PromotionType;
         updatedAt: Date;
         description: string | null;
+        customerSegment: string | null;
         applicableProductIds: string[];
         maxDiscountAmount: import("@prisma/client/runtime/library").Decimal | null;
         minOrderAmount: import("@prisma/client/runtime/library").Decimal | null;
@@ -109,7 +110,6 @@ export declare class OfferController {
         buyQuantity: number | null;
         getQuantity: number | null;
         discountValue: import("@prisma/client/runtime/library").Decimal | null;
-        customerSegment: string | null;
         freeItemProductId: string | null;
         happyHourDays: number[];
         happyHourEnd: string | null;

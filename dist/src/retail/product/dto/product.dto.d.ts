@@ -45,6 +45,7 @@ export declare class CreateProductDto {
     recipeComponents?: CreateRecipeComponentDto[];
     modifiers?: CreateModifierGroupDto[];
     defaultStationId?: string;
+    unit?: string;
 }
 export declare class UpdateProductDto {
     name?: string;
@@ -61,4 +62,5 @@ export declare class UpdateProductDto {
     variants?: UpdateVariantDto[];
     recipeComponents?: CreateRecipeComponentDto[];
     defaultStationId?: string;
+    unit?: string;
 }

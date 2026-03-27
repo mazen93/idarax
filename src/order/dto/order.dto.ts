@@ -47,6 +47,15 @@ export class CreateOrderItemDto {
     @ValidateNested({ each: true })
     @Type(() => CreateOrderItemModifierDto)
     modifiers?: CreateOrderItemModifierDto[];
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    pointsCost?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    isReward?: boolean;
 }
 
 export enum OrderType {
@@ -144,6 +153,15 @@ export class CreateOrderDto {
     @IsOptional()
     @IsArray()
     splitPayments?: { method: string, amount: number }[];
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    loyaltyPointsToRedeem?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    redeemAsCashback?: boolean;
 }
 
 export class SplitBillDto {

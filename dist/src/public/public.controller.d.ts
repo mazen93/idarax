@@ -63,10 +63,10 @@ export declare class PublicController {
                 }[];
             }[];
             id: string;
-            tenantId: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             nameAr: string | null;
             description: string | null;
             descriptionAr: string | null;

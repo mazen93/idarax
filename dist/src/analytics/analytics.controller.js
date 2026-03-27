@@ -19,6 +19,7 @@ const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const permissions_guard_1 = require("../auth/permissions.guard");
 const permissions_decorator_1 = require("../auth/permissions.decorator");
 const permissions_constants_1 = require("../auth/permissions.constants");
+const feature_gate_guard_1 = require("../common/guards/feature-gate.guard");
 let AnalyticsController = class AnalyticsController {
     analyticsService;
     constructor(analyticsService) {
@@ -104,7 +105,11 @@ let AnalyticsController = class AnalyticsController {
     }
     getKitchenPerformance(start, end) {
         const { startDate, endDate } = this.parseDateRange(start, end);
-        return this.analyticsService.getKitchenPerformance(startDate, endDate);
+        return this.analyticsService.getKDS2Analytics(startDate, endDate);
+    }
+    getKDS2Analytics(start, end) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getKDS2Analytics(startDate, endDate);
     }
     getProductProfitability(start, end) {
         const { startDate, endDate } = this.parseDateRange(start, end);
@@ -251,6 +256,16 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getKitchenPerformance", null);
 __decorate([
+    (0, common_1.Get)('reports/kds-2-analytics'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    (0, feature_gate_guard_1.Feature)('KDS_ANALYTICS'),
+    __param(0, (0, common_1.Query)('start')),
+    __param(1, (0, common_1.Query)('end')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AnalyticsController.prototype, "getKDS2Analytics", null);
+__decorate([
     (0, common_1.Get)('reports/product-profitability'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
     __param(0, (0, common_1.Query)('start')),
@@ -261,7 +276,7 @@ __decorate([
 ], AnalyticsController.prototype, "getProductProfitability", null);
 exports.AnalyticsController = AnalyticsController = __decorate([
     (0, common_1.Controller)('analytics'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard, feature_gate_guard_1.FeatureGateGuard),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.DASHBOARD.VIEW),
     __metadata("design:paramtypes", [analytics_service_1.AnalyticsService])
 ], AnalyticsController);

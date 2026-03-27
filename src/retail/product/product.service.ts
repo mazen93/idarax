@@ -29,29 +29,40 @@ export class ProductService {
             if (existing) throw new ConflictException('Barcode already exists for this tenant');
         }
 
-        let costPrice = dto.productType === 'COMBO' ? 0 : (rest as any).costPrice || 0;
-        let sellPrice = dto.productType === 'COMBO' ? 0 : rest.price || 0;
+        let costPrice = (rest as any).costPrice || 0;
+        let sellPrice = rest.price || 0;
 
-        // Automatically calculate combo cost and price if components are provided
-        if (dto.productType === 'COMBO' && recipeComponents?.length) {
+        // Automatically calculate cost and price if recipe components are provided
+        if (recipeComponents?.length) {
+            let calculatedCost = 0;
+            let calculatedSell = 0;
             for (const component of recipeComponents) {
                 if (component.variantId) {
                     const variant = await this.prisma.client.variant.findUnique({
                         where: { id: component.variantId }
                     });
                     if (variant) {
-                        costPrice += Number(variant.costPrice) * component.quantity;
-                        sellPrice += Number(variant.price || 0) * component.quantity;
+                        calculatedCost += Number(variant.costPrice || 0) * component.quantity;
+                        calculatedSell += Number(variant.price || 0) * component.quantity;
                     }
                 } else {
                     const ingredient = await this.db.findUnique({
                         where: { id: component.ingredientId }
                     });
                     if (ingredient) {
-                        costPrice += Number(ingredient.costPrice) * component.quantity;
-                        sellPrice += Number(ingredient.price) * component.quantity;
+                        calculatedCost += Number(ingredient.costPrice || 0) * component.quantity;
+                        calculatedSell += Number(ingredient.price || 0) * component.quantity;
                     }
                 }
+            }
+            // Always overwrite cost with calculated cost from ingredients
+            if (calculatedCost > 0) {
+                costPrice = calculatedCost;
+            }
+            
+            // For Combo, also default the sell price if not provided
+            if (dto.productType === 'COMBO' && sellPrice === 0) {
+                sellPrice = calculatedSell;
             }
         }
 
@@ -195,26 +206,40 @@ export class ProductService {
                 await tx.productRecipe.deleteMany({ where: { parentId: id } });
             }
 
-            let costPrice = rest.productType === 'COMBO' || product.productType === 'COMBO' ? 0 : (rest as any).costPrice ?? Number(product.costPrice);
-            let sellPrice = rest.productType === 'COMBO' || product.productType === 'COMBO' ? 0 : (rest as any).price ?? Number(product.price);
+            let costPrice = (rest as any).costPrice ?? Number(product.costPrice);
+            let sellPrice = (rest.price !== undefined) ? Number(rest.price) : Number(product.price);
 
-            // Recalculate cost if combo components are updated
-            if ((rest.productType === 'COMBO' || (rest.productType === undefined && product.productType === 'COMBO')) && (recipeComponents || product.recipeComponents)) {
+            // Recalculate cost if combo components or recipe components are updated
+            if (recipeComponents || (product.recipeComponents && product.recipeComponents.length > 0)) {
+                const isCombo = rest.productType === 'COMBO' || product.productType === 'COMBO';
                 const activeComponents = recipeComponents || (await tx.productRecipe.findMany({ where: { parentId: id } }));
+                
+                let calculatedCost = 0;
+                let calculatedSell = 0;
                 for (const component of activeComponents) {
                     if (component.variantId) {
                         const variant = await tx.variant.findUnique({ where: { id: component.variantId } });
                         if (variant) {
-                            costPrice += (Number(variant.costPrice) || 0) * component.quantity;
-                            sellPrice += (Number(variant.price) || 0) * component.quantity;
+                            calculatedCost += (Number(variant.costPrice) || 0) * component.quantity;
+                            calculatedSell += (Number(variant.price) || 0) * component.quantity;
                         }
                     } else {
                         const ingredient = await tx.product.findUnique({ where: { id: component.ingredientId } });
                         if (ingredient) {
-                            costPrice += (Number(ingredient.costPrice) || 0) * component.quantity;
-                            sellPrice += (Number(ingredient.price) || 0) * component.quantity;
+                            calculatedCost += (Number(ingredient.costPrice) || 0) * component.quantity;
+                            calculatedSell += (Number(ingredient.price) || 0) * component.quantity;
                         }
                     }
+                }
+
+                // Always use the calculated recipe cost if greater than zero
+                if (calculatedCost > 0) {
+                    costPrice = calculatedCost;
+                }
+
+                // For combo products, also default the sell price if not explicitly provided
+                if (isCombo && rest.price === undefined) {
+                    sellPrice = calculatedSell;
                 }
             }
 

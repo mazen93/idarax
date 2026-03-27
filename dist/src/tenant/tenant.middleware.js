@@ -12,14 +12,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TenantMiddleware = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_service_1 = require("./tenant.service");
+const prisma_service_1 = require("../prisma/prisma.service");
 let TenantMiddleware = class TenantMiddleware {
     tenantService;
-    constructor(tenantService) {
+    prisma;
+    constructor(tenantService, prisma) {
         this.tenantService = tenantService;
+        this.prisma = prisma;
     }
-    use(req, res, next) {
-        const tenantId = req.headers['x-tenant-id'];
+    async use(req, res, next) {
+        let tenantId = req.headers['x-tenant-id'];
         const branchId = req.headers['x-branch-id'] || undefined;
+        if (!tenantId) {
+            const host = req.hostname;
+            if (host && !host.includes('localhost') && !host.includes('idarax.com')) {
+                const tenant = await this.prisma.tenant.findUnique({
+                    where: { domain: host }
+                });
+                if (tenant) {
+                    tenantId = tenant.id;
+                }
+            }
+        }
         if (tenantId) {
             this.tenantService.setContext(tenantId, branchId);
         }
@@ -29,6 +43,7 @@ let TenantMiddleware = class TenantMiddleware {
 exports.TenantMiddleware = TenantMiddleware;
 exports.TenantMiddleware = TenantMiddleware = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [tenant_service_1.TenantService])
+    __metadata("design:paramtypes", [tenant_service_1.TenantService,
+        prisma_service_1.PrismaService])
 ], TenantMiddleware);
 //# sourceMappingURL=tenant.middleware.js.map

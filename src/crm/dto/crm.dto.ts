@@ -21,6 +21,18 @@ export class AddressDto {
     @IsOptional()
     @IsBoolean()
     isDefault?: boolean;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    lat?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    lng?: number;
 }
 
 export class CreateCustomerDto {
@@ -37,6 +49,16 @@ export class CreateCustomerDto {
     @ApiProperty()
     @IsString()
     phone: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @Transform(({ value }) => value ? new Date(value) : undefined)
+    birthday?: Date;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    referredByCode?: string;
 
     @ApiProperty({ type: [AddressDto], required: false })
     @IsOptional()
@@ -62,6 +84,11 @@ export class UpdateCustomerDto {
     @IsOptional()
     @IsString()
     phone?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @Transform(({ value }) => value ? new Date(value) : undefined)
+    birthday?: Date;
 
     @ApiProperty({ type: [AddressDto], required: false })
     @IsOptional()
@@ -108,6 +135,18 @@ export class CreateCustomerAddressDto {
     @IsOptional()
     @IsBoolean()
     isDefault?: boolean;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    lat?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    lng?: number;
 }
 
 export class UpdateCustomerAddressDto {
@@ -125,6 +164,18 @@ export class UpdateCustomerAddressDto {
     @IsOptional()
     @IsBoolean()
     isDefault?: boolean;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    lat?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Type(() => Number)
+    lng?: number;
 }
 
 export class PaginationQueryDto {
@@ -144,4 +195,49 @@ export class PaginationQueryDto {
     @IsOptional()
     @IsString()
     search?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    segmentId?: string;
+}
+
+export class CreateSegmentDto {
+    @ApiProperty()
+    @IsString()
+    name: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    description?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    color?: string;
+}
+
+export class UpdateSegmentDto {
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    name?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    description?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    color?: string;
+}
+
+export class AssignCustomersDto {
+    @ApiProperty()
+    @IsArray()
+    @IsString({ each: true })
+    customerIds: string[];
 }

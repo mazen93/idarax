@@ -103,12 +103,23 @@ let PublicService = class PublicService {
                     where: {
                         isSellable: true,
                         ...(branchId ? {
-                            branchSettings: {
-                                some: {
-                                    branchId,
-                                    isAvailable: true,
+                            OR: [
+                                {
+                                    branchSettings: {
+                                        some: {
+                                            branchId,
+                                            isAvailable: true,
+                                        }
+                                    }
+                                },
+                                {
+                                    branchSettings: {
+                                        none: {
+                                            branchId,
+                                        }
+                                    }
                                 }
-                            }
+                            ]
                         } : {})
                     },
                     include: {

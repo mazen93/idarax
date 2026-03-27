@@ -10,6 +10,8 @@ export declare class CreateOrderItemDto {
     note?: string;
     courseName?: string;
     modifiers?: CreateOrderItemModifierDto[];
+    pointsCost?: number;
+    isReward?: boolean;
 }
 export declare enum OrderType {
     DINE_IN = "DINE_IN",
@@ -40,6 +42,8 @@ export declare class CreateOrderDto {
         method: string;
         amount: number;
     }[];
+    loyaltyPointsToRedeem?: number;
+    redeemAsCashback?: boolean;
 }
 export declare class SplitBillDto {
     orderId: string;

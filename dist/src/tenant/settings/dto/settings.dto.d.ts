@@ -27,4 +27,8 @@ export declare class UpdateSettingsDto {
     receiptShowTotal?: boolean;
     receiptShowPaymentMethod?: boolean;
     receiptShowBarcode?: boolean;
+    drovoTenantId?: string;
+    drovoApiKey?: string;
+    loyaltyRatioEarning?: number;
+    loyaltyRatioRedemption?: number;
 }

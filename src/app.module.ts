@@ -1,6 +1,10 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { BullModule } from '@nestjs/bull';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -17,7 +21,6 @@ import { ProductModule } from './retail/product/product.module';
 import { KdsModule } from './restaurant/kds/kds.module';
 import { SerialModule } from './retail/serial/serial.module';
 import { OrderModule } from './order/order.module';
-import { BullModule } from '@nestjs/bull';
 import { InventoryModule } from './retail/inventory/inventory.module';
 import { CrmModule } from './crm/crm.module';
 import { PaymentModule } from './payment/payment.module';
@@ -42,19 +45,25 @@ import { MenuModule } from './retail/menu/menu.module';
 import { AuditLogModule } from './common/audit-log/audit-log.module';
 import { MailModule } from './mail/mail.module';
 import { NotificationsModule } from './notifications/notifications.module';
-
-import { ScheduleModule } from '@nestjs/schedule';
+import { CdsModule as RetailCdsModule } from './retail/cds/cds.module';
 import { DeliveryAggregatorModule } from './delivery-aggregator/delivery-aggregator.module';
 import { DrovoModule } from './delivery-aggregator/drovo.module';
+import { ObservabilityModule } from './common/observability/observability.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { BackupModule } from './common/backup/backup.module';
+import { MarketingModule } from './marketing/marketing.module';
+import { SyncModule } from './common/sync/sync.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ObservabilityModule,
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         name: 'default',
-        ttl: 60000,  // 1 minute window
-        limit: 60,   // 60 requests per minute by default
+        ttl: 60000,
+        limit: 60,
       },
     ]),
     PrismaModule,
@@ -100,18 +109,22 @@ import { DrovoModule } from './delivery-aggregator/drovo.module';
     AuditLogModule,
     MailModule,
     NotificationsModule,
+    RetailCdsModule,
     DeliveryAggregatorModule,
     DrovoModule,
+    BackupModule,
+    MarketingModule,
+    SyncModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    // Apply ThrottlerGuard globally so all routes are rate-limited
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TenantMiddleware).forRoutes('*');
+    consumer.apply(TenantMiddleware).forRoutes('*path');
   }
 }

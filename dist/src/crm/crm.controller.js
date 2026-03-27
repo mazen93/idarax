@@ -54,6 +54,36 @@ let CrmController = class CrmController {
     getActiveCampaigns() {
         return this.crmService.getActiveCampaigns();
     }
+    estimateFee(id) {
+        return this.crmService.estimateDeliveryFee(id);
+    }
+    createSegment(dto) {
+        return this.crmService.createSegment(dto);
+    }
+    getSegments() {
+        return this.crmService.getSegments();
+    }
+    updateSegment(id, dto) {
+        return this.crmService.updateSegment(id, dto);
+    }
+    deleteSegment(id) {
+        return this.crmService.deleteSegment(id);
+    }
+    assignCustomersToSegment(id, dto) {
+        return this.crmService.assignCustomersToSegment(id, dto.customerIds);
+    }
+    createRewardCatalogItem(dto) {
+        return this.crmService.createRewardCatalogItem(dto);
+    }
+    getRewardCatalogItems() {
+        return this.crmService.getRewardCatalogItems();
+    }
+    updateRewardCatalogItem(id, dto) {
+        return this.crmService.updateRewardCatalogItem(id, dto);
+    }
+    deleteRewardCatalogItem(id) {
+        return this.crmService.deleteRewardCatalogItem(id);
+    }
 };
 exports.CrmController = CrmController;
 __decorate([
@@ -137,6 +167,87 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], CrmController.prototype, "getActiveCampaigns", null);
+__decorate([
+    (0, common_1.Get)('addresses/:id/estimate-fee'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.VIEW),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "estimateFee", null);
+__decorate([
+    (0, common_1.Post)('segments'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.CREATE),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "createSegment", null);
+__decorate([
+    (0, common_1.Get)('segments'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.VIEW),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "getSegments", null);
+__decorate([
+    (0, common_1.Patch)('segments/:id'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.EDIT),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "updateSegment", null);
+__decorate([
+    (0, common_1.Delete)('segments/:id'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.DELETE),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "deleteSegment", null);
+__decorate([
+    (0, common_1.Post)('segments/:id/assign'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.EDIT),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "assignCustomersToSegment", null);
+__decorate([
+    (0, common_1.Post)('rewards'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.CREATE),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "createRewardCatalogItem", null);
+__decorate([
+    (0, common_1.Get)('rewards'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.VIEW),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "getRewardCatalogItems", null);
+__decorate([
+    (0, common_1.Patch)('rewards/:id'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.EDIT),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "updateRewardCatalogItem", null);
+__decorate([
+    (0, common_1.Delete)('rewards/:id'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CUSTOMERS.DELETE),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CrmController.prototype, "deleteRewardCatalogItem", null);
 exports.CrmController = CrmController = __decorate([
     (0, common_1.Controller)('crm'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

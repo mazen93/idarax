@@ -13,6 +13,8 @@ export declare class SettingsService {
             domain: string | null;
             type: import(".prisma/client").$Enums.TenantType;
             updatedAt: Date;
+            hasDeliveryIntegration: boolean;
+            planId: string | null;
         };
     } & {
         id: string;
@@ -51,6 +53,12 @@ export declare class SettingsService {
         receiptShowTimestamp: boolean;
         receiptShowTotal: boolean;
         twitterUrl: string | null;
+        drovoApiKey: string | null;
+        drovoTenantId: string | null;
+        brandColor: string;
+        secondaryColor: string;
+        loyaltyRatioEarning: number;
+        loyaltyRatioRedemption: number;
     }>;
     update(dto: UpdateSettingsDto): Promise<any>;
 }

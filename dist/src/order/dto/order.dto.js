@@ -31,6 +31,8 @@ class CreateOrderItemDto {
     note;
     courseName;
     modifiers;
+    pointsCost;
+    isReward;
 }
 exports.CreateOrderItemDto = CreateOrderItemDto;
 __decorate([
@@ -80,6 +82,17 @@ __decorate([
     (0, class_transformer_1.Type)(() => CreateOrderItemModifierDto),
     __metadata("design:type", Array)
 ], CreateOrderItemDto.prototype, "modifiers", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateOrderItemDto.prototype, "pointsCost", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreateOrderItemDto.prototype, "isReward", void 0);
 var OrderType;
 (function (OrderType) {
     OrderType["DINE_IN"] = "DINE_IN";
@@ -107,6 +120,8 @@ class CreateOrderDto {
     paymentMethod;
     deliveryAddress;
     splitPayments;
+    loyaltyPointsToRedeem;
+    redeemAsCashback;
 }
 exports.CreateOrderDto = CreateOrderDto;
 __decorate([
@@ -211,6 +226,17 @@ __decorate([
     (0, class_validator_1.IsArray)(),
     __metadata("design:type", Array)
 ], CreateOrderDto.prototype, "splitPayments", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateOrderDto.prototype, "loyaltyPointsToRedeem", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreateOrderDto.prototype, "redeemAsCashback", void 0);
 class SplitBillDto {
     orderId;
     splitType;

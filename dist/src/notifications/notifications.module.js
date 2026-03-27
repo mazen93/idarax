@@ -13,15 +13,16 @@ const notifications_gateway_1 = require("./notifications.gateway");
 const notifications_controller_1 = require("./notifications.controller");
 const prisma_module_1 = require("../prisma/prisma.module");
 const tenant_module_1 = require("../tenant/tenant.module");
+const pusher_service_1 = require("./pusher.service");
 let NotificationsModule = class NotificationsModule {
 };
 exports.NotificationsModule = NotificationsModule;
 exports.NotificationsModule = NotificationsModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule],
-        providers: [notifications_service_1.NotificationsService, notifications_gateway_1.NotificationsGateway],
+        providers: [notifications_service_1.NotificationsService, notifications_gateway_1.NotificationsGateway, pusher_service_1.PusherService],
         controllers: [notifications_controller_1.NotificationsController],
-        exports: [notifications_service_1.NotificationsService],
+        exports: [notifications_service_1.NotificationsService, pusher_service_1.PusherService],
     })
 ], NotificationsModule);
 //# sourceMappingURL=notifications.module.js.map

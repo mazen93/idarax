@@ -6,17 +6,6 @@ export declare class PurchaseOrderService {
     private tenantService;
     constructor(prisma: PrismaService, tenantService: TenantService);
     create(dto: CreatePurchaseOrderDto): Promise<{
-        vendor: {
-            id: string;
-            tenantId: string;
-            createdAt: Date;
-            name: string;
-            updatedAt: Date;
-            address: string | null;
-            phone: string | null;
-            nameAr: string | null;
-            email: string | null;
-        };
         items: {
             id: string;
             costPrice: import("@prisma/client/runtime/library").Decimal;
@@ -25,6 +14,17 @@ export declare class PurchaseOrderService {
             purchaseOrderId: string;
             receivedQty: number;
         }[];
+        vendor: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            updatedAt: Date;
+            phone: string | null;
+            email: string | null;
+            address: string | null;
+            nameAr: string | null;
+        };
     } & {
         number: string;
         id: string;
@@ -41,27 +41,6 @@ export declare class PurchaseOrderService {
         receivedAt: Date | null;
     }>;
     findAll(): Promise<({
-        warehouse: {
-            id: string;
-            tenantId: string;
-            createdAt: Date;
-            name: string;
-            updatedAt: Date;
-            nameAr: string | null;
-            branchId: string | null;
-            location: string | null;
-        } | null;
-        vendor: {
-            id: string;
-            tenantId: string;
-            createdAt: Date;
-            name: string;
-            updatedAt: Date;
-            address: string | null;
-            phone: string | null;
-            nameAr: string | null;
-            email: string | null;
-        };
         items: ({
             product: {
                 id: string;
@@ -80,6 +59,7 @@ export declare class PurchaseOrderService {
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
+                unit: string | null;
                 categoryId: string;
             };
         } & {
@@ -90,6 +70,27 @@ export declare class PurchaseOrderService {
             purchaseOrderId: string;
             receivedQty: number;
         })[];
+        warehouse: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            updatedAt: Date;
+            nameAr: string | null;
+            branchId: string | null;
+            location: string | null;
+        } | null;
+        vendor: {
+            id: string;
+            tenantId: string;
+            createdAt: Date;
+            name: string;
+            updatedAt: Date;
+            phone: string | null;
+            email: string | null;
+            address: string | null;
+            nameAr: string | null;
+        };
     } & {
         number: string;
         id: string;

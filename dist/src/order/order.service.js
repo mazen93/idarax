@@ -27,6 +27,7 @@ const kds_gateway_1 = require("../restaurant/kds/kds.gateway");
 const mail_service_1 = require("../mail/mail.service");
 const notifications_service_1 = require("../notifications/notifications.service");
 const notifications_dto_1 = require("../notifications/dto/notifications.dto");
+const drovo_service_1 = require("../delivery-aggregator/drovo.service");
 let OrderService = class OrderService {
     prisma;
     tenantService;
@@ -40,7 +41,8 @@ let OrderService = class OrderService {
     crmService;
     kdsGateway;
     notificationsService;
-    constructor(prisma, tenantService, offerService, numberingService, mailService, orderQueue, drawerService, auditLog, analyticsService, crmService, kdsGateway, notificationsService) {
+    drovoService;
+    constructor(prisma, tenantService, offerService, numberingService, mailService, orderQueue, drawerService, auditLog, analyticsService, crmService, kdsGateway, notificationsService, drovoService) {
         this.prisma = prisma;
         this.tenantService = tenantService;
         this.offerService = offerService;
@@ -53,6 +55,7 @@ let OrderService = class OrderService {
         this.crmService = crmService;
         this.kdsGateway = kdsGateway;
         this.notificationsService = notificationsService;
+        this.drovoService = drovoService;
     }
     get db() {
         return this.prisma.client.order;
@@ -84,11 +87,22 @@ let OrderService = class OrderService {
             throw new common_1.ForbiddenException('Tenant ID missing');
         let finalTotalAmount = dto.totalAmount;
         let appliedDiscount = 0;
-        if (dto.offerCode) {
-            const validation = await this.offerService.validatePromotion(dto.offerCode, dto.items);
-            if (validation.isValid) {
-                appliedDiscount = validation.discountAmount;
-                finalTotalAmount = dto.totalAmount - appliedDiscount;
+        let pointsToDeduct = 0;
+        let loyaltyCashback = 0;
+        if (dto.customerId) {
+            if (dto.redeemAsCashback && dto.loyaltyPointsToRedeem) {
+                pointsToDeduct += dto.loyaltyPointsToRedeem;
+                const tenantSettings = await this.prisma.client.settings.findUnique({
+                    where: { tenantId }
+                });
+                const redemptionRatio = tenantSettings?.loyaltyRatioRedemption || 0.01;
+                loyaltyCashback = Number(dto.loyaltyPointsToRedeem) * Number(redemptionRatio);
+                finalTotalAmount -= loyaltyCashback;
+            }
+            for (const item of dto.items) {
+                if (item.isReward && item.pointsCost) {
+                    pointsToDeduct += (item.pointsCost * item.quantity);
+                }
             }
         }
         return this.prisma.client.$transaction(async (tx) => {
@@ -127,11 +141,13 @@ let OrderService = class OrderService {
                         paidAmount: { increment: totalPaidNow },
                         taxAmount: { increment: dto.taxAmount || 0 },
                         serviceFeeAmount: { increment: dto.serviceFeeAmount || 0 },
-                        discountAmount: { increment: appliedDiscount },
+                        discountAmount: { increment: appliedDiscount + loyaltyCashback },
+                        loyaltyPointsUsed: { increment: pointsToDeduct },
+                        loyaltyCashback: { increment: loyaltyCashback },
                         offerCode: dto.offerCode || existingOrder.offerCode,
                         note: dto.note ? (existingOrder.note ? `${existingOrder.note}\n--- Additional ---\n${dto.note}` : dto.note) : existingOrder.note,
                         items: {
-                            create: resolvedItems.map(item => ({
+                            create: resolvedItems.map((item, idx) => ({
                                 productId: item.productId,
                                 variantId: item.variantId || null,
                                 quantity: item.quantity,
@@ -141,6 +157,8 @@ let OrderService = class OrderService {
                                 note: item.note || null,
                                 courseName: item.courseName || null,
                                 fireAt: item.fireAt || null,
+                                isReward: dto.items[idx].isReward || false,
+                                pointsCost: dto.items[idx].pointsCost || 0,
                             })),
                         },
                         payments: {
@@ -190,6 +208,8 @@ let OrderService = class OrderService {
                         guestPhone: dto.guestPhone,
                         offerCode: dto.offerCode || null,
                         discountAmount: appliedDiscount || dto.discountAmount || 0,
+                        loyaltyPointsUsed: pointsToDeduct,
+                        loyaltyCashback: loyaltyCashback,
                         taxAmount: dto.taxAmount || 0,
                         serviceFeeAmount: dto.serviceFeeAmount || 0,
                         deliveryAddress: dto.deliveryAddress,
@@ -198,7 +218,7 @@ let OrderService = class OrderService {
                         receiptNumber,
                         invoiceNumber,
                         items: {
-                            create: resolvedItems.map(item => ({
+                            create: resolvedItems.map((item, idx) => ({
                                 productId: item.productId,
                                 variantId: item.variantId || null,
                                 quantity: item.quantity,
@@ -208,6 +228,8 @@ let OrderService = class OrderService {
                                 note: item.note || null,
                                 courseName: item.courseName || null,
                                 fireAt: item.fireAt || null,
+                                isReward: dto.items[idx]?.isReward || false,
+                                pointsCost: dto.items[idx]?.pointsCost || 0,
                                 modifiers: item.modifiers ? {
                                     create: item.modifiers.map((m) => ({
                                         optionId: m.optionId,
@@ -242,6 +264,28 @@ let OrderService = class OrderService {
             }
             for (const item of dto.items) {
                 await this.deductStockRecursively(tx, tenantId, branchId, item.productId, item.quantity, order.id);
+            }
+            if (dto.customerId && pointsToDeduct > 0) {
+                const customer = await tx.customer.findUnique({ where: { id: dto.customerId } });
+                if (!customer || Number(customer.points) < pointsToDeduct) {
+                    throw new common_1.ForbiddenException('Insufficient loyalty points');
+                }
+                await tx.customer.update({
+                    where: { id: dto.customerId },
+                    data: { points: { decrement: pointsToDeduct } }
+                });
+                await tx.customerLoyalty.create({
+                    data: {
+                        customerId: dto.customerId,
+                        points: -pointsToDeduct,
+                        type: 'REDEEMED',
+                        description: `Points redeemed for order #${order.invoiceNumber || order.id} (${loyaltyCashback > 0 ? 'Cashback' : 'Rewards'})`,
+                    }
+                });
+            }
+            const isFullyPaid = Math.round(Number(order.paidAmount) * 100) >= Math.round(Number(order.totalAmount) * 100);
+            if (dto.customerId && isFullyPaid && this.crmService) {
+                await this.crmService.processLoyaltyForOrder(dto.customerId, Number(order.totalAmount), order.id, tx);
             }
             if (dto.tableId) {
                 const isFullyPaid = Math.round(Number(order.paidAmount) * 100) >= Math.round(Number(order.totalAmount) * 100);
@@ -320,6 +364,11 @@ let OrderService = class OrderService {
                         }
                     }
                 }
+            }
+            if (this.drovoService && order.orderType === 'DELIVERY') {
+                this.drovoService.dispatchOrder(order.id, tenantId).catch(err => {
+                    console.error('Failed to trigger Drovo dispatch background task:', err);
+                });
             }
             return order;
         });
@@ -921,6 +970,7 @@ exports.OrderService = OrderService = __decorate([
     __param(9, (0, common_1.Optional)()),
     __param(10, (0, common_1.Optional)()),
     __param(11, (0, common_1.Optional)()),
+    __param(12, (0, common_1.Optional)()),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         tenant_service_1.TenantService,
         offer_service_1.OfferService,
@@ -930,6 +980,7 @@ exports.OrderService = OrderService = __decorate([
         analytics_service_1.AnalyticsService,
         crm_service_1.CrmService,
         kds_gateway_1.KdsGateway,
-        notifications_service_1.NotificationsService])
+        notifications_service_1.NotificationsService,
+        drovo_service_1.DrovoService])
 ], OrderService);
 //# sourceMappingURL=order.service.js.map

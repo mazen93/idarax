@@ -16,11 +16,11 @@ export declare class RecipeController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        unit: string;
         quantity: import("@prisma/client/runtime/library").Decimal;
         variantId: string | null;
         parentId: string;
         ingredientId: string;
-        unit: string;
     }>;
     findByProduct(productId: string): Promise<({
         ingredient: {
@@ -32,20 +32,20 @@ export declare class RecipeController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        unit: string;
         quantity: import("@prisma/client/runtime/library").Decimal;
         variantId: string | null;
         parentId: string;
         ingredientId: string;
-        unit: string;
     })[]>;
     remove(id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        unit: string;
         quantity: import("@prisma/client/runtime/library").Decimal;
         variantId: string | null;
         parentId: string;
         ingredientId: string;
-        unit: string;
     }>;
 }

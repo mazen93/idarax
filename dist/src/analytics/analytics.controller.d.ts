@@ -38,11 +38,35 @@ export declare class AnalyticsController {
         orderCount: number;
     }[]>;
     getKitchenPerformance(start?: string, end?: string): Promise<{
-        stationName: string;
-        totalItems: number;
-        totalPrepTimeMs: number;
-        avgPrepTimeMinutes: number;
-    }[]>;
+        totalCompletedItems: any;
+        hourlyThroughput: {
+            hour: number;
+            count: number;
+        }[];
+        stations: {
+            name: string;
+            totalItems: number;
+            avgPrepMinutes: number;
+            efficiencyScore: number;
+            maxPrepMinutes: number;
+        }[];
+        busiestHour: string | null;
+    }>;
+    getKDS2Analytics(start?: string, end?: string): Promise<{
+        totalCompletedItems: any;
+        hourlyThroughput: {
+            hour: number;
+            count: number;
+        }[];
+        stations: {
+            name: string;
+            totalItems: number;
+            avgPrepMinutes: number;
+            efficiencyScore: number;
+            maxPrepMinutes: number;
+        }[];
+        busiestHour: string | null;
+    }>;
     getProductProfitability(start?: string, end?: string): Promise<{
         name: string;
         quantity: number;

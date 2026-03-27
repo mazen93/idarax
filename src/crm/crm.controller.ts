@@ -69,4 +69,69 @@ export class CrmController {
     getActiveCampaigns() {
         return this.crmService.getActiveCampaigns();
     }
+
+    @Get('addresses/:id/estimate-fee')
+    @Permissions(Actions.CUSTOMERS.VIEW)
+    estimateFee(@Param('id') id: string) {
+        return this.crmService.estimateDeliveryFee(id);
+    }
+
+    // --- Customer Segmentation Endpoints ---
+
+    @Post('segments')
+    @Permissions(Actions.CUSTOMERS.CREATE)
+    createSegment(@Body() dto: any) {
+        return this.crmService.createSegment(dto);
+    }
+
+    @Get('segments')
+    @Permissions(Actions.CUSTOMERS.VIEW)
+    getSegments() {
+        return this.crmService.getSegments();
+    }
+
+    @Patch('segments/:id')
+    @Permissions(Actions.CUSTOMERS.EDIT)
+    updateSegment(@Param('id') id: string, @Body() dto: any) {
+        return this.crmService.updateSegment(id, dto);
+    }
+
+    @Delete('segments/:id')
+    @Permissions(Actions.CUSTOMERS.DELETE)
+    deleteSegment(@Param('id') id: string) {
+        return this.crmService.deleteSegment(id);
+    }
+
+    @Post('segments/:id/assign')
+    @Permissions(Actions.CUSTOMERS.EDIT)
+    assignCustomersToSegment(@Param('id') id: string, @Body() dto: { customerIds: string[] }) {
+        return this.crmService.assignCustomersToSegment(id, dto.customerIds);
+    }
+
+    // --- Reward Catalog Endpoints ---
+
+    @Post('rewards')
+    @Permissions(Actions.CUSTOMERS.CREATE)
+    createRewardCatalogItem(@Body() dto: any) {
+        return this.crmService.createRewardCatalogItem(dto);
+    }
+
+    @Get('rewards')
+    @Permissions(Actions.CUSTOMERS.VIEW)
+    getRewardCatalogItems() {
+        return this.crmService.getRewardCatalogItems();
+    }
+
+    @Patch('rewards/:id')
+    @Permissions(Actions.CUSTOMERS.EDIT)
+    updateRewardCatalogItem(@Param('id') id: string, @Body() dto: any) {
+        return this.crmService.updateRewardCatalogItem(id, dto);
+    }
+
+    @Delete('rewards/:id')
+    @Permissions(Actions.CUSTOMERS.DELETE)
+    deleteRewardCatalogItem(@Param('id') id: string) {
+        return this.crmService.deleteRewardCatalogItem(id);
+    }
 }
+

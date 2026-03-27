@@ -6,7 +6,7 @@ export declare class AdjustStockDto {
     productId: string;
     warehouseId: string;
     quantity: number;
-    type: any;
+    type: 'ADD' | 'REMOVE' | 'SET' | 'RESTOCK' | 'ADJUSTMENT' | 'DAMAGE' | 'RETURN' | 'SALE';
     referenceId?: string;
     reason?: string;
 }

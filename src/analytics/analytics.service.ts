@@ -593,9 +593,10 @@ export class AnalyticsService {
     }
 
     /**
-     * Track the average time it takes each station to complete specific dishes.
+     * KDS 2.0: Advanced Kitchen Efficiency Analytics
+     * Includes throughput by hour, busiest stations, and prep-time outliers.
      */
-    async getKitchenPerformance(startDate: Date, endDate: Date) {
+    async getKDS2Analytics(startDate: Date, endDate: Date) {
         const tenantId = this.tenantService.getTenantId();
         const branchId = this.tenantService.getBranchId();
 
@@ -613,23 +614,54 @@ export class AnalyticsService {
             include: { station: true, product: true }
         });
 
-        const stationStats: Record<string, { stationName: string; totalItems: number; totalPrepTimeMs: number; avgPrepTimeMinutes: number }> = {};
+        const hourlyThroughput: Record<string, number> = {};
+        const stationStats: Record<string, { 
+            name: string; 
+            totalItems: number; 
+            avgPrepMinutes: number; 
+            efficiencyScore: number; // % of items under target prepTime
+            maxPrepMinutes: number;
+        }> = {};
 
         completedItems.forEach((item: any) => {
-            const stationId = item.stationId || 'unassigned';
-            const stationName = item.station?.name || 'Unassigned';
+            // 1. Hourly Throughput
+            const hour = item.completedAt.getHours();
+            hourlyThroughput[hour] = (hourlyThroughput[hour] || 0) + 1;
 
-            if (!stationStats[stationId]) {
-                stationStats[stationId] = { stationName, totalItems: 0, totalPrepTimeMs: 0, avgPrepTimeMinutes: 0 };
+            // 2. Station Stats
+            const sId = item.stationId || 'unassigned';
+            const sName = item.station?.name || 'Unassigned';
+
+            if (!stationStats[sId]) {
+                stationStats[sId] = { name: sName, totalItems: 0, avgPrepMinutes: 0, efficiencyScore: 0, maxPrepMinutes: 0 };
             }
 
-            const prepTime = item.completedAt.getTime() - item.startedAt.getTime();
-            stationStats[stationId].totalItems += 1;
-            stationStats[stationId].totalPrepTimeMs += prepTime;
-            stationStats[stationId].avgPrepTimeMinutes = (stationStats[stationId].totalPrepTimeMs / stationStats[stationId].totalItems) / 60000;
+            const prepMs = item.completedAt.getTime() - item.startedAt.getTime();
+            const prepMin = prepMs / 60000;
+            const targetMin = item.product?.prepTime || 10; // Default 10 mins if not set
+
+            const stats = stationStats[sId];
+            const oldTotal = stats.totalItems;
+            stats.totalItems += 1;
+            stats.avgPrepMinutes = (stats.avgPrepMinutes * oldTotal + prepMin) / stats.totalItems;
+            stats.maxPrepMinutes = Math.max(stats.maxPrepMinutes, prepMin);
+
+            if (prepMin <= targetMin) {
+                stats.efficiencyScore += 1;
+            }
         });
 
-        return Object.values(stationStats).sort((a, b) => b.avgPrepTimeMinutes - a.avgPrepTimeMinutes);
+        // Finalize scores to percentages
+        Object.values(stationStats).forEach(s => {
+            s.efficiencyScore = (s.efficiencyScore / s.totalItems) * 100;
+        });
+
+        return {
+            totalCompletedItems: completedItems.length,
+            hourlyThroughput: Object.entries(hourlyThroughput).map(([hour, count]) => ({ hour: Number(hour), count })),
+            stations: Object.values(stationStats).sort((a, b) => b.totalItems - a.totalItems),
+            busiestHour: Object.entries(hourlyThroughput).sort((a, b) => b[1] - a[1])[0]?.[0] || null,
+        };
     }
 
     /**

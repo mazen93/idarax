@@ -18,6 +18,7 @@ const branch_service_1 = require("./branch.service");
 const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
 const permissions_decorator_1 = require("../../auth/permissions.decorator");
 const permissions_constants_1 = require("../../auth/permissions.constants");
+const branch_dto_1 = require("./dto/branch.dto");
 let BranchController = class BranchController {
     branchService;
     constructor(branchService) {
@@ -60,7 +61,7 @@ __decorate([
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.SETTINGS.EDIT),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [branch_dto_1.CreateBranchDto]),
     __metadata("design:returntype", void 0)
 ], BranchController.prototype, "create", null);
 __decorate([
@@ -69,7 +70,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, branch_dto_1.UpdateBranchDto]),
     __metadata("design:returntype", void 0)
 ], BranchController.prototype, "update", null);
 __decorate([

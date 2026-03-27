@@ -1,6 +1,7 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TenantService } from '../tenant.service';
+import { CreateBranchDto, UpdateBranchDto } from './dto/branch.dto';
 
 @Injectable()
 export class BranchService {
@@ -42,7 +43,7 @@ export class BranchService {
         return branch;
     }
 
-    async create(dto: any) {
+    async create(dto: CreateBranchDto) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
 
@@ -103,8 +104,19 @@ export class BranchService {
         });
     }
 
-    async update(id: string, dto: any) {
-        await this.findOne(id); // Check ownership via automated filter
+    async update(id: string, dto: UpdateBranchDto) {
+        const branch = await this.findOne(id);
+
+        if (dto.isActive === false && branch.isActive === true) {
+            // Check if this is the last active branch
+            const activeBranchesCount = await this.db.count({
+                where: { isActive: true },
+            });
+
+            if (activeBranchesCount <= 1) {
+                throw new BadRequestException('Cannot deactivate the only active branch. You must have at least one active branch.');
+            }
+        }
 
         return this.db.update({
             where: { id },

@@ -9,10 +9,10 @@ export declare class VendorController {
         createdAt: Date;
         name: string;
         updatedAt: Date;
-        address: string | null;
         phone: string | null;
-        nameAr: string | null;
         email: string | null;
+        address: string | null;
+        nameAr: string | null;
     }>;
     findAll(): Promise<{
         id: string;
@@ -20,10 +20,10 @@ export declare class VendorController {
         createdAt: Date;
         name: string;
         updatedAt: Date;
-        address: string | null;
         phone: string | null;
-        nameAr: string | null;
         email: string | null;
+        address: string | null;
+        nameAr: string | null;
     }[]>;
     update(id: string, dto: UpdateVendorDto): Promise<{
         id: string;
@@ -31,10 +31,10 @@ export declare class VendorController {
         createdAt: Date;
         name: string;
         updatedAt: Date;
-        address: string | null;
         phone: string | null;
-        nameAr: string | null;
         email: string | null;
+        address: string | null;
+        nameAr: string | null;
     }>;
     remove(id: string): Promise<{
         id: string;
@@ -42,10 +42,10 @@ export declare class VendorController {
         createdAt: Date;
         name: string;
         updatedAt: Date;
-        address: string | null;
         phone: string | null;
-        nameAr: string | null;
         email: string | null;
+        address: string | null;
+        nameAr: string | null;
     }>;
     linkProduct(id: string, dto: any): Promise<{
         id: string;
@@ -83,6 +83,7 @@ export declare class VendorController {
             isSellable: boolean;
             productType: import(".prisma/client").$Enums.ProductType;
             prepTime: number;
+            unit: string | null;
             categoryId: string;
         };
     } & {

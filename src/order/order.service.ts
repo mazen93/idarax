@@ -68,14 +68,29 @@ export class OrderService {
         let finalTotalAmount = dto.totalAmount;
         let appliedDiscount = 0;
 
-        // Process Promotion if provided
-        if (dto.offerCode) {
-            const validation = await this.offerService.validatePromotion(dto.offerCode, dto.items);
-            if (validation.isValid) {
-                appliedDiscount = validation.discountAmount;
-                finalTotalAmount = dto.totalAmount - appliedDiscount;
+        // Process Loyalty redemption if provided
+        let pointsToDeduct = 0;
+        let loyaltyCashback = 0;
+        if (dto.customerId) {
+            // 1. Cashback redemption
+            if (dto.redeemAsCashback && dto.loyaltyPointsToRedeem) {
+                pointsToDeduct += dto.loyaltyPointsToRedeem;
+                const tenantSettings = await (this.prisma.client as any).settings.findUnique({
+                    where: { tenantId }
+                });
+                const redemptionRatio = tenantSettings?.loyaltyRatioRedemption || 0.01;
+                loyaltyCashback = Number(dto.loyaltyPointsToRedeem) * Number(redemptionRatio);
+                finalTotalAmount -= loyaltyCashback;
+            }
+
+            // 2. Reward Catalog items
+            for (const item of dto.items) {
+                if (item.isReward && item.pointsCost) {
+                    pointsToDeduct += (item.pointsCost * item.quantity);
+                }
             }
         }
+
 
         // Run everything in a single transaction for consistency
         return (this.prisma.client as any).$transaction(async (tx: any) => {
@@ -123,11 +138,13 @@ export class OrderService {
                         paidAmount: { increment: totalPaidNow },
                         taxAmount: { increment: dto.taxAmount || 0 },
                         serviceFeeAmount: { increment: dto.serviceFeeAmount || 0 },
-                        discountAmount: { increment: appliedDiscount },
+                        discountAmount: { increment: appliedDiscount + loyaltyCashback },
+                        loyaltyPointsUsed: { increment: pointsToDeduct },
+                        loyaltyCashback: { increment: loyaltyCashback },
                         offerCode: dto.offerCode || existingOrder.offerCode,
                         note: dto.note ? (existingOrder.note ? `${existingOrder.note}\n--- Additional ---\n${dto.note}` : dto.note) : existingOrder.note,
                         items: {
-                            create: resolvedItems.map(item => ({
+                            create: resolvedItems.map((item, idx) => ({
                                 productId: item.productId,
                                 variantId: item.variantId || null,
                                 quantity: item.quantity,
@@ -137,6 +154,8 @@ export class OrderService {
                                 note: item.note || null,
                                 courseName: item.courseName || null,
                                 fireAt: item.fireAt || null,
+                                isReward: dto.items[idx].isReward || false,
+                                pointsCost: dto.items[idx].pointsCost || 0,
                             })),
                         },
                         payments: {
@@ -194,6 +213,8 @@ export class OrderService {
                         guestPhone: dto.guestPhone,
                         offerCode: dto.offerCode || null,
                         discountAmount: appliedDiscount || dto.discountAmount || 0,
+                        loyaltyPointsUsed: pointsToDeduct,
+                        loyaltyCashback: loyaltyCashback,
                         taxAmount: dto.taxAmount || 0,
                         serviceFeeAmount: dto.serviceFeeAmount || 0,
                         deliveryAddress: dto.deliveryAddress,
@@ -202,7 +223,7 @@ export class OrderService {
                         receiptNumber,
                         invoiceNumber,
                         items: {
-                            create: resolvedItems.map(item => ({
+                            create: resolvedItems.map((item, idx) => ({
                                 productId: item.productId,
                                 variantId: item.variantId || null,
                                 quantity: item.quantity,
@@ -212,6 +233,8 @@ export class OrderService {
                                 note: item.note || null,
                                 courseName: item.courseName || null,
                                 fireAt: item.fireAt || null,
+                                isReward: dto.items[idx]?.isReward || false,
+                                pointsCost: dto.items[idx]?.pointsCost || 0,
                                 modifiers: item.modifiers ? {
                                     create: item.modifiers.map((m: any) => ({
                                         optionId: m.optionId,
@@ -248,6 +271,36 @@ export class OrderService {
             // 2. Deduct stock for each item (recursively handling recipes)
             for (const item of dto.items) {
                 await this.deductStockRecursively(tx, tenantId, branchId, item.productId, item.quantity, order.id);
+            }
+
+            // 3. Handle Loyalty Point Deduction
+            if (dto.customerId && pointsToDeduct > 0) {
+                const customer = await tx.customer.findUnique({ where: { id: dto.customerId } });
+                if (!customer || Number(customer.points) < pointsToDeduct) {
+                    throw new ForbiddenException('Insufficient loyalty points');
+                }
+
+                await tx.customer.update({
+                    where: { id: dto.customerId },
+                    data: { points: { decrement: pointsToDeduct } }
+                });
+
+                await tx.customerLoyalty.create({
+                    data: {
+                        customerId: dto.customerId,
+                        points: -pointsToDeduct,
+                        type: 'REDEEMED',
+                        description: `Points redeemed for order #${order.invoiceNumber || order.id} (${loyaltyCashback > 0 ? 'Cashback' : 'Rewards'})`,
+                    }
+                });
+            }
+
+            // 4. Handle Loyalty Point Earning (if not already handled or after deduction)
+            // Note: Loyalty earning is usually handled in the CRM service or after payment.
+            // If the order is fully paid, we process earning.
+            const isFullyPaid = Math.round(Number(order.paidAmount) * 100) >= Math.round(Number(order.totalAmount) * 100);
+            if (dto.customerId && isFullyPaid && this.crmService) {
+                await this.crmService.processLoyaltyForOrder(dto.customerId, Number(order.totalAmount), order.id, tx);
             }
 
             // 3. If a table is assigned, manage its status

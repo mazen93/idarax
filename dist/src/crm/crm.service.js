@@ -13,27 +13,44 @@ exports.CrmService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const tenant_service_1 = require("../tenant/tenant.service");
+const drovo_service_1 = require("../delivery-aggregator/drovo.service");
 let CrmService = class CrmService {
     prisma;
     tenantService;
-    constructor(prisma, tenantService) {
+    drovoService;
+    constructor(prisma, tenantService, drovoService) {
         this.prisma = prisma;
         this.tenantService = tenantService;
+        this.drovoService = drovoService;
     }
     async createCustomer(dto) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
-        const { addresses, ...customerData } = dto;
+        const { addresses, referredByCode, ...customerData } = dto;
+        const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+        let referredById = null;
+        if (referredByCode) {
+            const referrer = await this.prisma.customer.findUnique({
+                where: { referralCode: referredByCode }
+            });
+            if (referrer && referrer.tenantId === tenantId) {
+                referredById = referrer.id;
+            }
+        }
         return this.prisma.customer.create({
             data: {
                 ...customerData,
                 tenantId,
+                referralCode,
+                referredById,
                 addresses: addresses ? {
                     create: addresses.map(addr => ({
                         label: addr.label || 'Home',
                         address: addr.address,
                         isDefault: addr.isDefault || false,
+                        lat: addr.lat,
+                        lng: addr.lng,
                     }))
                 } : undefined,
             },
@@ -42,7 +59,7 @@ let CrmService = class CrmService {
     }
     async getCustomers(query) {
         const tenantId = this.tenantService.getTenantId();
-        const { page = 1, limit = 10, search } = query;
+        const { page = 1, limit = 10, search, segmentId } = query;
         const skip = (page - 1) * limit;
         const where = { tenantId };
         if (search) {
@@ -51,6 +68,9 @@ let CrmService = class CrmService {
                 { email: { contains: search, mode: 'insensitive' } },
                 { phone: { contains: search } },
             ];
+        }
+        if (segmentId) {
+            where.segments = { some: { id: segmentId } };
         }
         const [customers, total] = await Promise.all([
             this.prisma.customer.findMany({
@@ -178,6 +198,8 @@ let CrmService = class CrmService {
                         label: addr.label || 'Home',
                         address: addr.address,
                         isDefault: addr.isDefault || false,
+                        lat: addr.lat,
+                        lng: addr.lng,
                     }))
                 });
             }
@@ -228,8 +250,8 @@ let CrmService = class CrmService {
             where: { id },
         });
     }
-    async processLoyaltyForOrder(customerId, orderAmount, orderId) {
-        const customer = await this.getCustomerById(customerId);
+    async processLoyaltyForOrder(customerId, orderAmount, orderId, prisma = this.prisma) {
+        const customer = await this.getCustomerById(customerId, prisma);
         const amount = Number(orderAmount);
         const newTotalSpend = Number(customer.totalSpend || 0) + amount;
         let newTier = customer.loyaltyTier;
@@ -239,14 +261,18 @@ let CrmService = class CrmService {
             newTier = 'SILVER';
         else
             newTier = 'BRONZE';
+        const tenantSettings = await prisma.settings.findUnique({
+            where: { tenantId: customer.tenantId }
+        });
+        const earningRatio = tenantSettings?.loyaltyRatioEarning || 1.0;
         let multiplier = 1;
         if (customer.loyaltyTier === 'GOLD')
-            multiplier = 1.5;
+            multiplier = 2.0;
         else if (customer.loyaltyTier === 'SILVER')
-            multiplier = 1.2;
-        const pointsToEarn = Math.floor((amount / 10) * multiplier);
-        return this.prisma.$transaction(async (tx) => {
-            await tx.customer.update({
+            multiplier = 1.5;
+        const pointsToEarn = Math.floor(amount * Number(earningRatio) * multiplier);
+        const updateData = async (activeTx) => {
+            await activeTx.customer.update({
                 where: { id: customerId },
                 data: {
                     totalSpend: newTotalSpend,
@@ -255,7 +281,7 @@ let CrmService = class CrmService {
                 }
             });
             if (pointsToEarn > 0) {
-                await tx.customerLoyalty.create({
+                await activeTx.customerLoyalty.create({
                     data: {
                         customerId,
                         points: pointsToEarn,
@@ -264,8 +290,58 @@ let CrmService = class CrmService {
                     }
                 });
             }
+            const currentOrderCount = (customer.orders?.length || 0) + 1;
+            if (customer.referredById && currentOrderCount === 1) {
+                const rule = await activeTx.marketingCampaignRule.findUnique({
+                    where: { tenantId: customer.tenantId }
+                });
+                if (rule && rule.referralActive) {
+                    const referrerReward = Number(rule.referralReward || 0);
+                    const friendReward = Number(rule.referralFriendReward || 0);
+                    if (referrerReward > 0) {
+                        await activeTx.customer.update({
+                            where: { id: customer.referredById },
+                            data: { points: { increment: referrerReward } }
+                        });
+                        await activeTx.customerLoyalty.create({
+                            data: {
+                                customerId: customer.referredById,
+                                points: referrerReward,
+                                type: 'EARNED',
+                                description: `Referral bonus for inviting ${customer.name}`,
+                            }
+                        });
+                    }
+                    if (friendReward > 0) {
+                        await activeTx.customer.update({
+                            where: { id: customerId },
+                            data: { points: { increment: friendReward } }
+                        });
+                        await activeTx.customerLoyalty.create({
+                            data: {
+                                customerId,
+                                points: friendReward,
+                                type: 'EARNED',
+                                description: `Welcome bonus from referral`,
+                            }
+                        });
+                    }
+                    await activeTx.customer.update({
+                        where: { id: customerId },
+                        data: { referredById: null }
+                    });
+                }
+            }
             return { newTier, pointsEarned: pointsToEarn };
-        });
+        };
+        if (prisma && prisma.$transaction === undefined) {
+            return updateData(prisma);
+        }
+        else {
+            return this.prisma.$transaction(async (tx) => {
+                return updateData(tx);
+            });
+        }
     }
     async getActiveCampaigns() {
         const tenantId = this.tenantService.getTenantId();
@@ -276,11 +352,92 @@ let CrmService = class CrmService {
             take: 50
         });
     }
+    async estimateDeliveryFee(addressId) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId)
+            throw new common_1.ForbiddenException('Tenant ID missing');
+        const address = await this.prisma.customerAddress.findUnique({
+            where: { id: addressId },
+            include: { customer: true }
+        });
+        if (!address || address.customer.tenantId !== tenantId) {
+            throw new common_1.NotFoundException('Customer address not found');
+        }
+        const feeEstimate = await this.drovoService.getDeliveryFeeEstimate(tenantId, address.address, address.lat, address.lng);
+        if (!feeEstimate) {
+            throw new Error('Failed to estimate delivery fee with Drovo');
+        }
+        return feeEstimate;
+    }
+    async createSegment(dto) {
+        const tenantId = this.tenantService.getTenantId();
+        return this.prisma.customerSegment.create({
+            data: { ...dto, tenantId }
+        });
+    }
+    async getSegments() {
+        const tenantId = this.tenantService.getTenantId();
+        return this.prisma.customerSegment.findMany({
+            where: { tenantId },
+            include: { _count: { select: { customers: true } } },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+    async updateSegment(id, dto) {
+        return this.prisma.customerSegment.update({
+            where: { id },
+            data: dto
+        });
+    }
+    async deleteSegment(id) {
+        return this.prisma.customerSegment.delete({
+            where: { id }
+        });
+    }
+    async assignCustomersToSegment(segmentId, customerIds) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId)
+            throw new common_1.ForbiddenException('Tenant ID missing');
+        return this.prisma.customerSegment.update({
+            where: { id: segmentId },
+            data: {
+                customers: {
+                    connect: customerIds.map(id => ({ id }))
+                }
+            }
+        });
+    }
+    async createRewardCatalogItem(dto) {
+        const tenantId = this.tenantService.getTenantId();
+        return this.prisma.rewardCatalogItem.create({
+            data: { ...dto, tenantId }
+        });
+    }
+    async getRewardCatalogItems() {
+        const tenantId = this.tenantService.getTenantId();
+        return this.prisma.rewardCatalogItem.findMany({
+            where: { tenantId },
+            include: { product: true },
+            orderBy: { pointsCost: 'asc' }
+        });
+    }
+    async updateRewardCatalogItem(id, dto) {
+        return this.prisma.rewardCatalogItem.update({
+            where: { id },
+            data: dto
+        });
+    }
+    async deleteRewardCatalogItem(id) {
+        return this.prisma.rewardCatalogItem.delete({
+            where: { id }
+        });
+    }
 };
 exports.CrmService = CrmService;
 exports.CrmService = CrmService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        tenant_service_1.TenantService])
+        tenant_service_1.TenantService,
+        drovo_service_1.DrovoService])
 ], CrmService);
 //# sourceMappingURL=crm.service.js.map

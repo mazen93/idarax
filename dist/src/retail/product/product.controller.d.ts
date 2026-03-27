@@ -49,17 +49,18 @@ export declare class ProductController {
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
+                unit: string | null;
                 categoryId: string;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            unit: string;
             quantity: import("@prisma/client/runtime/library").Decimal;
             variantId: string | null;
             parentId: string;
             ingredientId: string;
-            unit: string;
         })[];
         variants: {
             id: string;
@@ -86,6 +87,7 @@ export declare class ProductController {
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
+        unit: string | null;
         categoryId: string;
     }>;
     findAll(branchId?: string): Promise<any[]>;
@@ -137,6 +139,7 @@ export declare class ProductController {
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
+        unit: string | null;
         categoryId: string;
     }) | null>;
     getBranchSettings(branchId: string): Promise<{
@@ -206,17 +209,18 @@ export declare class ProductController {
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
+                unit: string | null;
                 categoryId: string;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            unit: string;
             quantity: import("@prisma/client/runtime/library").Decimal;
             variantId: string | null;
             parentId: string;
             ingredientId: string;
-            unit: string;
         })[];
         variants: {
             id: string;
@@ -243,6 +247,7 @@ export declare class ProductController {
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
+        unit: string | null;
         categoryId: string;
     }>;
     update(id: string, dto: UpdateProductDto): Promise<any>;
@@ -263,6 +268,7 @@ export declare class ProductController {
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
+        unit: string | null;
         categoryId: string;
     }>;
 }

@@ -20,5 +20,7 @@ export declare class TenantAdminController {
         domain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
         updatedAt: Date;
+        hasDeliveryIntegration: boolean;
+        planId: string | null;
     })[]>;
 }

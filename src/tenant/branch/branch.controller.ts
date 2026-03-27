@@ -4,6 +4,8 @@ import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { Permissions } from '../../auth/permissions.decorator';
 import { Actions } from '../../auth/permissions.constants';
 
+import { CreateBranchDto, UpdateBranchDto } from './dto/branch.dto';
+
 @Controller('branches')
 @UseGuards(JwtAuthGuard)
 export class BranchController {
@@ -23,13 +25,13 @@ export class BranchController {
 
     @Post()
     @Permissions(Actions.SETTINGS.EDIT)
-    create(@Body() dto: any) {
+    create(@Body() dto: CreateBranchDto) {
         return this.branchService.create(dto);
     }
 
     @Patch(':id')
     @Permissions(Actions.SETTINGS.EDIT)
-    update(@Param('id') id: string, @Body() dto: any) {
+    update(@Param('id') id: string, @Body() dto: UpdateBranchDto) {
         return this.branchService.update(id, dto);
     }
 

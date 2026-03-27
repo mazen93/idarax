@@ -7,8 +7,10 @@ import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
 import { Actions } from '../auth/permissions.constants';
 
+import { FeatureGateGuard, Feature } from '../common/guards/feature-gate.guard';
+
 @Controller('analytics')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard, FeatureGateGuard)
 @Permissions(Actions.DASHBOARD.VIEW)
 export class AnalyticsController {
     constructor(private readonly analyticsService: AnalyticsService) { }
@@ -184,7 +186,18 @@ export class AnalyticsController {
         @Query('end') end?: string,
     ) {
         const { startDate, endDate } = this.parseDateRange(start, end);
-        return this.analyticsService.getKitchenPerformance(startDate, endDate);
+        return this.analyticsService.getKDS2Analytics(startDate, endDate);
+    }
+
+    @Get('reports/kds-2-analytics')
+    @Permissions(Actions.REPORTS.VIEW_ALL)
+    @Feature('KDS_ANALYTICS')
+    getKDS2Analytics(
+        @Query('start') start?: string,
+        @Query('end') end?: string,
+    ) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getKDS2Analytics(startDate, endDate);
     }
 
     @Get('reports/product-profitability')

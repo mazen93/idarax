@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PaginationQueryDto = exports.UpdateCustomerAddressDto = exports.CreateCustomerAddressDto = exports.LoyaltyTransactionDto = exports.UpdateCustomerDto = exports.CreateCustomerDto = exports.AddressDto = void 0;
+exports.AssignCustomersDto = exports.UpdateSegmentDto = exports.CreateSegmentDto = exports.PaginationQueryDto = exports.UpdateCustomerAddressDto = exports.CreateCustomerAddressDto = exports.LoyaltyTransactionDto = exports.UpdateCustomerDto = exports.CreateCustomerDto = exports.AddressDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
@@ -18,6 +18,8 @@ class AddressDto {
     label;
     address;
     isDefault;
+    lat;
+    lng;
 }
 exports.AddressDto = AddressDto;
 __decorate([
@@ -43,10 +45,26 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], AddressDto.prototype, "isDefault", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], AddressDto.prototype, "lat", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], AddressDto.prototype, "lng", void 0);
 class CreateCustomerDto {
     name;
     email;
     phone;
+    birthday;
+    referredByCode;
     addresses;
 }
 exports.CreateCustomerDto = CreateCustomerDto;
@@ -68,6 +86,18 @@ __decorate([
     __metadata("design:type", String)
 ], CreateCustomerDto.prototype, "phone", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => value ? new Date(value) : undefined),
+    __metadata("design:type", Date)
+], CreateCustomerDto.prototype, "birthday", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateCustomerDto.prototype, "referredByCode", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ type: [AddressDto], required: false }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
@@ -79,6 +109,7 @@ class UpdateCustomerDto {
     name;
     email;
     phone;
+    birthday;
     addresses;
 }
 exports.UpdateCustomerDto = UpdateCustomerDto;
@@ -101,6 +132,12 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateCustomerDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => value ? new Date(value) : undefined),
+    __metadata("design:type", Date)
+], UpdateCustomerDto.prototype, "birthday", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ type: [AddressDto], required: false }),
     (0, class_validator_1.IsOptional)(),
@@ -142,6 +179,8 @@ class CreateCustomerAddressDto {
     label;
     address;
     isDefault;
+    lat;
+    lng;
 }
 exports.CreateCustomerAddressDto = CreateCustomerAddressDto;
 __decorate([
@@ -166,10 +205,26 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreateCustomerAddressDto.prototype, "isDefault", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], CreateCustomerAddressDto.prototype, "lat", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], CreateCustomerAddressDto.prototype, "lng", void 0);
 class UpdateCustomerAddressDto {
     label;
     address;
     isDefault;
+    lat;
+    lng;
 }
 exports.UpdateCustomerAddressDto = UpdateCustomerAddressDto;
 __decorate([
@@ -190,10 +245,25 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateCustomerAddressDto.prototype, "isDefault", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], UpdateCustomerAddressDto.prototype, "lat", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], UpdateCustomerAddressDto.prototype, "lng", void 0);
 class PaginationQueryDto {
     page = 1;
     limit = 10;
     search;
+    segmentId;
 }
 exports.PaginationQueryDto = PaginationQueryDto;
 __decorate([
@@ -216,4 +286,67 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], PaginationQueryDto.prototype, "search", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], PaginationQueryDto.prototype, "segmentId", void 0);
+class CreateSegmentDto {
+    name;
+    description;
+    color;
+}
+exports.CreateSegmentDto = CreateSegmentDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateSegmentDto.prototype, "name", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateSegmentDto.prototype, "description", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateSegmentDto.prototype, "color", void 0);
+class UpdateSegmentDto {
+    name;
+    description;
+    color;
+}
+exports.UpdateSegmentDto = UpdateSegmentDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateSegmentDto.prototype, "name", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateSegmentDto.prototype, "description", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateSegmentDto.prototype, "color", void 0);
+class AssignCustomersDto {
+    customerIds;
+}
+exports.AssignCustomersDto = AssignCustomersDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], AssignCustomersDto.prototype, "customerIds", void 0);
 //# sourceMappingURL=crm.dto.js.map

@@ -534,7 +534,7 @@ let AnalyticsService = class AnalyticsService {
         });
         return Object.values(leaderboard).sort((a, b) => b.revenue - a.revenue);
     }
-    async getKitchenPerformance(startDate, endDate) {
+    async getKDS2Analytics(startDate, endDate) {
         const tenantId = this.tenantService.getTenantId();
         const branchId = this.tenantService.getBranchId();
         const completedItems = await this.prisma.orderItem.findMany({
@@ -550,19 +550,37 @@ let AnalyticsService = class AnalyticsService {
             },
             include: { station: true, product: true }
         });
+        const hourlyThroughput = {};
         const stationStats = {};
         completedItems.forEach((item) => {
-            const stationId = item.stationId || 'unassigned';
-            const stationName = item.station?.name || 'Unassigned';
-            if (!stationStats[stationId]) {
-                stationStats[stationId] = { stationName, totalItems: 0, totalPrepTimeMs: 0, avgPrepTimeMinutes: 0 };
+            const hour = item.completedAt.getHours();
+            hourlyThroughput[hour] = (hourlyThroughput[hour] || 0) + 1;
+            const sId = item.stationId || 'unassigned';
+            const sName = item.station?.name || 'Unassigned';
+            if (!stationStats[sId]) {
+                stationStats[sId] = { name: sName, totalItems: 0, avgPrepMinutes: 0, efficiencyScore: 0, maxPrepMinutes: 0 };
             }
-            const prepTime = item.completedAt.getTime() - item.startedAt.getTime();
-            stationStats[stationId].totalItems += 1;
-            stationStats[stationId].totalPrepTimeMs += prepTime;
-            stationStats[stationId].avgPrepTimeMinutes = (stationStats[stationId].totalPrepTimeMs / stationStats[stationId].totalItems) / 60000;
+            const prepMs = item.completedAt.getTime() - item.startedAt.getTime();
+            const prepMin = prepMs / 60000;
+            const targetMin = item.product?.prepTime || 10;
+            const stats = stationStats[sId];
+            const oldTotal = stats.totalItems;
+            stats.totalItems += 1;
+            stats.avgPrepMinutes = (stats.avgPrepMinutes * oldTotal + prepMin) / stats.totalItems;
+            stats.maxPrepMinutes = Math.max(stats.maxPrepMinutes, prepMin);
+            if (prepMin <= targetMin) {
+                stats.efficiencyScore += 1;
+            }
         });
-        return Object.values(stationStats).sort((a, b) => b.avgPrepTimeMinutes - a.avgPrepTimeMinutes);
+        Object.values(stationStats).forEach(s => {
+            s.efficiencyScore = (s.efficiencyScore / s.totalItems) * 100;
+        });
+        return {
+            totalCompletedItems: completedItems.length,
+            hourlyThroughput: Object.entries(hourlyThroughput).map(([hour, count]) => ({ hour: Number(hour), count })),
+            stations: Object.values(stationStats).sort((a, b) => b.totalItems - a.totalItems),
+            busiestHour: Object.entries(hourlyThroughput).sort((a, b) => b[1] - a[1])[0]?.[0] || null,
+        };
     }
     async getProductProfitability(startDate, endDate) {
         const tenantId = this.tenantService.getTenantId();

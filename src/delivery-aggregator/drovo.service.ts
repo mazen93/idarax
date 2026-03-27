@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class DrovoService {
     private readonly logger = new Logger(DrovoService.name);
-    private readonly drovoApiUrl = process.env.DROVO_API_URL || 'http://localhost:3002';
+    private readonly drovoApiUrl = process.env.DROVO_API_URL || 'http://127.0.0.1:3002';
 
     constructor(private prisma: PrismaService) {}
 
@@ -15,7 +15,10 @@ export class DrovoService {
         try {
             const order = await this.prisma.order.findUnique({
                 where: { id: orderId, tenantId },
-                include: { tenant: { include: { settings: true } } }
+                include: { 
+                    tenant: { include: { settings: true } },
+                    customer: true
+                }
             });
 
             if (!order) return;
@@ -32,14 +35,17 @@ export class DrovoService {
             // Map Idarax order to Drovo CreateOrderDto format
             const payload = {
                 externalOrderId: order.id,
-                customerName: order.guestName || 'Valued Customer',
-                customerPhone: order.guestPhone || '0000000000',
+                customerName: order.customer?.name || order.guestName || 'Valued Customer',
+                customerPhone: order.customer?.phone || order.guestPhone || '0000000000',
                 deliveryAddress: order.deliveryAddress || 'Unknown Delivery Address',
                 orderValue: Number(order.totalAmount),
+                deliveryFee: Number(order.deliveryFee || 0),
                 paymentType: order.paymentMethod === 'CASH' ? 'CASH' : 'PREPAID',
-                pickupAddress: order.tenant.name + ' POS', // Could pull branch address if needed
+                pickupAddress: order.tenant.name + ' POS',
                 dropoffInstructions: order.note
             };
+
+            this.logger.debug(`Dispatching Order ${order.id} to Drovo. Customer: ${payload.customerName}, Fee: ${payload.deliveryFee}`);
 
             const response = await fetch(`${this.drovoApiUrl}/api/orders`, {
                 method: 'POST',
@@ -74,6 +80,36 @@ export class DrovoService {
             
         } catch (error) {
             this.logger.error(`Error dispatching to Drovo: ${error.message}`, error.stack);
+        }
+    }
+
+    async getDeliveryFeeEstimate(tenantId: string, address: string, lat?: number, lng?: number) {
+        try {
+            const settings = await this.prisma.settings.findFirst({
+                where: { tenant: { id: tenantId } }
+            });
+
+            if (!settings?.drovoApiKey) return null;
+
+            const response = await fetch(`${this.drovoApiUrl}/api/orders/estimate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': settings.drovoApiKey
+                },
+                body: JSON.stringify({
+                    deliveryAddress: address,
+                    latitude: lat,
+                    longitude: lng
+                }),
+                signal: AbortSignal.timeout(5000)
+            });
+
+            if (!response.ok) return null;
+            return await response.json();
+        } catch (error) {
+            this.logger.error(`Error getting Drovo estimate: ${error.message}`);
+            return null;
         }
     }
 }

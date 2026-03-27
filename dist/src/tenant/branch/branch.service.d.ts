@@ -1,5 +1,6 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import { TenantService } from '../tenant.service';
+import { CreateBranchDto, UpdateBranchDto } from './dto/branch.dto';
 export declare class BranchService {
     private prisma;
     private tenantService;
@@ -18,8 +19,8 @@ export declare class BranchService {
         createdAt: Date;
         name: string;
         updatedAt: Date;
-        address: string | null;
         phone: string | null;
+        address: string | null;
         businessDayStartHour: number;
         nameAr: string | null;
     })[]>;
@@ -30,32 +31,32 @@ export declare class BranchService {
         createdAt: Date;
         name: string;
         updatedAt: Date;
-        address: string | null;
         phone: string | null;
+        address: string | null;
         businessDayStartHour: number;
         nameAr: string | null;
     }>;
-    create(dto: any): Promise<{
+    create(dto: CreateBranchDto): Promise<{
         id: string;
         tenantId: string;
         isActive: boolean;
         createdAt: Date;
         name: string;
         updatedAt: Date;
-        address: string | null;
         phone: string | null;
+        address: string | null;
         businessDayStartHour: number;
         nameAr: string | null;
     }>;
-    update(id: string, dto: any): Promise<{
+    update(id: string, dto: UpdateBranchDto): Promise<{
         id: string;
         tenantId: string;
         isActive: boolean;
         createdAt: Date;
         name: string;
         updatedAt: Date;
-        address: string | null;
         phone: string | null;
+        address: string | null;
         businessDayStartHour: number;
         nameAr: string | null;
     }>;
@@ -66,8 +67,8 @@ export declare class BranchService {
         createdAt: Date;
         name: string;
         updatedAt: Date;
-        address: string | null;
         phone: string | null;
+        address: string | null;
         businessDayStartHour: number;
         nameAr: string | null;
     }>;

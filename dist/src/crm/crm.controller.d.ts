@@ -20,4 +20,16 @@ export declare class CrmController {
     updateAddress(id: string, dto: UpdateCustomerAddressDto): Promise<any>;
     deleteAddress(id: string): Promise<any>;
     getActiveCampaigns(): Promise<any>;
+    estimateFee(id: string): Promise<any>;
+    createSegment(dto: any): Promise<any>;
+    getSegments(): Promise<any>;
+    updateSegment(id: string, dto: any): Promise<any>;
+    deleteSegment(id: string): Promise<any>;
+    assignCustomersToSegment(id: string, dto: {
+        customerIds: string[];
+    }): Promise<any>;
+    createRewardCatalogItem(dto: any): Promise<any>;
+    getRewardCatalogItems(): Promise<any>;
+    updateRewardCatalogItem(id: string, dto: any): Promise<any>;
+    deleteRewardCatalogItem(id: string): Promise<any>;
 }

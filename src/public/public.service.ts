@@ -65,14 +65,25 @@ export class PublicService {
                 products: {
                     where: {
                         isSellable: true,
-                        // If a branch is specified, ensure it's available there
+                        // If a branch is specified, show products that are explicitly available OR have no branch override
                         ...(branchId ? {
-                            branchSettings: {
-                                some: {
-                                    branchId,
-                                    isAvailable: true,
+                            OR: [
+                                {
+                                    branchSettings: {
+                                        some: {
+                                            branchId,
+                                            isAvailable: true,
+                                        }
+                                    }
+                                },
+                                {
+                                    branchSettings: {
+                                        none: {
+                                            branchId,
+                                        }
+                                    }
                                 }
-                            }
+                            ]
                         } : {})
                     },
                     include: {

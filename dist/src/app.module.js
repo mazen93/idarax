@@ -10,6 +10,9 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const throttler_1 = require("@nestjs/throttler");
+const config_1 = require("@nestjs/config");
+const schedule_1 = require("@nestjs/schedule");
+const bull_1 = require("@nestjs/bull");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const prisma_module_1 = require("./prisma/prisma.module");
@@ -26,7 +29,6 @@ const product_module_1 = require("./retail/product/product.module");
 const kds_module_1 = require("./restaurant/kds/kds.module");
 const serial_module_1 = require("./retail/serial/serial.module");
 const order_module_1 = require("./order/order.module");
-const bull_1 = require("@nestjs/bull");
 const inventory_module_1 = require("./retail/inventory/inventory.module");
 const crm_module_1 = require("./crm/crm.module");
 const payment_module_1 = require("./payment/payment.module");
@@ -51,17 +53,25 @@ const menu_module_1 = require("./retail/menu/menu.module");
 const audit_log_module_1 = require("./common/audit-log/audit-log.module");
 const mail_module_1 = require("./mail/mail.module");
 const notifications_module_1 = require("./notifications/notifications.module");
-const schedule_1 = require("@nestjs/schedule");
+const cds_module_2 = require("./retail/cds/cds.module");
 const delivery_aggregator_module_1 = require("./delivery-aggregator/delivery-aggregator.module");
+const drovo_module_1 = require("./delivery-aggregator/drovo.module");
+const observability_module_1 = require("./common/observability/observability.module");
+const http_exception_filter_1 = require("./common/filters/http-exception.filter");
+const backup_module_1 = require("./common/backup/backup.module");
+const marketing_module_1 = require("./marketing/marketing.module");
+const sync_module_1 = require("./common/sync/sync.module");
 let AppModule = class AppModule {
     configure(consumer) {
-        consumer.apply(tenant_middleware_1.TenantMiddleware).forRoutes('*');
+        consumer.apply(tenant_middleware_1.TenantMiddleware).forRoutes('*path');
     }
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            config_1.ConfigModule.forRoot({ isGlobal: true }),
+            observability_module_1.ObservabilityModule,
             schedule_1.ScheduleModule.forRoot(),
             throttler_1.ThrottlerModule.forRoot([
                 {
@@ -113,12 +123,18 @@ exports.AppModule = AppModule = __decorate([
             audit_log_module_1.AuditLogModule,
             mail_module_1.MailModule,
             notifications_module_1.NotificationsModule,
+            cds_module_2.CdsModule,
             delivery_aggregator_module_1.DeliveryAggregatorModule,
+            drovo_module_1.DrovoModule,
+            backup_module_1.BackupModule,
+            marketing_module_1.MarketingModule,
+            sync_module_1.SyncModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
             app_service_1.AppService,
             { provide: core_1.APP_GUARD, useClass: throttler_1.ThrottlerGuard },
+            { provide: core_1.APP_FILTER, useClass: http_exception_filter_1.HttpExceptionFilter },
         ],
     })
 ], AppModule);

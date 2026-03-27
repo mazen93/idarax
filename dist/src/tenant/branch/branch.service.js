@@ -98,7 +98,15 @@ let BranchService = class BranchService {
         });
     }
     async update(id, dto) {
-        await this.findOne(id);
+        const branch = await this.findOne(id);
+        if (dto.isActive === false && branch.isActive === true) {
+            const activeBranchesCount = await this.db.count({
+                where: { isActive: true },
+            });
+            if (activeBranchesCount <= 1) {
+                throw new common_1.BadRequestException('Cannot deactivate the only active branch. You must have at least one active branch.');
+            }
+        }
         return this.db.update({
             where: { id },
             data: dto,

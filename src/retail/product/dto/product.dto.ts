@@ -64,6 +64,7 @@ export class CreateRecipeComponentDto {
 
     @ApiProperty()
     @IsNumber()
+    @Type(() => Number)
     quantity: number;
 
     @ApiProperty({ required: false })
@@ -198,6 +199,11 @@ export class CreateProductDto {
     @IsOptional()
     @IsString()
     defaultStationId?: string;
+
+    @ApiProperty({ required: false, example: 'kg', description: 'Unit of measurement for raw material ingredients (kg, g, L, mL, slice, piece, unit)' })
+    @IsOptional()
+    @IsString()
+    unit?: string;
 }
 
 export class UpdateProductDto {
@@ -274,4 +280,9 @@ export class UpdateProductDto {
     @IsOptional()
     @IsString()
     defaultStationId?: string;
+
+    @ApiProperty({ required: false, example: 'kg' })
+    @IsOptional()
+    @IsString()
+    unit?: string;
 }

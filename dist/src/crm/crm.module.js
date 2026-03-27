@@ -13,14 +13,16 @@ const common_1 = require("@nestjs/common");
 const crm_service_1 = require("./crm.service");
 const crm_controller_1 = require("./crm.controller");
 const crm_schedule_1 = require("./crm.schedule");
+const drovo_module_1 = require("../delivery-aggregator/drovo.module");
 let CrmModule = class CrmModule {
 };
 exports.CrmModule = CrmModule;
 exports.CrmModule = CrmModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule],
+        imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule, drovo_module_1.DrovoModule],
         providers: [crm_service_1.CrmService, crm_schedule_1.CrmSchedule],
-        controllers: [crm_controller_1.CrmController]
+        controllers: [crm_controller_1.CrmController],
+        exports: [crm_service_1.CrmService]
     })
 ], CrmModule);
 //# sourceMappingURL=crm.module.js.map

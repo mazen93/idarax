@@ -8,51 +8,56 @@ datasource db {
 }
 
 model Tenant {
-  id                 String                @id @default(uuid())
-  name               String
-  domain             String?               @unique
-  type               TenantType
-  hasDeliveryIntegration Boolean           @default(false)
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
-  branches           Branch[]
-  branchSettings     BranchSettings[]
-  categories         Category[]
-  customers          Customer[]
-  discounts          Discount[]
-  drawerSessions     DrawerSession[]
-  invoiceCounters    InvoiceCounter[]
-  kitchenStations    KitchenStation[]
-  marketingCampaigns MarketingCampaign[]
-  menus              Menu[]
-  notifications      Notification[]
-  orders             Order[]
-  orderFeedbacks     OrderFeedback[]
-  printers           Printer[]
-  products           Product[]
-  promoCodes         PromoCode[]
-  promoRedemptions   PromoCodeRedemption[]
-  promotions         Promotion[]
-  purchaseOrders     PurchaseOrder[]
-  receiptCounters    ReceiptCounter[]
-  reservations       Reservation[]
-  roles              Role[]
-  rolePermissions    RolePermission[]
-  scheduledReports   ScheduledReport[]
-  scheduledShifts    ScheduledShift[]
-  serialNumbers      SerialNumber[]
-  settings           Settings?
-  shifts             Shift[]
-  stockMovements     StockMovement[]
-  stockTransfers     StockTransfer[]
-  tables             Table[]
-  tableSections      TableSection[]
-  users              User[]
-  userPermissions    UserPermission[]
-  vendors            Vendor[]
-  vendorProducts     VendorProduct[]
-  waitingEntries     WaitingEntry[]
-  warehouses         Warehouse[]
+  id                     String                @id @default(uuid())
+  name                   String
+  domain                 String?               @unique
+  type                   TenantType
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  hasDeliveryIntegration Boolean               @default(false)
+  planId                 String?
+  branches               Branch[]
+  branchSettings         BranchSettings[]
+  categories             Category[]
+  customers              Customer[]
+  customerSegments       CustomerSegment[]
+  discounts              Discount[]
+  drawerSessions         DrawerSession[]
+  invoiceCounters        InvoiceCounter[]
+  kitchenStations        KitchenStation[]
+  marketingCampaigns     MarketingCampaign[]
+  menus                  Menu[]
+  notifications          Notification[]
+  orders                 Order[]
+  orderFeedbacks         OrderFeedback[]
+  printers               Printer[]
+  products               Product[]
+  promoCodes             PromoCode[]
+  promoRedemptions       PromoCodeRedemption[]
+  promotions             Promotion[]
+  purchaseOrders         PurchaseOrder[]
+  receiptCounters        ReceiptCounter[]
+  reservations           Reservation[]
+  roles                  Role[]
+  rolePermissions        RolePermission[]
+  scheduledReports       ScheduledReport[]
+  scheduledShifts        ScheduledShift[]
+  serialNumbers          SerialNumber[]
+  settings               Settings?
+  shifts                 Shift[]
+  stockMovements         StockMovement[]
+  stockTransfers         StockTransfer[]
+  tables                 Table[]
+  tableSections          TableSection[]
+  plan                   SubscriptionPlan?     @relation(fields: [planId], references: [id])
+  users                  User[]
+  userPermissions        UserPermission[]
+  vendors                Vendor[]
+  vendorProducts         VendorProduct[]
+  waitingEntries         WaitingEntry[]
+  warehouses             Warehouse[]
+  marketingRule          MarketingCampaignRule?
+  rewardCatalogItems     RewardCatalogItem[]
 }
 
 model Branch {
@@ -128,8 +133,12 @@ model Settings {
   receiptShowTimestamp        Boolean  @default(true)
   receiptShowTotal            Boolean  @default(true)
   twitterUrl                  String?
-  drovoTenantId               String?
   drovoApiKey                 String?
+  drovoTenantId               String?
+  brandColor                  String   @default("#10b981")
+  secondaryColor              String   @default("#1f2937")
+  loyaltyRatioEarning         Float    @default(1.0)
+  loyaltyRatioRedemption      Float    @default(0.01)
   tenant                      Tenant   @relation(fields: [tenantId], references: [id])
 }
 
@@ -162,6 +171,9 @@ model BranchSettings {
   receiptShowBarcode          Boolean?
   createdAt                   DateTime @default(now())
   updatedAt                   DateTime @updatedAt
+  cdsEnabled                  Boolean? @default(false)
+  cdsIdleImages               String[]
+  cdsShowPromotions           Boolean? @default(true)
   branch                      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   tenant                      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -245,8 +257,8 @@ model Category {
   description      String?
   descriptionAr    String?
   nameAr           String?
-  defaultStationId String?
   defaultPrepTime  Int             @default(0)
+  defaultStationId String?
   defaultStation   KitchenStation? @relation("CategoryDefaultStation", fields: [defaultStationId], references: [id])
   tenant           Tenant          @relation(fields: [tenantId], references: [id])
   menus            MenuCategory[]
@@ -300,6 +312,7 @@ model Product {
   nameAr             String?
   defaultStationId   String?
   prepTime           Int                 @default(0)
+  unit               String?             @default("unit")
   branchSettings     BranchProduct[]
   orderItems         OrderItem[]
   category           Category            @relation(fields: [categoryId], references: [id])
@@ -315,6 +328,7 @@ model Product {
   stockTransfers     StockTransfer[]
   variants           Variant[]
   vendorProducts     VendorProduct[]
+  rewardCatalogItems RewardCatalogItem[]
 
   @@unique([sku, tenantId])
   @@unique([barcode, tenantId])
@@ -413,6 +427,9 @@ model Order {
   taxAmount        Decimal?              @default(0)
   userId           String?
   orderType        OrderType             @default(IN_STORE)
+  deliveryFee      Decimal?              @default(0)
+  loyaltyPointsUsed Int                 @default(0)
+  loyaltyCashback   Decimal              @default(0)
   externalOrderId  String?
   externalPlatform String?
   isSplit          Boolean               @default(false)
@@ -446,6 +463,8 @@ model OrderItem {
   variantId     String?
   completedAt   DateTime?
   costPrice     Decimal             @default(0)
+  isReward      Boolean             @default(false)
+  pointsCost    Int                 @default(0)
   fireAt        DateTime?
   startedAt     DateTime?
   order         Order               @relation(fields: [orderId], references: [id])
@@ -502,6 +521,12 @@ model Customer {
   createdAt          DateTime              @default(now())
   loyaltyTier        LoyaltyTier           @default(BRONZE)
   totalSpend         Decimal               @default(0)
+  birthday           DateTime?
+  referralCode       String?               @unique
+  referredById       String?
+  referredBy         Customer?             @relation("Referrals", fields: [referredById], references: [id])
+  referrals          Customer[]            @relation("Referrals")
+  segments           CustomerSegment[]
   tenant             Tenant                @relation(fields: [tenantId], references: [id])
   addresses          CustomerAddress[]
   loyaltyHistory     CustomerLoyalty[]
@@ -510,6 +535,18 @@ model Customer {
   promoRedemptions   PromoCodeRedemption[]
   reservations       Reservation[]
   waitingEntries     WaitingEntry[]
+}
+
+model CustomerSegment {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  color       String?
+  tenantId    String
+  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  customers   Customer[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model CustomerLoyalty {
@@ -530,6 +567,8 @@ model CustomerAddress {
   isDefault  Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  lat        Float?
+  lng        Float?
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
@@ -607,6 +646,36 @@ model PromoCodeRedemption {
   order           Order     @relation(fields: [orderId], references: [id])
   promoCode       PromoCode @relation(fields: [promoCodeId], references: [id])
   tenant          Tenant    @relation(fields: [tenantId], references: [id])
+}
+
+model MarketingCampaignRule {
+  id               String    @id @default(uuid())
+  tenantId         String    @unique
+  name             String    @default("Win-Back Campaign")
+  isActive         Boolean   @default(true)
+  inactiveDays     Int       @default(30)
+  discountValue    Decimal   @default(15)
+  discountType     String    @default("PERCENTAGE_OFF")
+  emailSubject     String    @default("We miss you!")
+  emailContent     String?
+  
+  // Birthday Engine
+  birthdayActive   Boolean   @default(false)
+  birthdayReward   Decimal   @default(10)
+  birthdayRewardType String  @default("PERCENTAGE_OFF")
+  birthdaySubject  String    @default("Happy Birthday, {{customer_name}}!")
+  birthdayContent  String?
+
+  // Referral Engine
+  referralActive   Boolean   @default(false)
+  referralReward   Decimal   @default(50) // e.g. 50 points or 5 units
+  referralFriendReward Decimal @default(25)
+  referralSubject  String    @default("Gift from {{referrer_name}}!")
+  referralContent  String?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  tenant           Tenant    @relation(fields: [tenantId], references: [id])
 }
 
 model Payment {
@@ -793,6 +862,7 @@ model SubscriptionPlan {
   features  String[]
   isActive  Boolean  @default(true)
   updatedAt DateTime @updatedAt
+  tenants   Tenant[]
 }
 
 model Reservation {
@@ -1239,4 +1309,18 @@ enum NotificationType {
   ORDER_CANCELLED
   ORDER_VOIDED
   MANAGER_ALERT
+}
+
+model RewardCatalogItem {
+  id         String   @id @default(uuid())
+  tenantId   String
+  productId  String
+  pointsCost Int
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, productId])
 }
