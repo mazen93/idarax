@@ -6,17 +6,16 @@ import { Permissions } from '../../auth/permissions.decorator';
 import { Actions } from '../../auth/permissions.constants';
 
 @Controller('tenant/settings')
-@UseGuards(JwtAuthGuard)
 export class SettingsController {
     constructor(private readonly settingsService: SettingsService) { }
 
     @Get()
-    @Permissions(Actions.SETTINGS.VIEW)
     get() {
         return this.settingsService.get();
     }
 
     @Patch()
+    @UseGuards(JwtAuthGuard)
     @Permissions(Actions.SETTINGS.EDIT)
     update(@Body() dto: UpdateSettingsDto) {
         return this.settingsService.update(dto);

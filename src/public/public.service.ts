@@ -2,15 +2,29 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePublicOrderDto } from './dto/public.dto';
 import { SplitBillDto } from '../order/dto/order.dto';
+import { NumberingService } from '../order/numbering.service';
 import * as QRCode from 'qrcode';
 
 @Injectable()
 export class PublicService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private numberingService: NumberingService
+    ) { }
 
-    async getTenantBranding(tenantId: string) {
-        const tenant = await this.prisma.tenant.findUnique({
-            where: { id: tenantId },
+    async getTenantBranding(tenantIdOrDomain: string) {
+        // Try finding by ID (UUID format) or by domain
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+        
+        const tenant = await (this.prisma.tenant as any).findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
             include: {
                 settings: true,
             },
@@ -39,10 +53,26 @@ export class PublicService {
         };
     }
 
-    async getBranches(tenantId: string) {
+    async getBranches(tenantIdOrDomain: string) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+
+        const tenant = await (this.prisma.tenant as any).findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
+            select: { id: true }
+        });
+
+        if (!tenant) return [];
+
         const branches = await this.prisma.branch.findMany({
             where: {
-                tenantId,
+                tenantId: tenant.id,
                 isActive: true,
             },
             select: {
@@ -58,9 +88,25 @@ export class PublicService {
         return branches;
     }
 
-    async getMenu(tenantId: string, branchId?: string) {
+    async getMenu(tenantIdOrDomain: string, branchId?: string) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+
+        const tenant = await (this.prisma.tenant as any).findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
+            select: { id: true }
+        });
+
+        if (!tenant) return [];
+
         const categories = await this.prisma.category.findMany({
-            where: { tenantId },
+            where: { tenantId: tenant.id },
             include: {
                 products: {
                     where: {
@@ -88,6 +134,11 @@ export class PublicService {
                     },
                     include: {
                         variants: true,
+                        modifiers: {
+                            include: {
+                                options: true,
+                            }
+                        },
                         // Include branch settings to fetch price overrides if branchId exists
                         ...(branchId ? {
                             branchSettings: {
@@ -121,119 +172,179 @@ export class PublicService {
                     price: effectivePrice,
                     costPrice: Number(p.costPrice),
                     variants: p.variants,
+                    modifiers: p.modifiers,
                 };
             }),
         })).filter(cat => cat.products.length > 0);
     }
 
-    async createGuestOrder(tenantId: string, dto: CreatePublicOrderDto) {
-        const tenant = await this.prisma.tenant.findUnique({
-            where: { id: tenantId },
+    async createGuestOrder(tenantIdOrDomain: string, dto: CreatePublicOrderDto) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+
+        const tenant = await (this.prisma.tenant as any).findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
             include: { settings: true }
         });
 
         if (!tenant) throw new NotFoundException('Tenant not found');
+        const tenantId = tenant.id;
 
-        // 1. Customer Integration: Look up or create customer by phone
-        let customerId = null;
-        if (dto.customerPhone) {
-            let customer = await this.prisma.customer.findFirst({
-                where: { 
-                    phone: dto.customerPhone,
-                    tenantId: tenantId
-                }
-            });
-
-            if (!customer) {
-                // Check if phone exists at all (since it's unique globally in schema)
-                const existingPhone = await this.prisma.customer.findUnique({
-                    where: { phone: dto.customerPhone }
+        return this.prisma.$transaction(async (tx) => {
+            // 1. Customer Integration: Look up or create customer by phone
+            let customerId = null;
+            if (dto.customerPhone) {
+                let customer = await tx.customer.findFirst({
+                    where: { 
+                        phone: dto.customerPhone,
+                        tenantId: tenantId
+                    }
                 });
 
-                if (!existingPhone) {
-                    customer = await this.prisma.customer.create({
-                        data: {
-                            name: dto.customerName,
-                            phone: dto.customerPhone,
-                            tenantId: tenantId,
-                        }
+                if (!customer) {
+                    const existingPhone = await tx.customer.findUnique({
+                        where: { phone: dto.customerPhone }
                     });
-                    customerId = customer.id;
-                } else {
-                    // Phone exists for another tenant, link if possible or just use guest details
-                    // For now, we link if same tenant, otherwise we just leave as guest
-                    if (existingPhone.tenantId === tenantId) {
+
+                    if (!existingPhone) {
+                        customer = await tx.customer.create({
+                            data: {
+                                name: dto.customerName,
+                                phone: dto.customerPhone,
+                                tenantId: tenantId,
+                            }
+                        });
+                        customerId = customer.id;
+                    } else if (existingPhone.tenantId === tenantId) {
                         customerId = existingPhone.id;
                     }
+                } else {
+                    customerId = customer.id;
                 }
-            } else {
-                customerId = customer.id;
             }
-        }
 
-        // 2. Financial Calculations
-        const taxRate = Number(tenant.settings?.taxRate || 0);
-        const serviceFeeRate = Number(tenant.settings?.serviceFee || 0);
-        
-        const subtotal = Number(dto.totalAmount);
-        const serviceFeeAmount = (dto.orderType === 'DINE_IN') ? (subtotal * (serviceFeeRate / 100)) : 0;
-        const taxAmount = (subtotal + serviceFeeAmount) * (taxRate / 100);
-        const finalTotal = subtotal + taxAmount + serviceFeeAmount;
+            // 2. Financial Calculations
+            const taxRate = Number(tenant.settings?.taxRate || 0);
+            const serviceFeeRate = Number(tenant.settings?.serviceFee || 0);
+            
+            const subtotal = Number(dto.totalAmount);
+            const serviceFeeAmount = (dto.orderType === 'DINE_IN' || dto.deliveryType === 'DINE_IN') ? (subtotal * (serviceFeeRate / 100)) : 0;
+            const taxAmount = (subtotal + serviceFeeAmount) * (taxRate / 100);
+            const finalTotal = subtotal + taxAmount + serviceFeeAmount;
 
-        // 3. Create Order
-        const order = await (this.prisma as any).order.create({
-            data: {
-                tenantId,
-                customerId,
-                totalAmount: finalTotal,
-                taxAmount,
-                serviceFeeAmount,
-                guestName: dto.customerName,
-                guestPhone: dto.customerPhone,
-                tableId: dto.tableId || undefined,
-                branchId: dto.branchId || undefined, 
-                orderType: (dto.orderType === 'PICKUP' ? 'TAKEAWAY' : (dto.orderType || 'IN_STORE')) as any,
-                source: (dto.source === 'WEB_STORE' ? 'MOBILE_APP' : (dto.source || 'QR_CODE')) as any, 
-                note: dto.note,
-                status: 'PENDING',
-                items: {
-                    create: dto.items.map((item: any) => ({
-                        productId: item.productId,
-                        quantity: item.quantity,
-                        price: item.price,
-                    })),
+            // 3. Numbering Generation
+            const timezone = tenant.settings?.timezone || 'UTC';
+            const branchId = dto.branchId || null;
+            let businessDayStartHour = 0;
+            if (branchId) {
+                const branch = await tx.branch.findUnique({
+                    where: { id: branchId },
+                    select: { businessDayStartHour: true }
+                });
+                businessDayStartHour = branch?.businessDayStartHour || 0;
+            }
+
+            const receiptNumber = await this.numberingService.nextReceiptNumber(
+                tx, tenantId, branchId, timezone, businessDayStartHour
+            );
+            const invoiceNumber = await this.numberingService.nextInvoiceNumber(
+                tx, tenantId, timezone, branchId, businessDayStartHour
+            );
+
+            // 4. Create Order
+            const finalTableId = dto.tableId || dto.tableNumber || undefined;
+            const finalOrderType = dto.orderType || dto.deliveryType || 'IN_STORE';
+
+            const order = await (tx as any).order.create({
+                data: {
+                    tenantId,
+                    customerId,
+                    totalAmount: finalTotal,
+                    taxAmount,
+                    serviceFeeAmount,
+                    guestName: dto.customerName,
+                    guestPhone: dto.customerPhone,
+                    tableId: finalTableId,
+                    branchId: branchId || undefined, 
+                    orderType: (finalOrderType === 'PICKUP' ? 'TAKEAWAY' : finalOrderType) as any,
+                    source: (dto.source || 'WEB_STORE') as any, 
+                    note: dto.note,
+                    status: 'PENDING',
+                    receiptNumber,
+                    invoiceNumber,
+                    items: {
+                        create: dto.items.map((item: any) => ({
+                            productId: item.productId,
+                            variantId: item.variantId || undefined,
+                            quantity: item.quantity,
+                            price: item.price,
+                            modifiers: item.modifiers ? {
+                                create: item.modifiers.map((m: any) => ({
+                                    optionId: m.optionId,
+                                    price: 0,
+                                }))
+                            } : undefined
+                        })),
+                    },
                 },
-            },
-            include: {
-                items: true,
-            },
+                include: {
+                    items: {
+                        include: {
+                            modifiers: true,
+                        }
+                    },
+                },
+            });
+
+            // 5. Update Table Status if applicable
+            if (dto.tableId) {
+                await (tx as any).table.update({
+                    where: { id: dto.tableId },
+                    data: { status: 'OCCUPIED' }
+                }).catch((err: any) => console.error('Failed to update table status:', err));
+            }
+
+            return order;
         });
-
-        // 4. Update Table Status if applicable
-        if (dto.tableId) {
-            await (this.prisma as any).table.update({
-                where: { id: dto.tableId },
-                data: { status: 'OCCUPIED' }
-            }).catch((err: any) => console.error('Failed to update table status:', err));
-        }
-
-        return order;
     }
 
-    async generateTableQr(tenantId: string, tableId: string) {
-        // Find table to ensure it exists and belongs to the tenant
+    async generateTableQr(tenantIdOrDomain: string, tableId: string) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+
+        const tenant = await (this.prisma.tenant as any).findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
+            select: { id: true, domain: true, slug: true, customDomain: true }
+        });
+
         const table = await (this.prisma as any).table.findUnique({
             where: { id: tableId },
         });
 
-        if (!table || table.tenantId !== tenantId) {
+        if (!table || !tenant || table.tenantId !== tenant.id) {
             throw new NotFoundException('Table not found');
         }
 
-        // Deep link URL (usually points to the frontend customer mobile page)
-        // e.g. https://idarax.com/m/[tenantId]?table=[tableId]
+        // Deep link URL: Use customDomain > slug > domain > id
         const baseUrl = process.env.FRONTEND_PUBLIC_URL || 'https://idarax.com';
-        const deepLink = `${baseUrl}/m/${tenantId}?table=${tableId}`;
+        const identifier = tenant.customDomain || tenant.slug || tenant.domain || tenant.id;
+        
+        // If it's a custom domain, the link should be absolute to that domain
+        const deepLink = tenant.customDomain 
+            ? `https://${tenant.customDomain}?table=${tableId}`
+            : `${baseUrl}/m/${identifier}?table=${tableId}`;
 
         // Generate QR code as data URL
         const qrCodeDataUrl = await QRCode.toDataURL(deepLink);
@@ -363,5 +474,22 @@ export class PublicService {
             }
         }
         return results;
+    }
+
+    async getPublicOrder(id: string) {
+        const order = await (this.prisma as any).order.findUnique({
+            where: { id },
+            include: {
+                items: {
+                    include: {
+                        product: { select: { name: true, nameAr: true, price: true } }
+                    }
+                },
+                tenant: { select: { name: true, id: true } }
+            }
+        });
+
+        if (!order) throw new NotFoundException('Order not found');
+        return order;
     }
 }

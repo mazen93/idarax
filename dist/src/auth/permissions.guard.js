@@ -79,6 +79,9 @@ let PermissionsGuard = class PermissionsGuard {
         if (!user && !overrideToken) {
             throw new common_1.ForbiddenException('Not authenticated');
         }
+        if (user?.isExpired && roleToCheck !== 'SUPER_ADMIN') {
+            throw new common_1.ForbiddenException('Your subscription has expired. Please renew your plan to continue.');
+        }
         const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN', 'MANAGER'];
         if (roleToCheck && ADMIN_ROLES.includes(roleToCheck.toUpperCase())) {
             return true;

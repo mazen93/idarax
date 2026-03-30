@@ -16,9 +16,11 @@ export declare class JwtStrategy extends JwtStrategy_base {
         tenantId: any;
         branchId: any;
         role: any;
-        name: any;
         jti: any;
         permissions: any;
+        features: any;
+        isExpired: any;
+        daysRemaining: any;
     }>;
 }
 export {};

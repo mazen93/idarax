@@ -19,6 +19,8 @@ const table_section_dto_1 = require("./dto/table-section.dto");
 const jwt_auth_guard_1 = require("../../../auth/jwt-auth.guard");
 const permissions_decorator_1 = require("../../../auth/permissions.decorator");
 const permissions_constants_1 = require("../../../auth/permissions.constants");
+const subscription_decorator_1 = require("../../../auth/subscription.decorator");
+const subscription_guard_1 = require("../../../auth/subscription.guard");
 let TableSectionController = class TableSectionController {
     sectionService;
     constructor(sectionService) {
@@ -83,7 +85,8 @@ __decorate([
 ], TableSectionController.prototype, "remove", null);
 exports.TableSectionController = TableSectionController = __decorate([
     (0, common_1.Controller)('restaurant/table-sections'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, subscription_guard_1.SubscriptionGuard),
+    (0, subscription_decorator_1.RequiresFeature)('RESTAURANT'),
     __metadata("design:paramtypes", [table_section_service_1.TableSectionService])
 ], TableSectionController);
 //# sourceMappingURL=table-section.controller.js.map

@@ -9,13 +9,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreatePublicOrderDto = exports.PublicOrderItemDto = void 0;
+exports.CreatePublicOrderDto = exports.PublicOrderItemDto = exports.CreatePublicOrderItemModifierDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
+class CreatePublicOrderItemModifierDto {
+    optionId;
+}
+exports.CreatePublicOrderItemModifierDto = CreatePublicOrderItemModifierDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreatePublicOrderItemModifierDto.prototype, "optionId", void 0);
 class PublicOrderItemDto {
     productId;
+    variantId;
     quantity;
     price;
+    modifiers;
 }
 exports.PublicOrderItemDto = PublicOrderItemDto;
 __decorate([
@@ -23,6 +34,11 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], PublicOrderItemDto.prototype, "productId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], PublicOrderItemDto.prototype, "variantId", void 0);
 __decorate([
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsNotEmpty)(),
@@ -33,13 +49,22 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], PublicOrderItemDto.prototype, "price", void 0);
+__decorate([
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => CreatePublicOrderItemModifierDto),
+    __metadata("design:type", Array)
+], PublicOrderItemDto.prototype, "modifiers", void 0);
 class CreatePublicOrderDto {
     customerName;
     customerPhone;
     totalAmount;
-    tableId;
-    branchId;
     orderType;
+    deliveryType;
+    tableId;
+    tableNumber;
+    branchId;
     source;
     note;
     items;
@@ -64,17 +89,27 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
+], CreatePublicOrderDto.prototype, "orderType", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreatePublicOrderDto.prototype, "deliveryType", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
 ], CreatePublicOrderDto.prototype, "tableId", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
-], CreatePublicOrderDto.prototype, "branchId", void 0);
+], CreatePublicOrderDto.prototype, "tableNumber", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
-], CreatePublicOrderDto.prototype, "orderType", void 0);
+], CreatePublicOrderDto.prototype, "branchId", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),

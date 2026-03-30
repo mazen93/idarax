@@ -3,7 +3,10 @@ export declare class AnalyticsController {
     private readonly analyticsService;
     constructor(analyticsService: AnalyticsService);
     getOverview(start?: string, end?: string): Promise<{
-        grossSales: any;
+        grossSales: number;
+        netSales: number;
+        totalCost: number;
+        netProfit: number;
         orderCount: any;
         liveKdsTickets: any;
         lowStockCount: any;
@@ -17,9 +20,13 @@ export declare class AnalyticsController {
         lowStockItems: any;
     }>;
     getSales(start: string, end: string): Promise<{
-        totalRevenue: any;
+        totalRevenue: number;
+        netSales: number;
+        totalCost: number;
+        netProfit: number;
         orderCount: any;
         averageOrderValue: number;
+        profitMargin: number;
     }>;
     getTopProducts(limit: string): Promise<unknown[]>;
     private parseDateRange;
@@ -74,5 +81,16 @@ export declare class AnalyticsController {
         totalCost: number;
         totalProfit: number;
         margin: number;
+    }[]>;
+    getPeakHours(start?: string, end?: string, branchId?: string): Promise<{
+        hour: number;
+        orderCount: number;
+        revenue: number;
+    }[]>;
+    getBusiestDays(start?: string, end?: string, branchId?: string): Promise<{
+        id: number;
+        day: string;
+        orderCount: number;
+        revenue: number;
     }[]>;
 }

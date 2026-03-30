@@ -8,12 +8,12 @@ export declare class OfferService {
     private get tenantId();
     createPromotion(dto: CreatePromotionDto): Promise<{
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        createdAt: Date;
         name: string;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
+        createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
+        type: import(".prisma/client").$Enums.PromotionType;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -47,12 +47,12 @@ export declare class OfferService {
         }[];
     } & {
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        createdAt: Date;
         name: string;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
+        createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
+        type: import(".prisma/client").$Enums.PromotionType;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -72,12 +72,12 @@ export declare class OfferService {
     })[]>;
     updatePromotion(id: string, dto: Partial<CreatePromotionDto>): Promise<{
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        createdAt: Date;
         name: string;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
+        createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
+        type: import(".prisma/client").$Enums.PromotionType;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -97,12 +97,12 @@ export declare class OfferService {
     }>;
     deletePromotion(id: string): Promise<[import(".prisma/client").Prisma.BatchPayload, {
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        createdAt: Date;
         name: string;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
+        createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
+        type: import(".prisma/client").$Enums.PromotionType;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -162,12 +162,12 @@ export declare class OfferService {
     findAllLegacies(): Promise<{
         id: string;
         tenantId: string;
-        isActive: boolean;
         createdAt: Date;
+        isActive: boolean;
         type: string;
         description: string | null;
         code: string;
-        value: number;
+        value: import("@prisma/client/runtime/library").Decimal;
         applicableProductIds: string[];
         maxDiscountAmount: import("@prisma/client/runtime/library").Decimal | null;
         minOrderAmount: import("@prisma/client/runtime/library").Decimal | null;

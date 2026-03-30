@@ -55,18 +55,45 @@ export class TransferService {
 
         // If completed, move stock between warehouses
         if (dto.status === 'COMPLETED') {
-            await this.prisma.$transaction([
-                this.prisma.stockLevel.upsert({
+            await this.prisma.$transaction(async (tx) => {
+                // 1. Decrement source
+                await tx.stockLevel.upsert({
                     where: { productId_warehouseId: { productId: transfer.productId, warehouseId: transfer.sourceId } },
                     update: { quantity: { decrement: transfer.quantity } },
                     create: { productId: transfer.productId, warehouseId: transfer.sourceId, quantity: -transfer.quantity }
-                }),
-                this.prisma.stockLevel.upsert({
+                });
+
+                // 2. Increment destination
+                await tx.stockLevel.upsert({
                     where: { productId_warehouseId: { productId: transfer.productId, warehouseId: transfer.destinationId } },
                     update: { quantity: { increment: transfer.quantity } },
                     create: { productId: transfer.productId, warehouseId: transfer.destinationId, quantity: transfer.quantity }
-                })
-            ]);
+                });
+
+                // 3. Log Source Movement (OUT)
+                await tx.stockMovement.create({
+                    data: {
+                        tenantId,
+                        productId: transfer.productId,
+                        warehouseId: transfer.sourceId,
+                        quantity: -transfer.quantity,
+                        type: 'TRANSFER',
+                        referenceId: `TRANSFER-OUT:${transfer.id}`
+                    }
+                });
+
+                // 4. Log Destination Movement (IN)
+                await tx.stockMovement.create({
+                    data: {
+                        tenantId,
+                        productId: transfer.productId,
+                        warehouseId: transfer.destinationId,
+                        quantity: transfer.quantity,
+                        type: 'TRANSFER',
+                        referenceId: `TRANSFER-IN:${transfer.id}`
+                    }
+                });
+            });
         }
 
         return transfer;

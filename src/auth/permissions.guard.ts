@@ -40,6 +40,10 @@ export class PermissionsGuard implements CanActivate {
             throw new ForbiddenException('Not authenticated');
         }
 
+        if (user?.isExpired && roleToCheck !== 'SUPER_ADMIN') {
+            throw new ForbiddenException('Your subscription has expired. Please renew your plan to continue.');
+        }
+
         const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN', 'MANAGER'];
         if (roleToCheck && ADMIN_ROLES.includes(roleToCheck.toUpperCase())) {
             return true;

@@ -22,6 +22,10 @@ let LoggingInterceptor = class LoggingInterceptor {
     }
     intercept(context, next) {
         const request = context.switchToHttp().getRequest();
+        const response = context.switchToHttp().getResponse();
+        if (typeof response.setMaxListeners === 'function') {
+            response.setMaxListeners(20);
+        }
         const { method, url, headers } = request;
         const startTime = Date.now();
         const requestId = headers['x-request-id'] || (0, uuid_1.v4)();

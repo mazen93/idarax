@@ -62,8 +62,8 @@ export declare class OrderService {
             modifiers: ({
                 option: {
                     id: string;
-                    createdAt: Date;
                     name: string;
+                    createdAt: Date;
                     updatedAt: Date;
                     nameAr: string | null;
                     sortOrder: number;
@@ -97,23 +97,24 @@ export declare class OrderService {
                 })[];
             } & {
                 id: string;
+                name: string;
                 tenantId: string;
                 createdAt: Date;
-                name: string;
                 updatedAt: Date;
-                nameAr: string | null;
+                price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
+                nameAr: string | null;
                 defaultStationId: string | null;
-                price: import("@prisma/client/runtime/library").Decimal;
+                imageUrl: string | null;
                 sku: string | null;
                 barcode: string | null;
+                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
-                categoryId: string;
             };
             variant: {
                 name: string;
@@ -131,18 +132,18 @@ export declare class OrderService {
             courseName: string | null;
             variantId: string | null;
             completedAt: Date | null;
-            isReward: boolean;
-            pointsCost: number;
             fireAt: Date | null;
             startedAt: Date | null;
+            isReward: boolean;
+            pointsCost: number;
         })[];
     } & {
         id: string;
-        userId: string | null;
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
+        userId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         customerId: string | null;
@@ -161,13 +162,13 @@ export declare class OrderService {
         taxAmount: import("@prisma/client/runtime/library").Decimal | null;
         orderType: import(".prisma/client").$Enums.OrderType;
         deliveryFee: import("@prisma/client/runtime/library").Decimal | null;
-        loyaltyPointsUsed: number;
-        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
         externalOrderId: string | null;
         externalPlatform: string | null;
         isSplit: boolean;
         parentOrderId: string | null;
         source: import(".prisma/client").$Enums.OrderSource;
+        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
+        loyaltyPointsUsed: number;
     })[]>;
     updateStatus(id: string, status: string): Promise<{
         table: {
@@ -193,18 +194,18 @@ export declare class OrderService {
             courseName: string | null;
             variantId: string | null;
             completedAt: Date | null;
-            isReward: boolean;
-            pointsCost: number;
             fireAt: Date | null;
             startedAt: Date | null;
+            isReward: boolean;
+            pointsCost: number;
         })[];
     } & {
         id: string;
-        userId: string | null;
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
+        userId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         customerId: string | null;
@@ -223,13 +224,13 @@ export declare class OrderService {
         taxAmount: import("@prisma/client/runtime/library").Decimal | null;
         orderType: import(".prisma/client").$Enums.OrderType;
         deliveryFee: import("@prisma/client/runtime/library").Decimal | null;
-        loyaltyPointsUsed: number;
-        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
         externalOrderId: string | null;
         externalPlatform: string | null;
         isSplit: boolean;
         parentOrderId: string | null;
         source: import(".prisma/client").$Enums.OrderSource;
+        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
+        loyaltyPointsUsed: number;
     }>;
     assignTable(id: string, tableId: string): Promise<any>;
     splitBill(dto: SplitBillDto): Promise<any[]>;
@@ -241,8 +242,8 @@ export declare class OrderService {
             modifiers: ({
                 option: {
                     id: string;
-                    createdAt: Date;
                     name: string;
+                    createdAt: Date;
                     updatedAt: Date;
                     nameAr: string | null;
                     sortOrder: number;
@@ -273,23 +274,24 @@ export declare class OrderService {
                 })[];
             } & {
                 id: string;
+                name: string;
                 tenantId: string;
                 createdAt: Date;
-                name: string;
                 updatedAt: Date;
-                nameAr: string | null;
+                price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
+                nameAr: string | null;
                 defaultStationId: string | null;
-                price: import("@prisma/client/runtime/library").Decimal;
+                imageUrl: string | null;
                 sku: string | null;
                 barcode: string | null;
+                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
-                categoryId: string;
             };
             variant: {
                 id: string;
@@ -312,18 +314,18 @@ export declare class OrderService {
             courseName: string | null;
             variantId: string | null;
             completedAt: Date | null;
-            isReward: boolean;
-            pointsCost: number;
             fireAt: Date | null;
             startedAt: Date | null;
+            isReward: boolean;
+            pointsCost: number;
         })[];
     } & {
         id: string;
-        userId: string | null;
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
+        userId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         customerId: string | null;
@@ -342,21 +344,21 @@ export declare class OrderService {
         taxAmount: import("@prisma/client/runtime/library").Decimal | null;
         orderType: import(".prisma/client").$Enums.OrderType;
         deliveryFee: import("@prisma/client/runtime/library").Decimal | null;
-        loyaltyPointsUsed: number;
-        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
         externalOrderId: string | null;
         externalPlatform: string | null;
         isSplit: boolean;
         parentOrderId: string | null;
         source: import(".prisma/client").$Enums.OrderSource;
+        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
+        loyaltyPointsUsed: number;
     }>;
     findActiveByTable(tableId: string): Promise<{
         items: ({
             modifiers: ({
                 option: {
                     id: string;
-                    createdAt: Date;
                     name: string;
+                    createdAt: Date;
                     updatedAt: Date;
                     nameAr: string | null;
                     sortOrder: number;
@@ -387,23 +389,24 @@ export declare class OrderService {
                 })[];
             } & {
                 id: string;
+                name: string;
                 tenantId: string;
                 createdAt: Date;
-                name: string;
                 updatedAt: Date;
-                nameAr: string | null;
+                price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
+                nameAr: string | null;
                 defaultStationId: string | null;
-                price: import("@prisma/client/runtime/library").Decimal;
+                imageUrl: string | null;
                 sku: string | null;
                 barcode: string | null;
+                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
-                categoryId: string;
             };
             variant: {
                 id: string;
@@ -426,18 +429,18 @@ export declare class OrderService {
             courseName: string | null;
             variantId: string | null;
             completedAt: Date | null;
-            isReward: boolean;
-            pointsCost: number;
             fireAt: Date | null;
             startedAt: Date | null;
+            isReward: boolean;
+            pointsCost: number;
         })[];
     } & {
         id: string;
-        userId: string | null;
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
+        userId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         customerId: string | null;
@@ -456,13 +459,13 @@ export declare class OrderService {
         taxAmount: import("@prisma/client/runtime/library").Decimal | null;
         orderType: import(".prisma/client").$Enums.OrderType;
         deliveryFee: import("@prisma/client/runtime/library").Decimal | null;
-        loyaltyPointsUsed: number;
-        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
         externalOrderId: string | null;
         externalPlatform: string | null;
         isSplit: boolean;
         parentOrderId: string | null;
         source: import(".prisma/client").$Enums.OrderSource;
+        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
+        loyaltyPointsUsed: number;
     }>;
     holdOrder(id: string): Promise<{
         table: {
@@ -488,18 +491,18 @@ export declare class OrderService {
             courseName: string | null;
             variantId: string | null;
             completedAt: Date | null;
-            isReward: boolean;
-            pointsCost: number;
             fireAt: Date | null;
             startedAt: Date | null;
+            isReward: boolean;
+            pointsCost: number;
         })[];
     } & {
         id: string;
-        userId: string | null;
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
+        userId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         customerId: string | null;
@@ -518,13 +521,13 @@ export declare class OrderService {
         taxAmount: import("@prisma/client/runtime/library").Decimal | null;
         orderType: import(".prisma/client").$Enums.OrderType;
         deliveryFee: import("@prisma/client/runtime/library").Decimal | null;
-        loyaltyPointsUsed: number;
-        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
         externalOrderId: string | null;
         externalPlatform: string | null;
         isSplit: boolean;
         parentOrderId: string | null;
         source: import(".prisma/client").$Enums.OrderSource;
+        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
+        loyaltyPointsUsed: number;
     }>;
     fireOrder(id: string): Promise<{
         table: {
@@ -550,18 +553,18 @@ export declare class OrderService {
             courseName: string | null;
             variantId: string | null;
             completedAt: Date | null;
-            isReward: boolean;
-            pointsCost: number;
             fireAt: Date | null;
             startedAt: Date | null;
+            isReward: boolean;
+            pointsCost: number;
         })[];
     } & {
         id: string;
-        userId: string | null;
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
+        userId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         customerId: string | null;
@@ -580,76 +583,16 @@ export declare class OrderService {
         taxAmount: import("@prisma/client/runtime/library").Decimal | null;
         orderType: import(".prisma/client").$Enums.OrderType;
         deliveryFee: import("@prisma/client/runtime/library").Decimal | null;
-        loyaltyPointsUsed: number;
-        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
         externalOrderId: string | null;
         externalPlatform: string | null;
         isSplit: boolean;
         parentOrderId: string | null;
         source: import(".prisma/client").$Enums.OrderSource;
-    }>;
-    voidOrder(id: string, actorId?: string, actorEmail?: string): Promise<{
-        table: {
-            number: number;
-        } | null;
-        items: ({
-            product: {
-                name: string;
-            };
-            variant: {
-                name: string;
-            } | null;
-        } & {
-            id: string;
-            price: import("@prisma/client/runtime/library").Decimal;
-            costPrice: import("@prisma/client/runtime/library").Decimal;
-            status: import(".prisma/client").$Enums.OrderItemStatus;
-            note: string | null;
-            productId: string;
-            quantity: number;
-            orderId: string;
-            stationId: string | null;
-            courseName: string | null;
-            variantId: string | null;
-            completedAt: Date | null;
-            isReward: boolean;
-            pointsCost: number;
-            fireAt: Date | null;
-            startedAt: Date | null;
-        })[];
-    } & {
-        id: string;
-        userId: string | null;
-        tenantId: string;
-        createdAt: Date;
-        updatedAt: Date;
-        branchId: string | null;
-        status: import(".prisma/client").$Enums.OrderStatus;
-        totalAmount: import("@prisma/client/runtime/library").Decimal;
-        customerId: string | null;
-        tableId: string | null;
-        note: string | null;
-        paidAmount: import("@prisma/client/runtime/library").Decimal;
-        paymentMethod: string;
-        guestName: string | null;
-        guestPhone: string | null;
-        deliveryAddress: string | null;
-        discountAmount: import("@prisma/client/runtime/library").Decimal | null;
-        invoiceNumber: string | null;
-        offerCode: string | null;
-        receiptNumber: number | null;
-        serviceFeeAmount: import("@prisma/client/runtime/library").Decimal | null;
-        taxAmount: import("@prisma/client/runtime/library").Decimal | null;
-        orderType: import(".prisma/client").$Enums.OrderType;
-        deliveryFee: import("@prisma/client/runtime/library").Decimal | null;
-        loyaltyPointsUsed: number;
         loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
-        externalOrderId: string | null;
-        externalPlatform: string | null;
-        isSplit: boolean;
-        parentOrderId: string | null;
-        source: import(".prisma/client").$Enums.OrderSource;
+        loyaltyPointsUsed: number;
     }>;
+    voidOrder(id: string, managerPin: string): Promise<any>;
+    private restoreStockRecursively;
     voidItem(orderId: string, itemId: string, actorId?: string, actorEmail?: string): Promise<any>;
     repeatOrder(dto: RepeatOrderDto): Promise<any>;
     lookupByReceipt(receiptNumber: number, date: string, branchId?: string): Promise<{
@@ -667,8 +610,8 @@ export declare class OrderService {
             modifiers: ({
                 option: {
                     id: string;
-                    createdAt: Date;
                     name: string;
+                    createdAt: Date;
                     updatedAt: Date;
                     nameAr: string | null;
                     sortOrder: number;
@@ -701,10 +644,10 @@ export declare class OrderService {
             courseName: string | null;
             variantId: string | null;
             completedAt: Date | null;
-            isReward: boolean;
-            pointsCost: number;
             fireAt: Date | null;
             startedAt: Date | null;
+            isReward: boolean;
+            pointsCost: number;
         })[];
         payments: {
             id: string;
@@ -717,11 +660,11 @@ export declare class OrderService {
         }[];
     } & {
         id: string;
-        userId: string | null;
         tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         branchId: string | null;
+        userId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         customerId: string | null;
@@ -740,13 +683,13 @@ export declare class OrderService {
         taxAmount: import("@prisma/client/runtime/library").Decimal | null;
         orderType: import(".prisma/client").$Enums.OrderType;
         deliveryFee: import("@prisma/client/runtime/library").Decimal | null;
-        loyaltyPointsUsed: number;
-        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
         externalOrderId: string | null;
         externalPlatform: string | null;
         isSplit: boolean;
         parentOrderId: string | null;
         source: import(".prisma/client").$Enums.OrderSource;
+        loyaltyCashback: import("@prisma/client/runtime/library").Decimal;
+        loyaltyPointsUsed: number;
     }>;
     sendReceipt(orderId: string, email: string): Promise<{
         success: boolean;

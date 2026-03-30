@@ -68,17 +68,32 @@ export class NumberingService {
 
     /**
      * Reserve and return the next invoice number for the given tenant on the
-     * current business day.  Format: INV-YYYYMMDD-NNNN (4-digit zero-padded).
+     * current business day.  Format: INV-YYYYMMDD-HHMM-SUFFIX-NNNN (4-digit zero-padded).
      *
-     * MUST be called inside an existing Prisma transaction (`tx`).
+     * @param branchId  The branch or terminal ID.
+     * @param timezone  User timezone.
      */
     async nextInvoiceNumber(
         tx: any,
         tenantId: string,
         timezone: string,
+        branchId: string | null = null,
         startHour = 0,
     ): Promise<string> {
         const date = this.getBusinessDate(timezone, startHour);
+        
+        // Current time in HHMM format for better traceability
+        const now = new Date();
+        const timeFormatter = new Intl.DateTimeFormat('en-CA', {
+            timeZone: timezone,
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+        const time = timeFormatter.format(now).replace(/:/g, '');
+
+        // Branch suffix: last 4 chars of ID or "0000" if no branch
+        const suffix = branchId ? branchId.slice(-4).toUpperCase() : '0000';
 
         const result = await tx.$queryRaw<{ sequence: number }[]>`
             INSERT INTO "InvoiceCounter" (id, "tenantId", date, sequence)
@@ -89,6 +104,6 @@ export class NumberingService {
         `;
 
         const seq = Number(result[0].sequence);
-        return `INV-${date}-${String(seq).padStart(4, '0')}`;
+        return `INV-${date}-${time}-${suffix}-${String(seq).padStart(4, '0')}`;
     }
 }

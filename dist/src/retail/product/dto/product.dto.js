@@ -194,6 +194,7 @@ class CreateProductDto {
     modifiers;
     defaultStationId;
     unit;
+    imageUrl;
 }
 exports.CreateProductDto = CreateProductDto;
 __decorate([
@@ -297,6 +298,12 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "unit", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateProductDto.prototype, "imageUrl", void 0);
 class UpdateProductDto {
     name;
     nameAr;
@@ -313,6 +320,7 @@ class UpdateProductDto {
     recipeComponents;
     defaultStationId;
     unit;
+    imageUrl;
 }
 exports.UpdateProductDto = UpdateProductDto;
 __decorate([
@@ -409,4 +417,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateProductDto.prototype, "unit", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProductDto.prototype, "imageUrl", void 0);
 //# sourceMappingURL=product.dto.js.map

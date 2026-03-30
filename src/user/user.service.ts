@@ -19,6 +19,18 @@ export class UserService {
         const existing = await this.prisma.client.user.findUnique({ where: { email: dto.email } });
         if (existing) throw new ConflictException('Email already in use');
 
+        const tenant = await (this.prisma as any).tenant.findUnique({
+            where: { id: tenantId }, select: { maxUsers: true }
+        });
+
+        const userCount = await (this.prisma as any).user.count({
+            where: { tenantId }
+        });
+
+        if (userCount >= (tenant?.maxUsers || 5)) {
+            throw new ForbiddenException(`You have reached the maximum number of users (${tenant?.maxUsers || 5}) allowed for your current subscription plan. Please upgrade to add more staff.`);
+        }
+
         if (dto.pinCode) {
             // Check uniqueness across the ENTIRE tenant (bypass branch-level filter)
             const existingPin = await (this.prisma as any).user.findFirst({
@@ -130,8 +142,8 @@ export class UserService {
         const data: any = {};
         if (dto.name) data.name = dto.name;
         if (dto.role) data.role = dto.role as UserRole;
-        if (dto.roleId !== undefined) data.roleId = dto.roleId;
-        if ((dto as any).branchId !== undefined) data.branchId = (dto as any).branchId;
+        if (dto.roleId !== undefined) data.roleId = dto.roleId || null;
+        if ((dto as any).branchId !== undefined) data.branchId = (dto as any).branchId || null;
         if (dto.password) data.password = await bcrypt.hash(dto.password, 10);
 
         if (dto.pinCode !== undefined) {

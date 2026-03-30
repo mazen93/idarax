@@ -367,9 +367,9 @@ export class OfferService {
         // ... existing logic from old validateOffer (abbreviated for the unified engine)
         let discountAmount = 0;
         if (offer.type === 'PERCENTAGE') {
-            discountAmount = orderTotal * (offer.value / 100);
+            discountAmount = orderTotal * (Number(offer.value) / 100);
         } else {
-            discountAmount = offer.value;
+            discountAmount = Number(offer.value);
         }
 
         const finalDiscount = Math.min(discountAmount, orderTotal);

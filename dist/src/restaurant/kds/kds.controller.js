@@ -19,6 +19,8 @@ const kds_dto_1 = require("./dto/kds.dto");
 const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
 const permissions_decorator_1 = require("../../auth/permissions.decorator");
 const permissions_constants_1 = require("../../auth/permissions.constants");
+const subscription_decorator_1 = require("../../auth/subscription.decorator");
+const subscription_guard_1 = require("../../auth/subscription.guard");
 let KdsController = class KdsController {
     kdsService;
     constructor(kdsService) {
@@ -84,7 +86,8 @@ __decorate([
 ], KdsController.prototype, "assignStaff", null);
 exports.KdsController = KdsController = __decorate([
     (0, common_1.Controller)('restaurant/kds'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, subscription_guard_1.SubscriptionGuard),
+    (0, subscription_decorator_1.RequiresFeature)('KDS'),
     __metadata("design:paramtypes", [kds_service_1.KdsService])
 ], KdsController);
 //# sourceMappingURL=kds.controller.js.map

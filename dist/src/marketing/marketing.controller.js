@@ -18,7 +18,8 @@ const marketing_service_1 = require("./marketing.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const roles_guard_1 = require("../auth/roles.guard");
 const roles_decorator_1 = require("../auth/roles.decorator");
-const feature_gate_guard_1 = require("../common/guards/feature-gate.guard");
+const subscription_decorator_1 = require("../auth/subscription.decorator");
+const subscription_guard_1 = require("../auth/subscription.guard");
 let MarketingController = class MarketingController {
     marketingService;
     constructor(marketingService) {
@@ -42,7 +43,6 @@ exports.MarketingController = MarketingController;
 __decorate([
     (0, common_1.Post)('win-back/trigger'),
     (0, roles_decorator_1.Roles)('ADMIN', 'SUPER_ADMIN'),
-    (0, feature_gate_guard_1.Feature)('WIN_BACK_MARKETING'),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -51,7 +51,6 @@ __decorate([
 __decorate([
     (0, common_1.Get)('stats'),
     (0, roles_decorator_1.Roles)('ADMIN', 'SUPER_ADMIN'),
-    (0, feature_gate_guard_1.Feature)('WIN_BACK_MARKETING'),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -60,7 +59,6 @@ __decorate([
 __decorate([
     (0, common_1.Get)('rule'),
     (0, roles_decorator_1.Roles)('ADMIN', 'SUPER_ADMIN'),
-    (0, feature_gate_guard_1.Feature)('WIN_BACK_MARKETING'),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -69,7 +67,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('rule'),
     (0, roles_decorator_1.Roles)('ADMIN', 'SUPER_ADMIN'),
-    (0, feature_gate_guard_1.Feature)('WIN_BACK_MARKETING'),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -77,7 +74,8 @@ __decorate([
 ], MarketingController.prototype, "updateRule", null);
 exports.MarketingController = MarketingController = __decorate([
     (0, common_1.Controller)('marketing'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, feature_gate_guard_1.FeatureGateGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, subscription_guard_1.SubscriptionGuard),
+    (0, subscription_decorator_1.RequiresFeature)('MARKETING'),
     __metadata("design:paramtypes", [marketing_service_1.MarketingService])
 ], MarketingController);
 //# sourceMappingURL=marketing.controller.js.map

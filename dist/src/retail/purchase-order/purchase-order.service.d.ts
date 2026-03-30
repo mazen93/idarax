@@ -16,14 +16,14 @@ export declare class PurchaseOrderService {
         }[];
         vendor: {
             id: string;
+            email: string | null;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            phone: string | null;
-            email: string | null;
-            address: string | null;
             nameAr: string | null;
+            phone: string | null;
+            address: string | null;
         };
     } & {
         number: string;
@@ -44,23 +44,24 @@ export declare class PurchaseOrderService {
         items: ({
             product: {
                 id: string;
+                name: string;
                 tenantId: string;
                 createdAt: Date;
-                name: string;
                 updatedAt: Date;
-                nameAr: string | null;
+                price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
+                nameAr: string | null;
                 defaultStationId: string | null;
-                price: import("@prisma/client/runtime/library").Decimal;
+                imageUrl: string | null;
                 sku: string | null;
                 barcode: string | null;
+                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
-                categoryId: string;
             };
         } & {
             id: string;
@@ -72,24 +73,24 @@ export declare class PurchaseOrderService {
         })[];
         warehouse: {
             id: string;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            nameAr: string | null;
             branchId: string | null;
+            nameAr: string | null;
             location: string | null;
         } | null;
         vendor: {
             id: string;
+            email: string | null;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            phone: string | null;
-            email: string | null;
-            address: string | null;
             nameAr: string | null;
+            phone: string | null;
+            address: string | null;
         };
     } & {
         number: string;

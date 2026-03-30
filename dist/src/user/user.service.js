@@ -61,6 +61,15 @@ let UserService = class UserService {
         const existing = await this.prisma.client.user.findUnique({ where: { email: dto.email } });
         if (existing)
             throw new common_1.ConflictException('Email already in use');
+        const tenant = await this.prisma.tenant.findUnique({
+            where: { id: tenantId }, select: { maxUsers: true }
+        });
+        const userCount = await this.prisma.user.count({
+            where: { tenantId }
+        });
+        if (userCount >= (tenant?.maxUsers || 5)) {
+            throw new common_1.ForbiddenException(`You have reached the maximum number of users (${tenant?.maxUsers || 5}) allowed for your current subscription plan. Please upgrade to add more staff.`);
+        }
         if (dto.pinCode) {
             const existingPin = await this.prisma.user.findFirst({
                 where: { pinCode: dto.pinCode, tenantId }
@@ -167,9 +176,9 @@ let UserService = class UserService {
         if (dto.role)
             data.role = dto.role;
         if (dto.roleId !== undefined)
-            data.roleId = dto.roleId;
+            data.roleId = dto.roleId || null;
         if (dto.branchId !== undefined)
-            data.branchId = dto.branchId;
+            data.branchId = dto.branchId || null;
         if (dto.password)
             data.password = await bcrypt.hash(dto.password, 10);
         if (dto.pinCode !== undefined) {

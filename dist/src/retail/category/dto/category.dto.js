@@ -18,6 +18,7 @@ class CreateCategoryDto {
     description;
     descriptionAr;
     defaultStationId;
+    imageUrl;
 }
 exports.CreateCategoryDto = CreateCategoryDto;
 __decorate([
@@ -50,12 +51,19 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateCategoryDto.prototype, "defaultStationId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateCategoryDto.prototype, "imageUrl", void 0);
 class UpdateCategoryDto {
     name;
     nameAr;
     description;
     descriptionAr;
     defaultStationId;
+    imageUrl;
 }
 exports.UpdateCategoryDto = UpdateCategoryDto;
 __decorate([
@@ -88,4 +96,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdateCategoryDto.prototype, "defaultStationId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateCategoryDto.prototype, "imageUrl", void 0);
 //# sourceMappingURL=category.dto.js.map

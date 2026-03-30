@@ -17,6 +17,7 @@ const order_processor_1 = require("./order.processor");
 const inventory_module_1 = require("../retail/inventory/inventory.module");
 const offer_module_1 = require("../retail/offer/offer.module");
 const refund_service_1 = require("./refund.service");
+const invoice_service_1 = require("./invoice.service");
 const staff_module_1 = require("../staff/staff.module");
 const numbering_service_1 = require("./numbering.service");
 const audit_log_module_1 = require("../common/audit-log/audit-log.module");
@@ -36,9 +37,9 @@ exports.OrderModule = OrderModule = __decorate([
             }),
             drovo_module_1.DrovoModule,
         ],
-        providers: [order_service_1.OrderService, order_processor_1.OrderProcessor, refund_service_1.RefundService, numbering_service_1.NumberingService],
+        providers: [order_service_1.OrderService, order_processor_1.OrderProcessor, refund_service_1.RefundService, numbering_service_1.NumberingService, invoice_service_1.InvoiceService],
         controllers: [order_controller_1.OrderController],
-        exports: [order_service_1.OrderService, refund_service_1.RefundService, numbering_service_1.NumberingService],
+        exports: [order_service_1.OrderService, refund_service_1.RefundService, numbering_service_1.NumberingService, invoice_service_1.InvoiceService],
     })
 ], OrderModule);
 //# sourceMappingURL=order.module.js.map

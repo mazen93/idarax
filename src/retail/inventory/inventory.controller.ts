@@ -4,9 +4,12 @@ import { CreateWarehouseDto, AdjustStockDto, StocktakeDto } from './dto/inventor
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { Permissions } from '../../auth/permissions.decorator';
 import { Actions } from '../../auth/permissions.constants';
+import { RequiresFeature } from '../../auth/subscription.decorator';
+import { SubscriptionGuard } from '../../auth/subscription.guard';
 
 @Controller('retail/inventory')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SubscriptionGuard)
+@RequiresFeature('INVENTORY')
 export class InventoryController {
     constructor(private readonly inventoryService: InventoryService) { }
 

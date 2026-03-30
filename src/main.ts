@@ -4,13 +4,16 @@ otelSDK.start();
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { EventEmitter } from 'events';
 
-// Increase MaxListeners to 20 to accommodate multiple observability/logging layers
-process.setMaxListeners(20);
+// Increase defaultMaxListeners to 30 to accommodate multiple observability/logging layers
+// on HTTP request/response objects.
+EventEmitter.defaultMaxListeners = 30;
 
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { Logger } from 'nestjs-pino';
 import * as Sentry from '@sentry/nestjs';
 import { PrismaService } from './prisma/prisma.service';
@@ -33,8 +36,8 @@ async function seedDatabase(app: any) {
       create: { id: 'superadmin-tenant', name: 'Idarax HQ', type: 'RESTAURANT' },
     });
 
-    const hashedPassword = await bcrypt.hash('Admin@12345', 12);
-    await (prisma as any).user.upsert({
+    const hashedPassword = await bcrypt.hash('Password123!', 12);
+    await prisma.user.upsert({
       where: { email: 'admin@idarax.io' },
       update: { password: hashedPassword },
       create: {
@@ -55,7 +58,15 @@ async function seedDatabase(app: any) {
       { 
         name: 'Professional', 
         price: 79, 
-        features: ['BASIC_ANALYTICS', 'STANDARD_POS', 'UPSELL_ENGINE', 'ADVANCED_REPORTING'] 
+        features: [
+          'BASIC_ANALYTICS', 
+          'STANDARD_POS', 
+          'UPSELL_ENGINE', 
+          'ADVANCED_REPORTING',
+          'RESTAURANT',
+          'INVENTORY',
+          'CRM'
+        ] 
       },
       { 
         name: 'Enterprise', 
@@ -68,28 +79,33 @@ async function seedDatabase(app: any) {
           'KDS_ANALYTICS', 
           'WIN_BACK_MARKETING', 
           'WHITE_LABELING',
-          'OFFLINE_RESILIENCE'
+          'OFFLINE_RESILIENCE',
+          'RESTAURANT',
+          'INVENTORY',
+          'CRM',
+          'MARKETING',
+          'KDS'
         ] 
       },
     ];
     for (const plan of plans) {
-      await (prisma as any).subscriptionPlan.upsert({
+      await prisma.subscriptionPlan.upsert({
         where: { id: `plan-${plan.name.toLowerCase()}` },
         update: plan,
         create: { id: `plan-${plan.name.toLowerCase()}`, ...plan, isActive: true },
       });
     }
 
-    const enterprisePlan = await (prisma as any).subscriptionPlan.findUnique({ where: { id: 'plan-enterprise' } });
+    const enterprisePlan = await prisma.subscriptionPlan.findUnique({ where: { id: 'plan-enterprise' } });
 
-    const demoTenant = await (prisma as any).tenant.upsert({
+    const demoTenant = await prisma.tenant.upsert({
       where: { id: 'dummy-tenant-123' },
       update: { planId: 'plan-enterprise' },
       create: { id: 'dummy-tenant-123', name: 'Demo Restaurant', type: 'RESTAURANT', planId: 'plan-enterprise' },
     });
 
     const demoPassword = await bcrypt.hash('Demo@12345', 10);
-    await (prisma as any).user.upsert({
+    await prisma.user.upsert({
       where: { email: 'demo@restaurant.com' },
       update: { password: demoPassword, pinCode: '123123' },
       create: {
@@ -108,7 +124,7 @@ async function seedDatabase(app: any) {
       create: { id: 'default-branch', name: 'Main Branch', tenantId: demoTenant.id, isActive: true },
     });
 
-    await (prisma as any).user.updateMany({
+    await prisma.user.updateMany({
       where: { tenantId: demoTenant.id, branchId: null },
       data: { branchId: demoBranch.id }
     });
@@ -139,6 +155,7 @@ async function bootstrap() {
     errorHttpStatusCode: 422,
   }));
 
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
 
   const config = new DocumentBuilder()

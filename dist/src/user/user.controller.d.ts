@@ -6,25 +6,25 @@ export declare class UserController {
     create(dto: CreateUserDto): Promise<{
         permissions: string[];
         id: string;
-        isActive: boolean;
-        createdAt: Date;
-        name: string;
         email: string;
+        name: string;
         role: import(".prisma/client").$Enums.UserRole;
+        createdAt: Date;
         pinCode: string | null;
         roleId: string | null;
+        isActive: boolean;
     }>;
     findAll(): Promise<{
         permissions: string[];
         id: string;
-        isActive: boolean;
-        createdAt: Date;
-        name: string;
         email: string;
+        name: string;
         role: import(".prisma/client").$Enums.UserRole;
+        createdAt: Date;
         branchId: string | null;
         pinCode: string | null;
         roleId: string | null;
+        isActive: boolean;
         customRole: {
             id: string;
             name: string;
@@ -36,27 +36,29 @@ export declare class UserController {
     update(id: string, dto: UpdateUserDto): Promise<{
         permissions: string[];
         id: string;
-        isActive: boolean;
-        createdAt: Date;
-        name: string;
         email: string;
+        name: string;
         role: import(".prisma/client").$Enums.UserRole;
+        createdAt: Date;
         branchId: string | null;
         pinCode: string | null;
         roleId: string | null;
+        isActive: boolean;
     }>;
     remove(id: string): Promise<{
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        createdAt: Date;
-        name: string;
-        updatedAt: Date;
         email: string;
         password: string;
+        name: string;
         role: import(".prisma/client").$Enums.UserRole;
+        tenantId: string;
+        createdAt: Date;
+        updatedAt: Date;
         branchId: string | null;
         pinCode: string | null;
         roleId: string | null;
+        isActive: boolean;
+        hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
+        fixedSalary: import("@prisma/client/runtime/library").Decimal | null;
     }>;
 }

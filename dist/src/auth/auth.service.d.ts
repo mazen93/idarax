@@ -21,6 +21,9 @@ export declare class AuthService {
         role: string;
         name: string;
         permissions: string[];
+        features: string[];
+        isExpired: boolean;
+        daysRemaining: number;
     }>;
     login(dto: LoginDto): Promise<{
         access_token: string;
@@ -30,6 +33,9 @@ export declare class AuthService {
         role: string;
         name: string;
         permissions: string[];
+        features: string[];
+        isExpired: boolean;
+        daysRemaining: number;
     }>;
     signToken(userId: string, email: string, tenantId: string, role: string, name: string, branchId?: string, sessionMeta?: {
         deviceName?: string;
@@ -43,6 +49,9 @@ export declare class AuthService {
         role: string;
         name: string;
         permissions: string[];
+        features: string[];
+        isExpired: boolean;
+        daysRemaining: number;
     }>;
     logout(token: string, userId?: string, userEmail?: string, tenantId?: string): Promise<{
         message: string;
@@ -57,6 +66,9 @@ export declare class AuthService {
         role: string;
         name: string;
         permissions: string[];
+        features: string[];
+        isExpired: boolean;
+        daysRemaining: number;
     }>;
     loginByPin(dto: PinLoginDto): Promise<{
         access_token: string;
@@ -66,6 +78,9 @@ export declare class AuthService {
         role: string;
         name: string;
         permissions: string[];
+        features: string[];
+        isExpired: boolean;
+        daysRemaining: number;
     }>;
     verifyOverride(dto: VerifyOverrideDto): Promise<{
         override_token: string;

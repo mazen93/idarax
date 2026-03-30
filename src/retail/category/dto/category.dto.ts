@@ -26,6 +26,11 @@ export class CreateCategoryDto {
     @IsOptional()
     @IsString()
     defaultStationId?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    imageUrl?: string;
 }
 
 export class UpdateCategoryDto {
@@ -53,4 +58,9 @@ export class UpdateCategoryDto {
     @IsOptional()
     @IsString()
     defaultStationId?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    imageUrl?: string;
 }

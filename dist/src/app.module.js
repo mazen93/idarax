@@ -61,6 +61,10 @@ const http_exception_filter_1 = require("./common/filters/http-exception.filter"
 const backup_module_1 = require("./common/backup/backup.module");
 const marketing_module_1 = require("./marketing/marketing.module");
 const sync_module_1 = require("./common/sync/sync.module");
+const admin_module_1 = require("./admin/admin.module");
+const reporting_module_1 = require("./reporting/reporting.module");
+const audit_module_1 = require("./retail/audit/audit.module");
+const attendance_module_1 = require("./staff/attendance/attendance.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(tenant_middleware_1.TenantMiddleware).forRoutes('*path');
@@ -129,6 +133,10 @@ exports.AppModule = AppModule = __decorate([
             backup_module_1.BackupModule,
             marketing_module_1.MarketingModule,
             sync_module_1.SyncModule,
+            admin_module_1.AdminModule,
+            reporting_module_1.ReportingModule,
+            audit_module_1.AuditModule,
+            attendance_module_1.AttendanceModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

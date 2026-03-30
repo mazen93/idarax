@@ -51,4 +51,16 @@ export class VendorController {
     getProducts(@Param('id') id: string) {
         return this.vendorService.getProducts(id);
     }
+
+    @Get(':id/history')
+    @Permissions(Actions.CATALOG.VIEW)
+    getHistory(@Param('id') id: string) {
+        return this.vendorService.getPurchaseHistory(id);
+    }
+
+    @Get(':id/analytics')
+    @Permissions(Actions.CATALOG.VIEW)
+    getAnalytics(@Param('id') id: string) {
+        return this.vendorService.getSpendAnalytics(id);
+    }
 }

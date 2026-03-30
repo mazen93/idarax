@@ -43,8 +43,17 @@ let NumberingService = class NumberingService {
         `;
         return Number(result[0].sequence);
     }
-    async nextInvoiceNumber(tx, tenantId, timezone, startHour = 0) {
+    async nextInvoiceNumber(tx, tenantId, timezone, branchId = null, startHour = 0) {
         const date = this.getBusinessDate(timezone, startHour);
+        const now = new Date();
+        const timeFormatter = new Intl.DateTimeFormat('en-CA', {
+            timeZone: timezone,
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+        const time = timeFormatter.format(now).replace(/:/g, '');
+        const suffix = branchId ? branchId.slice(-4).toUpperCase() : '0000';
         const result = await tx.$queryRaw `
             INSERT INTO "InvoiceCounter" (id, "tenantId", date, sequence)
             VALUES (gen_random_uuid()::text, ${tenantId}, ${date}, 1)
@@ -53,7 +62,7 @@ let NumberingService = class NumberingService {
             RETURNING sequence
         `;
         const seq = Number(result[0].sequence);
-        return `INV-${date}-${String(seq).padStart(4, '0')}`;
+        return `INV-${date}-${time}-${suffix}-${String(seq).padStart(4, '0')}`;
     }
 };
 exports.NumberingService = NumberingService;

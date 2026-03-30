@@ -5,12 +5,12 @@ export declare class OfferController {
     constructor(offerService: OfferService);
     createPromotion(dto: CreatePromotionDto): Promise<{
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        createdAt: Date;
         name: string;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
+        createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
+        type: import(".prisma/client").$Enums.PromotionType;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -44,12 +44,12 @@ export declare class OfferController {
         }[];
     } & {
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        createdAt: Date;
         name: string;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
+        createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
+        type: import(".prisma/client").$Enums.PromotionType;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -69,12 +69,12 @@ export declare class OfferController {
     })[]>;
     updatePromotion(id: string, dto: Partial<CreatePromotionDto>): Promise<{
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        createdAt: Date;
         name: string;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
+        createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
+        type: import(".prisma/client").$Enums.PromotionType;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -94,12 +94,12 @@ export declare class OfferController {
     }>;
     deletePromotion(id: string): Promise<[import(".prisma/client").Prisma.BatchPayload, {
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        createdAt: Date;
         name: string;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
+        createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
+        type: import(".prisma/client").$Enums.PromotionType;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];

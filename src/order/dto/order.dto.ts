@@ -161,6 +161,11 @@ export class CreateOrderDto {
 
     @ApiProperty({ required: false })
     @IsOptional()
+    @IsArray()
+    rewards?: any[];
+
+    @ApiProperty({ required: false })
+    @IsOptional()
     redeemAsCashback?: boolean;
 }
 

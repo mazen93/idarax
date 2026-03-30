@@ -1,33 +1,35 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePublicOrderDto } from './dto/public.dto';
 import { SplitBillDto } from '../order/dto/order.dto';
+import { NumberingService } from '../order/numbering.service';
 export declare class PublicService {
     private prisma;
-    constructor(prisma: PrismaService);
-    getTenantBranding(tenantId: string): Promise<{
-        id: string;
-        name: string;
-        type: import(".prisma/client").$Enums.TenantType;
-        logoUrl: string | null | undefined;
-        currency: string;
-        taxRate: import("@prisma/client/runtime/library").Decimal | null | undefined;
-        serviceFee: import("@prisma/client/runtime/library").Decimal | null | undefined;
-        aboutUsText: string | null | undefined;
-        bannerImageUrl: string | null | undefined;
-        facebookUrl: string | null | undefined;
-        instagramUrl: string | null | undefined;
-        twitterUrl: string | null | undefined;
-        contactEmail: string | null | undefined;
-        contactPhone: string | null | undefined;
+    private numberingService;
+    constructor(prisma: PrismaService, numberingService: NumberingService);
+    getTenantBranding(tenantIdOrDomain: string): Promise<{
+        id: any;
+        name: any;
+        type: any;
+        logoUrl: any;
+        currency: any;
+        taxRate: any;
+        serviceFee: any;
+        aboutUsText: any;
+        bannerImageUrl: any;
+        facebookUrl: any;
+        instagramUrl: any;
+        twitterUrl: any;
+        contactEmail: any;
+        contactPhone: any;
     }>;
-    getBranches(tenantId: string): Promise<{
+    getBranches(tenantIdOrDomain: string): Promise<{
         id: string;
         name: string;
-        address: string | null;
-        phone: string | null;
         nameAr: string | null;
+        phone: string | null;
+        address: string | null;
     }[]>;
-    getMenu(tenantId: string, branchId?: string): Promise<{
+    getMenu(tenantIdOrDomain: string, branchId?: string): Promise<{
         products: {
             id: string;
             name: string;
@@ -44,20 +46,43 @@ export declare class PublicService {
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 productId: string;
             }[];
+            modifiers: ({
+                options: {
+                    id: string;
+                    name: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    nameAr: string | null;
+                    sortOrder: number;
+                    priceAdjust: import("@prisma/client/runtime/library").Decimal;
+                    modifierId: string;
+                }[];
+            } & {
+                id: string;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                nameAr: string | null;
+                productId: string;
+                required: boolean;
+                multiSelect: boolean;
+                sortOrder: number;
+            })[];
         }[];
         id: string;
         name: string;
+        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        tenantId: string;
-        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        nameAr: string | null;
         defaultPrepTime: number;
         defaultStationId: string | null;
+        imageUrl: string | null;
     }[]>;
-    createGuestOrder(tenantId: string, dto: CreatePublicOrderDto): Promise<any>;
-    generateTableQr(tenantId: string, tableId: string): Promise<{
+    createGuestOrder(tenantIdOrDomain: string, dto: CreatePublicOrderDto): Promise<any>;
+    generateTableQr(tenantIdOrDomain: string, tableId: string): Promise<{
         tableNumber: any;
         deepLink: string;
         qrCodeDataUrl: string;
@@ -73,4 +98,5 @@ export declare class PublicService {
         branchId: any;
     }>;
     splitOrder(orderId: string, dto: SplitBillDto): Promise<any[]>;
+    getPublicOrder(id: string): Promise<any>;
 }

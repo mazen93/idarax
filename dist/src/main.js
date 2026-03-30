@@ -37,10 +37,12 @@ const tracing_1 = require("./tracing");
 tracing_1.otelSDK.start();
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
-process.setMaxListeners(20);
+const events_1 = require("events");
+events_1.EventEmitter.defaultMaxListeners = 30;
 const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const transform_interceptor_1 = require("./common/interceptors/transform.interceptor");
+const global_exception_filter_1 = require("./common/filters/global-exception.filter");
 const nestjs_pino_1 = require("nestjs-pino");
 const Sentry = __importStar(require("@sentry/nestjs"));
 const prisma_service_1 = require("./prisma/prisma.service");
@@ -58,7 +60,7 @@ async function seedDatabase(app) {
             update: {},
             create: { id: 'superadmin-tenant', name: 'Idarax HQ', type: 'RESTAURANT' },
         });
-        const hashedPassword = await bcrypt.hash('Admin@12345', 12);
+        const hashedPassword = await bcrypt.hash('Password123!', 12);
         await prisma.user.upsert({
             where: { email: 'admin@idarax.io' },
             update: { password: hashedPassword },
@@ -79,7 +81,15 @@ async function seedDatabase(app) {
             {
                 name: 'Professional',
                 price: 79,
-                features: ['BASIC_ANALYTICS', 'STANDARD_POS', 'UPSELL_ENGINE', 'ADVANCED_REPORTING']
+                features: [
+                    'BASIC_ANALYTICS',
+                    'STANDARD_POS',
+                    'UPSELL_ENGINE',
+                    'ADVANCED_REPORTING',
+                    'RESTAURANT',
+                    'INVENTORY',
+                    'CRM'
+                ]
             },
             {
                 name: 'Enterprise',
@@ -92,7 +102,12 @@ async function seedDatabase(app) {
                     'KDS_ANALYTICS',
                     'WIN_BACK_MARKETING',
                     'WHITE_LABELING',
-                    'OFFLINE_RESILIENCE'
+                    'OFFLINE_RESILIENCE',
+                    'RESTAURANT',
+                    'INVENTORY',
+                    'CRM',
+                    'MARKETING',
+                    'KDS'
                 ]
             },
         ];
@@ -153,6 +168,7 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
         errorHttpStatusCode: 422,
     }));
+    app.useGlobalFilters(new global_exception_filter_1.GlobalExceptionFilter());
     app.useGlobalInterceptors(new transform_interceptor_1.TransformInterceptor());
     const config = new swagger_1.DocumentBuilder()
         .setTitle('Idarax Enterprise POS API')

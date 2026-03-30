@@ -97,20 +97,47 @@ let CmsService = class CmsService {
         const hashedPassword = await bcrypt.hash(dto.adminPassword, 12);
         return this.prisma.$transaction(async (tx) => {
             const tenant = await tx.tenant.create({
-                data: { name: dto.tenantName },
+                data: {
+                    name: dto.tenantName,
+                    type: dto.type || 'RESTAURANT',
+                    planId: dto.planId,
+                },
             });
             const user = await tx.user.create({
                 data: {
                     email: dto.adminEmail,
                     password: hashedPassword,
-                    firstName: dto.adminFirstName,
-                    lastName: dto.adminLastName,
+                    name: `${dto.adminFirstName} ${dto.adminLastName}`,
                     role: 'ADMIN',
                     tenantId: tenant.id,
                 },
             });
+            await tx.branch.create({
+                data: {
+                    name: 'Main Branch',
+                    tenantId: tenant.id,
+                    isActive: true,
+                }
+            });
             return { tenantId: tenant.id, userId: user.id, message: 'Registration successful! You can now log in.' };
         });
+    }
+    async submitContact(dto) {
+        return this.prisma.contactMessage.create({ data: dto });
+    }
+    async getContactMessages() {
+        return this.prisma.contactMessage.findMany({
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+    async markContactRead(id) {
+        return this.prisma.contactMessage.update({
+            where: { id },
+            data: { isRead: true },
+        });
+    }
+    async deleteContactMessage(id) {
+        return this.prisma.contactMessage.delete({ where: { id } });
     }
 };
 exports.CmsService = CmsService;

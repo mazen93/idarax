@@ -79,10 +79,33 @@ export class VendorService {
     }
 
     async getProducts(vendorId: string) {
-        const tenantId = this.tenantService.getTenantId();
-        return this.prisma.vendorProduct.findMany({
-            where: { vendorId, tenantId },
+        return (this.prisma.client as any).vendorProduct.findMany({
+            where: { vendorId },
             include: { product: true }
         });
+    }
+
+    async getPurchaseHistory(vendorId: string) {
+        return (this.prisma.client as any).purchaseOrder.findMany({
+            where: { vendorId },
+            include: { warehouse: true, branch: true },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+
+    async getSpendAnalytics(vendorId: string) {
+        const totalSpent = await (this.prisma.client as any).purchaseOrder.aggregate({
+            where: { vendorId, status: 'RECEIVED' },
+            _sum: { totalAmount: true }
+        });
+
+        const orderCount = await (this.prisma.client as any).purchaseOrder.count({
+            where: { vendorId }
+        });
+
+        return {
+            totalSpent: totalSpent._sum.totalAmount || 0,
+            orderCount
+        };
     }
 }

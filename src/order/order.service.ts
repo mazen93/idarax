@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException, NotFoundException, Optional, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, Optional, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantService } from '../tenant/tenant.service';
 import { InjectQueue } from '@nestjs/bull';
@@ -195,7 +195,7 @@ export class OrderService {
                     tx, tenantId, branchId ?? null, timezone, cutoffHour,
                 );
                 const invoiceNumber = await this.numberingService.nextInvoiceNumber(
-                    tx, tenantId, timezone, cutoffHour,
+                    tx, tenantId, timezone, branchId ?? null, cutoffHour,
                 );
                 
                 order = await tx.order.create({
@@ -832,43 +832,147 @@ export class OrderService {
         return this.updateStatus(id, 'PREPARING');
     }
 
-    async voidOrder(id: string, actorId?: string, actorEmail?: string) {
-        const order = await this.db.findUnique({ where: { id } });
-        if (!order) throw new NotFoundException('Order not found');
+    async voidOrder(id: string, managerPin: string) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+        const branchId = this.tenantService.getBranchId();
 
-        const result = await this.updateStatus(id, 'CANCELLED');
+        // 1. Verify Manager PIN
+        const manager = await (this.prisma.client as any).user.findFirst({
+            where: {
+                tenantId,
+                pinCode: managerPin,
+                isActive: true,
+                role: { in: ['ADMIN', 'MANAGER'] }
+            }
+        });
 
-        // Audit trail: void is a sensitive operation
-        if (this.auditLog) {
-            await this.auditLog.log({
-                tenantId: order.tenantId,
-                userId: actorId,
-                userEmail: actorEmail,
-                action: 'order.void',
-                resourceType: 'Order',
-                resourceId: id,
-                meta: { previousStatus: order.status, totalAmount: Number(order.totalAmount) },
+        if (!manager) {
+            throw new ForbiddenException('Invalid manager PIN or insufficient permissions');
+        }
+
+        return (this.prisma as any).$transaction(async (tx: any) => {
+            const order = await tx.order.findUnique({
+                where: { id },
+                include: { items: true }
             });
-        }
 
-        // Real-time Dashboard Update
-        if (this.analyticsService) {
-            this.analyticsService.pushStatsUpdate(order.tenantId, (order as any).branchId).catch(() => { });
-        }
+            if (!order || order.tenantId !== tenantId) {
+                throw new NotFoundException('Order not found');
+            }
 
-        // Notify managers
-        if (this.notificationsService) {
-            const receiptNum = (order as any).receiptNumber ?? '';
-            this.notificationsService.create(order.tenantId, {
-                type: NotificationType.ORDER_VOIDED,
-                title: 'Order Voided',
-                message: `Order #${receiptNum} was voided by ${actorEmail ?? 'staff'}.`,
-                branchId: (order as any).branchId ?? undefined,
-                meta: { orderId: id, actorId, actorEmail },
-            }).catch(() => { });
-        }
+            if (order.status === 'CANCELLED' || order.status === 'REFUNDED') {
+                throw new BadRequestException('Order is already cancelled or refunded');
+            }
 
-        return result;
+            const previousStatus = order.status;
+
+            // 2. Void logic (Cancellation)
+            const result = await tx.order.update({
+                where: { id },
+                data: { status: 'CANCELLED' }
+            });
+
+            await tx.orderItem.updateMany({
+                where: { orderId: id },
+                data: { status: 'CANCELLED' }
+            });
+
+            // 3. Restore Stock
+            for (const item of order.items) {
+                await this.restoreStockRecursively(tx, tenantId, branchId, item.productId, item.quantity, order.id);
+            }
+
+            // 4. Audit Log
+            if (this.auditLog) {
+                await this.auditLog.log({
+                    tenantId,
+                    userId: manager.id,
+                    userEmail: manager.email,
+                    action: 'order.void',
+                    resourceType: 'Order',
+                    resourceId: order.id,
+                    meta: { 
+                        previousStatus,
+                        reason: 'Voided by manager',
+                        orderNumber: order.invoiceNumber || order.receiptNumber,
+                        authorizedBy: manager.name 
+                    }
+                });
+            }
+
+            // 5. Notifications
+            if (this.notificationsService) {
+                const receiptNum = (order as any).receiptNumber ?? '';
+                this.notificationsService.create(order.tenantId, {
+                    type: NotificationType.ORDER_VOIDED,
+                    title: 'Order Voided',
+                    message: `Order #${receiptNum} was voided by ${manager.name}.`,
+                    branchId: (order as any).branchId ?? undefined,
+                    meta: { orderId: id, actorId: manager.id, actorEmail: manager.email },
+                }).catch(() => { });
+            }
+
+            // 6. Free the table
+            if (order.tableId) {
+                await tx.table.update({
+                    where: { id: order.tableId },
+                    data: { status: 'AVAILABLE' }
+                });
+            }
+
+            // 7. Analytics Update
+            if (this.analyticsService) {
+                this.analyticsService.pushStatsUpdate(tenantId, branchId ?? undefined).catch(() => { });
+            }
+
+            return result;
+        });
+    }
+
+    private async restoreStockRecursively(tx: any, tenantId: string, branchId: string | undefined, productId: string, quantity: number, orderId: string) {
+        const product = await tx.product.findUnique({
+            where: { id: productId },
+            select: { productType: true }
+        });
+
+        const recipe = await tx.productRecipe.findMany({
+            where: { parentId: productId },
+        });
+
+        if (recipe && recipe.length > 0 && (product?.productType === 'STANDARD' || product?.productType === 'COMBO')) {
+            for (const component of recipe) {
+                const componentQuantity = Number(component.quantity) * quantity;
+                await this.restoreStockRecursively(tx, tenantId, branchId, component.ingredientId, componentQuantity, orderId);
+            }
+        } else {
+            const stockLevel = await tx.stockLevel.findFirst({
+                where: {
+                    productId: productId,
+                    warehouse: {
+                        ...(branchId ? { branchId } : {})
+                    },
+                },
+            });
+
+            if (stockLevel) {
+                await tx.stockLevel.update({
+                    where: { id: stockLevel.id },
+                    data: { quantity: { increment: quantity } },
+                });
+
+                await tx.stockMovement.create({
+                    data: {
+                        productId: productId,
+                        warehouseId: stockLevel.warehouseId,
+                        quantity: quantity,
+                        type: 'RETURN',
+                        referenceId: orderId,
+                        tenantId,
+                    } as any,
+                });
+            }
+        }
     }
 
     async voidItem(orderId: string, itemId: string, actorId?: string, actorEmail?: string) {
@@ -1093,4 +1197,5 @@ export class OrderService {
             </div>
         `;
     }
+
 }

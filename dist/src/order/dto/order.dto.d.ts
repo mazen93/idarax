@@ -43,6 +43,7 @@ export declare class CreateOrderDto {
         amount: number;
     }[];
     loyaltyPointsToRedeem?: number;
+    rewards?: any[];
     redeemAsCashback?: boolean;
 }
 export declare class SplitBillDto {

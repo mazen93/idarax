@@ -3,9 +3,12 @@ import { ReservationService, WaitingService } from './reservation.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { Permissions } from '../../auth/permissions.decorator';
 import { Actions } from '../../auth/permissions.constants';
+import { RequiresFeature } from '../../auth/subscription.decorator';
+import { SubscriptionGuard } from '../../auth/subscription.guard';
 
 @Controller('restaurant/reservations')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SubscriptionGuard)
+@RequiresFeature('RESTAURANT')
 export class ReservationController {
     constructor(private readonly service: ReservationService) { }
 
@@ -27,7 +30,8 @@ export class ReservationController {
 }
 
 @Controller('restaurant/waiting')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SubscriptionGuard)
+@RequiresFeature('RESTAURANT')
 export class WaitingController {
     constructor(private readonly service: WaitingService) { }
 

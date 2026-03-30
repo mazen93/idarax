@@ -10,6 +10,16 @@ export class UpdateSettingsDto {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
+    slug?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    customDomain?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
     currency?: string;
 
     @ApiProperty({ required: false })

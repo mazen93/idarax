@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UpsertLandingContentDto, CreatePlanDto, UpdatePlanDto, SelfRegisterDto } from './dto/cms.dto';
+import { UpsertLandingContentDto, CreatePlanDto, UpdatePlanDto, SelfRegisterDto, SubmitContactDto } from './dto/cms.dto';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -67,24 +67,56 @@ export class CmsService {
         const hashedPassword = await bcrypt.hash(dto.adminPassword, 12);
 
         return (this.prisma as any).$transaction(async (tx: any) => {
-            // 1. Create tenant
             const tenant = await tx.tenant.create({
-                data: { name: dto.tenantName },
+                data: { 
+                    name: dto.tenantName, 
+                    type: (dto.type as any) || 'RESTAURANT',
+                    planId: dto.planId,
+                },
             });
-
-            // 2. Create admin user for that tenant
             const user = await tx.user.create({
                 data: {
                     email: dto.adminEmail,
                     password: hashedPassword,
-                    firstName: dto.adminFirstName,
-                    lastName: dto.adminLastName,
+                    name: `${dto.adminFirstName} ${dto.adminLastName}`,
                     role: 'ADMIN',
                     tenantId: tenant.id,
                 },
             });
 
+            // Create default branch
+            await tx.branch.create({
+                data: {
+                    name: 'Main Branch',
+                    tenantId: tenant.id,
+                    isActive: true,
+                }
+            });
+
             return { tenantId: tenant.id, userId: user.id, message: 'Registration successful! You can now log in.' };
         });
+    }
+
+    // ─── Contact Messages ─────────────────────────────────────────────────────────
+
+    async submitContact(dto: SubmitContactDto) {
+        return (this.prisma as any).contactMessage.create({ data: dto });
+    }
+
+    async getContactMessages() {
+        return (this.prisma as any).contactMessage.findMany({
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async markContactRead(id: string) {
+        return (this.prisma as any).contactMessage.update({
+            where: { id },
+            data: { isRead: true },
+        });
+    }
+
+    async deleteContactMessage(id: string) {
+        return (this.prisma as any).contactMessage.delete({ where: { id } });
     }
 }

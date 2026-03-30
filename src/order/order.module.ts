@@ -8,6 +8,7 @@ import { OrderProcessor } from './order.processor';
 import { InventoryModule } from '../retail/inventory/inventory.module';
 import { OfferModule } from '../retail/offer/offer.module';
 import { RefundService } from './refund.service';
+import { InvoiceService } from './invoice.service';
 import { StaffModule } from '../staff/staff.module';
 import { NumberingService } from './numbering.service';
 import { AuditLogModule } from '../common/audit-log/audit-log.module';
@@ -24,9 +25,8 @@ import { DrovoModule } from '../delivery-aggregator/drovo.module';
     }),
     DrovoModule,
   ],
-  providers: [OrderService, OrderProcessor, RefundService, NumberingService],
+  providers: [OrderService, OrderProcessor, RefundService, NumberingService, InvoiceService],
   controllers: [OrderController],
-  exports: [OrderService, RefundService, NumberingService],
+  exports: [OrderService, RefundService, NumberingService, InvoiceService],
 })
 export class OrderModule { }
-

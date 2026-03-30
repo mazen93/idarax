@@ -4,9 +4,12 @@ import { CreateCustomerDto, UpdateCustomerDto, LoyaltyTransactionDto, CreateCust
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Permissions } from '../auth/permissions.decorator';
 import { Actions } from '../auth/permissions.constants';
+import { RequiresFeature } from '../auth/subscription.decorator';
+import { SubscriptionGuard } from '../auth/subscription.guard';
 
 @Controller('crm')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SubscriptionGuard)
+@RequiresFeature('CRM')
 export class CrmController {
     constructor(private readonly crmService: CrmService) { }
 

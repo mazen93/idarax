@@ -19,6 +19,8 @@ const inventory_dto_1 = require("./dto/inventory.dto");
 const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
 const permissions_decorator_1 = require("../../auth/permissions.decorator");
 const permissions_constants_1 = require("../../auth/permissions.constants");
+const subscription_decorator_1 = require("../../auth/subscription.decorator");
+const subscription_guard_1 = require("../../auth/subscription.guard");
 let InventoryController = class InventoryController {
     inventoryService;
     constructor(inventoryService) {
@@ -92,7 +94,8 @@ __decorate([
 ], InventoryController.prototype, "getProductStock", null);
 exports.InventoryController = InventoryController = __decorate([
     (0, common_1.Controller)('retail/inventory'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, subscription_guard_1.SubscriptionGuard),
+    (0, subscription_decorator_1.RequiresFeature)('INVENTORY'),
     __metadata("design:paramtypes", [inventory_service_1.InventoryService])
 ], InventoryController);
 //# sourceMappingURL=inventory.controller.js.map

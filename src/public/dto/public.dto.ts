@@ -1,10 +1,20 @@
 import { IsString, IsNotEmpty, IsArray, IsNumber, IsOptional, ValidateNested, IsPhoneNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
+export class CreatePublicOrderItemModifierDto {
+    @IsString()
+    @IsNotEmpty()
+    optionId: string;
+}
+
 export class PublicOrderItemDto {
     @IsString()
     @IsNotEmpty()
     productId: string;
+
+    @IsString()
+    @IsOptional()
+    variantId?: string;
 
     @IsNumber()
     @IsNotEmpty()
@@ -13,6 +23,12 @@ export class PublicOrderItemDto {
     @IsNumber()
     @IsNotEmpty()
     price: number;
+
+    @IsArray()
+    @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => CreatePublicOrderItemModifierDto)
+    modifiers?: CreatePublicOrderItemModifierDto[];
 }
 
 export class CreatePublicOrderDto {
@@ -30,15 +46,23 @@ export class CreatePublicOrderDto {
 
     @IsString()
     @IsOptional()
+    orderType?: string; // PICKUP, DELIVERY, DINE_IN
+
+    @IsString()
+    @IsOptional()
+    deliveryType?: string; // Alternative from frontend
+
+    @IsString()
+    @IsOptional()
     tableId?: string;
 
     @IsString()
     @IsOptional()
-    branchId?: string;
+    tableNumber?: string; // Alternative from frontend
 
     @IsString()
     @IsOptional()
-    orderType?: string; // PICKUP, DELIVERY, DINE_IN
+    branchId?: string;
 
     @IsString()
     @IsOptional()

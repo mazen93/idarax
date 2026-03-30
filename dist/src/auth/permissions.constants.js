@@ -78,6 +78,12 @@ exports.Actions = {
         VIEW: 'STAFF_SCHEDULE:VIEW',
         MANAGE: 'STAFF_SCHEDULE:MANAGE',
     },
+    ATTENDANCE: {
+        VIEW: 'ATTENDANCE:VIEW',
+        CHECK_IN: 'ATTENDANCE:CHECK_IN',
+        CHECK_OUT: 'ATTENDANCE:CHECK_OUT',
+        MANAGE: 'ATTENDANCE:MANAGE',
+    },
 };
 exports.AllActions = Object.values(exports.Actions).flatMap((module) => Object.values(module));
 exports.RoleDefaultPermissions = {

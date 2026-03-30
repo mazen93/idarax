@@ -307,10 +307,10 @@ let OfferService = class OfferService {
             return { isValid: false, discountAmount: 0, message: 'Invalid promo code.' };
         let discountAmount = 0;
         if (offer.type === 'PERCENTAGE') {
-            discountAmount = orderTotal * (offer.value / 100);
+            discountAmount = orderTotal * (Number(offer.value) / 100);
         }
         else {
-            discountAmount = offer.value;
+            discountAmount = Number(offer.value);
         }
         const finalDiscount = Math.min(discountAmount, orderTotal);
         if (finalDiscount <= 0) {

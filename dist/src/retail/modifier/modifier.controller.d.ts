@@ -5,8 +5,8 @@ export declare class ModifierController {
     getAll(productId: string): Promise<({
         options: {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
             nameAr: string | null;
             sortOrder: number;
@@ -15,8 +15,8 @@ export declare class ModifierController {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         productId: string;
@@ -32,8 +32,8 @@ export declare class ModifierController {
     }): Promise<{
         options: {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
             nameAr: string | null;
             sortOrder: number;
@@ -42,8 +42,8 @@ export declare class ModifierController {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         productId: string;
@@ -59,8 +59,8 @@ export declare class ModifierController {
     }): Promise<{
         options: {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
             nameAr: string | null;
             sortOrder: number;
@@ -69,8 +69,8 @@ export declare class ModifierController {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         productId: string;
@@ -80,8 +80,8 @@ export declare class ModifierController {
     }>;
     deleteGroup(groupId: string): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         productId: string;
@@ -95,8 +95,8 @@ export declare class ModifierController {
         sortOrder?: number;
     }): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         sortOrder: number;
@@ -109,8 +109,8 @@ export declare class ModifierController {
         sortOrder?: number;
     }): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         sortOrder: number;
@@ -119,8 +119,8 @@ export declare class ModifierController {
     }>;
     deleteOption(optionId: string): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         sortOrder: number;

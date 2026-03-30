@@ -23,36 +23,26 @@ let CmsController = class CmsController {
     constructor(cmsService) {
         this.cmsService = cmsService;
     }
-    getAllContent() {
-        return this.cmsService.getAllContent();
-    }
+    getAllContent() { return this.cmsService.getAllContent(); }
     getContentBySection(section) {
         return this.cmsService.getContentBySection(section);
     }
-    getActivePlans() {
-        return this.cmsService.getActivePlans();
-    }
-    selfRegister(dto) {
-        return this.cmsService.selfRegister(dto);
-    }
+    getActivePlans() { return this.cmsService.getActivePlans(); }
+    selfRegister(dto) { return this.cmsService.selfRegister(dto); }
+    submitContact(dto) { return this.cmsService.submitContact(dto); }
     upsertContent(section, dto) {
         return this.cmsService.upsertContent(section, dto);
     }
-    deleteContent(section) {
-        return this.cmsService.deleteContent(section);
-    }
-    getAllPlans() {
-        return this.cmsService.getAllPlans();
-    }
-    createPlan(dto) {
-        return this.cmsService.createPlan(dto);
-    }
+    deleteContent(section) { return this.cmsService.deleteContent(section); }
+    getAllPlans() { return this.cmsService.getAllPlans(); }
+    createPlan(dto) { return this.cmsService.createPlan(dto); }
     updatePlan(id, dto) {
         return this.cmsService.updatePlan(id, dto);
     }
-    deletePlan(id) {
-        return this.cmsService.deletePlan(id);
-    }
+    deletePlan(id) { return this.cmsService.deletePlan(id); }
+    getContactMessages() { return this.cmsService.getContactMessages(); }
+    markContactRead(id) { return this.cmsService.markContactRead(id); }
+    deleteContactMessage(id) { return this.cmsService.deleteContactMessage(id); }
 };
 exports.CmsController = CmsController;
 __decorate([
@@ -85,6 +75,14 @@ __decorate([
     __metadata("design:paramtypes", [cms_dto_1.SelfRegisterDto]),
     __metadata("design:returntype", void 0)
 ], CmsController.prototype, "selfRegister", null);
+__decorate([
+    (0, common_1.Post)('contact'),
+    (0, swagger_1.ApiOperation)({ summary: 'Submit a contact form message (public)' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [cms_dto_1.SubmitContactDto]),
+    __metadata("design:returntype", void 0)
+], CmsController.prototype, "submitContact", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),
@@ -146,6 +144,35 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CmsController.prototype, "deletePlan", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Get)('admin/contact-messages'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all contact form messages (superadmin)' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], CmsController.prototype, "getContactMessages", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Put)('admin/contact-messages/:id/read'),
+    (0, swagger_1.ApiOperation)({ summary: 'Mark a message as read (superadmin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CmsController.prototype, "markContactRead", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Delete)('admin/contact-messages/:id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete a contact message (superadmin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CmsController.prototype, "deleteContactMessage", null);
 exports.CmsController = CmsController = __decorate([
     (0, swagger_1.ApiTags)('Landing Page CMS'),
     (0, common_1.Controller)('cms'),

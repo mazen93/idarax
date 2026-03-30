@@ -62,21 +62,6 @@ export class AuthService {
             throw new UnauthorizedException('Account is inactive');
         }
 
-        // If a tenant context was provided (e.g. from x-tenant-id header), 
-        // verify that the user belongs to that specific tenant.
-        const requestedTenantId = this.tenantService.getTenantId();
-        if (requestedTenantId && user.tenantId !== requestedTenantId) {
-            // Log this as a failed login attempt for the user in the audit logs
-            await this.auditLog.log({
-                tenantId: user.tenantId,
-                userId: user.id,
-                userEmail: user.email,
-                action: 'auth.login.denied',
-                meta: { reason: 'tenant_mismatch', requestedTenantId },
-            });
-            throw new UnauthorizedException('Invalid credentials');
-        }
-
         const passwordMatches = await bcrypt.compare(dto.password, user.password);
 
         if (!passwordMatches) {
@@ -87,6 +72,24 @@ export class AuthService {
                 userEmail: user.email,
                 action: 'auth.login.failed',
                 meta: { reason: 'invalid_password' },
+            });
+            throw new UnauthorizedException('Invalid credentials');
+        }
+
+        // If a tenant context was provided (e.g. from x-tenant-id header), 
+        // verify that the user belongs to that specific tenant.
+        // SUPER_ADMIN and ADMIN (tenant owners) bypass this check as they may be logging in globally.
+        const requestedTenantId = this.tenantService.getTenantId();
+        const isAdminRole = user.role === 'SUPER_ADMIN' || user.role === 'ADMIN';
+
+        if (requestedTenantId && user.tenantId !== requestedTenantId && !isAdminRole) {
+            // Log this as a failed login attempt for the user in the audit logs
+            await this.auditLog.log({
+                tenantId: user.tenantId,
+                userId: user.id,
+                userEmail: user.email,
+                action: 'auth.login.denied',
+                meta: { reason: 'tenant_mismatch', requestedTenantId },
             });
             throw new UnauthorizedException('Invalid credentials');
         }
@@ -113,7 +116,11 @@ export class AuthService {
     ) {
         const user = await this.prisma.client.user.findUnique({
             where: { id: userId },
-            include: { customRole: { include: { permissions: true } }, permissions: true }
+            include: { 
+                customRole: { include: { permissions: true } }, 
+                permissions: true,
+                tenant: { include: { plan: true } }
+            }
         });
 
         const directPerms = user?.permissions?.map(p => p.action) || [];
@@ -127,6 +134,20 @@ export class AuthService {
         const currentRole = user?.customRole?.name || role;
         const jti = randomUUID();
 
+        // Calculate days remaining
+        let daysRemaining = 999;
+        let isExpired = false;
+        
+        if (user?.tenant) {
+            const expiryDate = user.tenant.subscriptionExpiresAt || user.tenant.trialExpiresAt;
+            if (expiryDate) {
+                const now = new Date();
+                const diffMs = new Date(expiryDate).getTime() - now.getTime();
+                daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                isExpired = daysRemaining < 0;
+            }
+        }
+
         // Sign access token
         const accessToken = await this.jwtService.signAsync(
             {
@@ -137,6 +158,9 @@ export class AuthService {
                 name,
                 branchId,
                 permissions: permissionArray,
+                features: user?.tenant?.plan?.features || [],
+                isExpired,
+                daysRemaining,
                 jti,
             },
             { expiresIn: '1h' }
@@ -180,6 +204,9 @@ export class AuthService {
             role: currentRole,
             name,
             permissions: permissionArray,
+            features: user?.tenant?.plan?.features || [],
+            isExpired,
+            daysRemaining,
         };
     }
 

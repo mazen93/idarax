@@ -121,6 +121,7 @@ class CreateOrderDto {
     deliveryAddress;
     splitPayments;
     loyaltyPointsToRedeem;
+    rewards;
     redeemAsCashback;
 }
 exports.CreateOrderDto = CreateOrderDto;
@@ -232,6 +233,12 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateOrderDto.prototype, "loyaltyPointsToRedeem", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    __metadata("design:type", Array)
+], CreateOrderDto.prototype, "rewards", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ required: false }),
     (0, class_validator_1.IsOptional)(),

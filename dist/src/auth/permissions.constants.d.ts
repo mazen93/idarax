@@ -75,6 +75,12 @@ export declare const Actions: {
         VIEW: string;
         MANAGE: string;
     };
+    ATTENDANCE: {
+        VIEW: string;
+        CHECK_IN: string;
+        CHECK_OUT: string;
+        MANAGE: string;
+    };
 };
 export type ActionType = string;
 export declare const AllActions: string[];

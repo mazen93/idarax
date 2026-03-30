@@ -8,42 +8,43 @@ export declare class TransferService {
     create(dto: CreateTransferDto): Promise<{
         product: {
             id: string;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            nameAr: string | null;
+            price: import("@prisma/client/runtime/library").Decimal;
             description: string | null;
             descriptionAr: string | null;
+            nameAr: string | null;
             defaultStationId: string | null;
-            price: import("@prisma/client/runtime/library").Decimal;
+            imageUrl: string | null;
             sku: string | null;
             barcode: string | null;
+            categoryId: string;
             costPrice: import("@prisma/client/runtime/library").Decimal;
             isSellable: boolean;
             productType: import(".prisma/client").$Enums.ProductType;
             prepTime: number;
             unit: string | null;
-            categoryId: string;
         };
         source: {
             id: string;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            nameAr: string | null;
             branchId: string | null;
+            nameAr: string | null;
             location: string | null;
         };
         destination: {
             id: string;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            nameAr: string | null;
             branchId: string | null;
+            nameAr: string | null;
             location: string | null;
         };
     } & {
@@ -65,22 +66,22 @@ export declare class TransferService {
         };
         source: {
             id: string;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            nameAr: string | null;
             branchId: string | null;
+            nameAr: string | null;
             location: string | null;
         };
         destination: {
             id: string;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            nameAr: string | null;
             branchId: string | null;
+            nameAr: string | null;
             location: string | null;
         };
     } & {
@@ -97,42 +98,43 @@ export declare class TransferService {
     updateStatus(id: string, dto: UpdateTransferStatusDto): Promise<{
         product: {
             id: string;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            nameAr: string | null;
+            price: import("@prisma/client/runtime/library").Decimal;
             description: string | null;
             descriptionAr: string | null;
+            nameAr: string | null;
             defaultStationId: string | null;
-            price: import("@prisma/client/runtime/library").Decimal;
+            imageUrl: string | null;
             sku: string | null;
             barcode: string | null;
+            categoryId: string;
             costPrice: import("@prisma/client/runtime/library").Decimal;
             isSellable: boolean;
             productType: import(".prisma/client").$Enums.ProductType;
             prepTime: number;
             unit: string | null;
-            categoryId: string;
         };
         source: {
             id: string;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            nameAr: string | null;
             branchId: string | null;
+            nameAr: string | null;
             location: string | null;
         };
         destination: {
             id: string;
+            name: string;
             tenantId: string;
             createdAt: Date;
-            name: string;
             updatedAt: Date;
-            nameAr: string | null;
             branchId: string | null;
+            nameAr: string | null;
             location: string | null;
         };
     } & {

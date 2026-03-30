@@ -115,6 +115,14 @@ let AnalyticsController = class AnalyticsController {
         const { startDate, endDate } = this.parseDateRange(start, end);
         return this.analyticsService.getProductProfitability(startDate, endDate);
     }
+    getPeakHours(start, end, branchId) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getPeakHours(startDate, endDate, branchId);
+    }
+    getBusiestDays(start, end, branchId) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getBusiestDays(startDate, endDate, branchId);
+    }
 };
 exports.AnalyticsController = AnalyticsController;
 __decorate([
@@ -220,6 +228,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('reports/customer-summary'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    (0, feature_gate_guard_1.Feature)('ADVANCED_ANALYTICS'),
     __param(0, (0, common_1.Query)('start')),
     __param(1, (0, common_1.Query)('end')),
     __param(2, (0, common_1.Query)('branchId')),
@@ -230,6 +239,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('reports/cashier-performance'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    (0, feature_gate_guard_1.Feature)('ADVANCED_ANALYTICS'),
     __param(0, (0, common_1.Query)('start')),
     __param(1, (0, common_1.Query)('end')),
     __param(2, (0, common_1.Query)('branchId')),
@@ -240,6 +250,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('reports/staff-leaderboard'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    (0, feature_gate_guard_1.Feature)('ADVANCED_ANALYTICS'),
     __param(0, (0, common_1.Query)('start')),
     __param(1, (0, common_1.Query)('end')),
     __metadata("design:type", Function),
@@ -249,6 +260,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('reports/kitchen-performance'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    (0, feature_gate_guard_1.Feature)('KDS_ANALYTICS'),
     __param(0, (0, common_1.Query)('start')),
     __param(1, (0, common_1.Query)('end')),
     __metadata("design:type", Function),
@@ -268,12 +280,35 @@ __decorate([
 __decorate([
     (0, common_1.Get)('reports/product-profitability'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    (0, feature_gate_guard_1.Feature)('ADVANCED_ANALYTICS'),
     __param(0, (0, common_1.Query)('start')),
     __param(1, (0, common_1.Query)('end')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getProductProfitability", null);
+__decorate([
+    (0, common_1.Get)('reports/peak-hours'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    (0, feature_gate_guard_1.Feature)('ADVANCED_ANALYTICS'),
+    __param(0, (0, common_1.Query)('start')),
+    __param(1, (0, common_1.Query)('end')),
+    __param(2, (0, common_1.Query)('branchId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], AnalyticsController.prototype, "getPeakHours", null);
+__decorate([
+    (0, common_1.Get)('reports/busiest-days'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.REPORTS.VIEW_ALL),
+    (0, feature_gate_guard_1.Feature)('ADVANCED_ANALYTICS'),
+    __param(0, (0, common_1.Query)('start')),
+    __param(1, (0, common_1.Query)('end')),
+    __param(2, (0, common_1.Query)('branchId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], AnalyticsController.prototype, "getBusiestDays", null);
 exports.AnalyticsController = AnalyticsController = __decorate([
     (0, common_1.Controller)('analytics'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, permissions_guard_1.PermissionsGuard, feature_gate_guard_1.FeatureGateGuard),

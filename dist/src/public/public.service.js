@@ -45,15 +45,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PublicService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const numbering_service_1 = require("../order/numbering.service");
 const QRCode = __importStar(require("qrcode"));
 let PublicService = class PublicService {
     prisma;
-    constructor(prisma) {
+    numberingService;
+    constructor(prisma, numberingService) {
         this.prisma = prisma;
+        this.numberingService = numberingService;
     }
-    async getTenantBranding(tenantId) {
-        const tenant = await this.prisma.tenant.findUnique({
-            where: { id: tenantId },
+    async getTenantBranding(tenantIdOrDomain) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+        const tenant = await this.prisma.tenant.findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
             include: {
                 settings: true,
             },
@@ -78,10 +89,24 @@ let PublicService = class PublicService {
             contactPhone: tenant.settings?.contactPhone,
         };
     }
-    async getBranches(tenantId) {
+    async getBranches(tenantIdOrDomain) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+        const tenant = await this.prisma.tenant.findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
+            select: { id: true }
+        });
+        if (!tenant)
+            return [];
         const branches = await this.prisma.branch.findMany({
             where: {
-                tenantId,
+                tenantId: tenant.id,
                 isActive: true,
             },
             select: {
@@ -95,9 +120,23 @@ let PublicService = class PublicService {
         });
         return branches;
     }
-    async getMenu(tenantId, branchId) {
+    async getMenu(tenantIdOrDomain, branchId) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+        const tenant = await this.prisma.tenant.findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
+            select: { id: true }
+        });
+        if (!tenant)
+            return [];
         const categories = await this.prisma.category.findMany({
-            where: { tenantId },
+            where: { tenantId: tenant.id },
             include: {
                 products: {
                     where: {
@@ -124,6 +163,11 @@ let PublicService = class PublicService {
                     },
                     include: {
                         variants: true,
+                        modifiers: {
+                            include: {
+                                options: true,
+                            }
+                        },
                         ...(branchId ? {
                             branchSettings: {
                                 where: { branchId }
@@ -153,99 +197,151 @@ let PublicService = class PublicService {
                     price: effectivePrice,
                     costPrice: Number(p.costPrice),
                     variants: p.variants,
+                    modifiers: p.modifiers,
                 };
             }),
         })).filter(cat => cat.products.length > 0);
     }
-    async createGuestOrder(tenantId, dto) {
-        const tenant = await this.prisma.tenant.findUnique({
-            where: { id: tenantId },
+    async createGuestOrder(tenantIdOrDomain, dto) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+        const tenant = await this.prisma.tenant.findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
             include: { settings: true }
         });
         if (!tenant)
             throw new common_1.NotFoundException('Tenant not found');
-        let customerId = null;
-        if (dto.customerPhone) {
-            let customer = await this.prisma.customer.findFirst({
-                where: {
-                    phone: dto.customerPhone,
-                    tenantId: tenantId
-                }
-            });
-            if (!customer) {
-                const existingPhone = await this.prisma.customer.findUnique({
-                    where: { phone: dto.customerPhone }
+        const tenantId = tenant.id;
+        return this.prisma.$transaction(async (tx) => {
+            let customerId = null;
+            if (dto.customerPhone) {
+                let customer = await tx.customer.findFirst({
+                    where: {
+                        phone: dto.customerPhone,
+                        tenantId: tenantId
+                    }
                 });
-                if (!existingPhone) {
-                    customer = await this.prisma.customer.create({
-                        data: {
-                            name: dto.customerName,
-                            phone: dto.customerPhone,
-                            tenantId: tenantId,
-                        }
+                if (!customer) {
+                    const existingPhone = await tx.customer.findUnique({
+                        where: { phone: dto.customerPhone }
                     });
-                    customerId = customer.id;
-                }
-                else {
-                    if (existingPhone.tenantId === tenantId) {
+                    if (!existingPhone) {
+                        customer = await tx.customer.create({
+                            data: {
+                                name: dto.customerName,
+                                phone: dto.customerPhone,
+                                tenantId: tenantId,
+                            }
+                        });
+                        customerId = customer.id;
+                    }
+                    else if (existingPhone.tenantId === tenantId) {
                         customerId = existingPhone.id;
                     }
                 }
+                else {
+                    customerId = customer.id;
+                }
             }
-            else {
-                customerId = customer.id;
+            const taxRate = Number(tenant.settings?.taxRate || 0);
+            const serviceFeeRate = Number(tenant.settings?.serviceFee || 0);
+            const subtotal = Number(dto.totalAmount);
+            const serviceFeeAmount = (dto.orderType === 'DINE_IN' || dto.deliveryType === 'DINE_IN') ? (subtotal * (serviceFeeRate / 100)) : 0;
+            const taxAmount = (subtotal + serviceFeeAmount) * (taxRate / 100);
+            const finalTotal = subtotal + taxAmount + serviceFeeAmount;
+            const timezone = tenant.settings?.timezone || 'UTC';
+            const branchId = dto.branchId || null;
+            let businessDayStartHour = 0;
+            if (branchId) {
+                const branch = await tx.branch.findUnique({
+                    where: { id: branchId },
+                    select: { businessDayStartHour: true }
+                });
+                businessDayStartHour = branch?.businessDayStartHour || 0;
             }
-        }
-        const taxRate = Number(tenant.settings?.taxRate || 0);
-        const serviceFeeRate = Number(tenant.settings?.serviceFee || 0);
-        const subtotal = Number(dto.totalAmount);
-        const serviceFeeAmount = (dto.orderType === 'DINE_IN') ? (subtotal * (serviceFeeRate / 100)) : 0;
-        const taxAmount = (subtotal + serviceFeeAmount) * (taxRate / 100);
-        const finalTotal = subtotal + taxAmount + serviceFeeAmount;
-        const order = await this.prisma.order.create({
-            data: {
-                tenantId,
-                customerId,
-                totalAmount: finalTotal,
-                taxAmount,
-                serviceFeeAmount,
-                guestName: dto.customerName,
-                guestPhone: dto.customerPhone,
-                tableId: dto.tableId || undefined,
-                branchId: dto.branchId || undefined,
-                orderType: (dto.orderType === 'PICKUP' ? 'TAKEAWAY' : (dto.orderType || 'IN_STORE')),
-                source: (dto.source === 'WEB_STORE' ? 'MOBILE_APP' : (dto.source || 'QR_CODE')),
-                note: dto.note,
-                status: 'PENDING',
-                items: {
-                    create: dto.items.map((item) => ({
-                        productId: item.productId,
-                        quantity: item.quantity,
-                        price: item.price,
-                    })),
+            const receiptNumber = await this.numberingService.nextReceiptNumber(tx, tenantId, branchId, timezone, businessDayStartHour);
+            const invoiceNumber = await this.numberingService.nextInvoiceNumber(tx, tenantId, timezone, branchId, businessDayStartHour);
+            const finalTableId = dto.tableId || dto.tableNumber || undefined;
+            const finalOrderType = dto.orderType || dto.deliveryType || 'IN_STORE';
+            const order = await tx.order.create({
+                data: {
+                    tenantId,
+                    customerId,
+                    totalAmount: finalTotal,
+                    taxAmount,
+                    serviceFeeAmount,
+                    guestName: dto.customerName,
+                    guestPhone: dto.customerPhone,
+                    tableId: finalTableId,
+                    branchId: branchId || undefined,
+                    orderType: (finalOrderType === 'PICKUP' ? 'TAKEAWAY' : finalOrderType),
+                    source: (dto.source || 'WEB_STORE'),
+                    note: dto.note,
+                    status: 'PENDING',
+                    receiptNumber,
+                    invoiceNumber,
+                    items: {
+                        create: dto.items.map((item) => ({
+                            productId: item.productId,
+                            variantId: item.variantId || undefined,
+                            quantity: item.quantity,
+                            price: item.price,
+                            modifiers: item.modifiers ? {
+                                create: item.modifiers.map((m) => ({
+                                    optionId: m.optionId,
+                                    price: 0,
+                                }))
+                            } : undefined
+                        })),
+                    },
                 },
-            },
-            include: {
-                items: true,
-            },
+                include: {
+                    items: {
+                        include: {
+                            modifiers: true,
+                        }
+                    },
+                },
+            });
+            if (dto.tableId) {
+                await tx.table.update({
+                    where: { id: dto.tableId },
+                    data: { status: 'OCCUPIED' }
+                }).catch((err) => console.error('Failed to update table status:', err));
+            }
+            return order;
         });
-        if (dto.tableId) {
-            await this.prisma.table.update({
-                where: { id: dto.tableId },
-                data: { status: 'OCCUPIED' }
-            }).catch((err) => console.error('Failed to update table status:', err));
-        }
-        return order;
     }
-    async generateTableQr(tenantId, tableId) {
+    async generateTableQr(tenantIdOrDomain, tableId) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
+        const tenant = await this.prisma.tenant.findFirst({
+            where: {
+                OR: [
+                    { id: isUuid ? tenantIdOrDomain : undefined },
+                    { domain: tenantIdOrDomain },
+                    { slug: tenantIdOrDomain },
+                    { customDomain: tenantIdOrDomain }
+                ]
+            },
+            select: { id: true, domain: true, slug: true, customDomain: true }
+        });
         const table = await this.prisma.table.findUnique({
             where: { id: tableId },
         });
-        if (!table || table.tenantId !== tenantId) {
+        if (!table || !tenant || table.tenantId !== tenant.id) {
             throw new common_1.NotFoundException('Table not found');
         }
         const baseUrl = process.env.FRONTEND_PUBLIC_URL || 'https://idarax.com';
-        const deepLink = `${baseUrl}/m/${tenantId}?table=${tableId}`;
+        const identifier = tenant.customDomain || tenant.slug || tenant.domain || tenant.id;
+        const deepLink = tenant.customDomain
+            ? `https://${tenant.customDomain}?table=${tableId}`
+            : `${baseUrl}/m/${identifier}?table=${tableId}`;
         const qrCodeDataUrl = await QRCode.toDataURL(deepLink);
         return {
             tableNumber: table.number,
@@ -364,10 +460,27 @@ let PublicService = class PublicService {
         }
         return results;
     }
+    async getPublicOrder(id) {
+        const order = await this.prisma.order.findUnique({
+            where: { id },
+            include: {
+                items: {
+                    include: {
+                        product: { select: { name: true, nameAr: true, price: true } }
+                    }
+                },
+                tenant: { select: { name: true, id: true } }
+            }
+        });
+        if (!order)
+            throw new common_1.NotFoundException('Order not found');
+        return order;
+    }
 };
 exports.PublicService = PublicService;
 exports.PublicService = PublicService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        numbering_service_1.NumberingService])
 ], PublicService);
 //# sourceMappingURL=public.service.js.map

@@ -75,6 +75,12 @@ export const Actions = {
         VIEW: 'STAFF_SCHEDULE:VIEW',
         MANAGE: 'STAFF_SCHEDULE:MANAGE',
     },
+    ATTENDANCE: {
+        VIEW: 'ATTENDANCE:VIEW',
+        CHECK_IN: 'ATTENDANCE:CHECK_IN',
+        CHECK_OUT: 'ATTENDANCE:CHECK_OUT',
+        MANAGE: 'ATTENDANCE:MANAGE',
+    },
 };
 
 export type ActionType = string;

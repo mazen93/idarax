@@ -8,7 +8,10 @@ export declare class AnalyticsService {
     constructor(prisma: PrismaService, tenantService: TenantService, dashboardGateway: DashboardGateway);
     private getQueryBranchId;
     getOverview(startDate?: Date, endDate?: Date): Promise<{
-        grossSales: any;
+        grossSales: number;
+        netSales: number;
+        totalCost: number;
+        netProfit: number;
         orderCount: any;
         liveKdsTickets: any;
         lowStockCount: any;
@@ -22,9 +25,13 @@ export declare class AnalyticsService {
         lowStockItems: any;
     }>;
     getSalesReport(startDate: Date, endDate: Date): Promise<{
-        totalRevenue: any;
+        totalRevenue: number;
+        netSales: number;
+        totalCost: number;
+        netProfit: number;
         orderCount: any;
         averageOrderValue: number;
+        profitMargin: number;
     }>;
     getTopProducts(limit?: number): Promise<unknown[]>;
     getDailySalesSummary(startDate: Date, endDate: Date, filterBranchId?: string): Promise<unknown[]>;
@@ -63,6 +70,17 @@ export declare class AnalyticsService {
         totalCost: number;
         totalProfit: number;
         margin: number;
+    }[]>;
+    getPeakHours(startDate: Date, endDate: Date, filterBranchId?: string): Promise<{
+        hour: number;
+        orderCount: number;
+        revenue: number;
+    }[]>;
+    getBusiestDays(startDate: Date, endDate: Date, filterBranchId?: string): Promise<{
+        id: number;
+        day: string;
+        orderCount: number;
+        revenue: number;
     }[]>;
     pushStatsUpdate(tenantId: string, branchId?: string): Promise<void>;
 }

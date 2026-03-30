@@ -5,57 +5,61 @@ export declare class CategoryController {
     constructor(categoryService: CategoryService);
     create(dto: CreateCategoryDto): Promise<{
         id: string;
+        name: string;
         tenantId: string;
         createdAt: Date;
-        name: string;
         updatedAt: Date;
-        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        nameAr: string | null;
         defaultPrepTime: number;
         defaultStationId: string | null;
+        imageUrl: string | null;
     }>;
     findAll(): Promise<({
-        menus: {
-            menuId: string;
-        }[];
         _count: {
             products: number;
         };
+        menus: {
+            menuId: string;
+        }[];
     } & {
         id: string;
+        name: string;
         tenantId: string;
         createdAt: Date;
-        name: string;
         updatedAt: Date;
-        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        nameAr: string | null;
         defaultPrepTime: number;
         defaultStationId: string | null;
+        imageUrl: string | null;
     })[]>;
     update(id: string, dto: UpdateCategoryDto): Promise<{
         id: string;
+        name: string;
         tenantId: string;
         createdAt: Date;
-        name: string;
         updatedAt: Date;
-        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        nameAr: string | null;
         defaultPrepTime: number;
         defaultStationId: string | null;
+        imageUrl: string | null;
     }>;
     remove(id: string): Promise<{
         id: string;
+        name: string;
         tenantId: string;
         createdAt: Date;
-        name: string;
         updatedAt: Date;
-        nameAr: string | null;
         description: string | null;
         descriptionAr: string | null;
+        nameAr: string | null;
         defaultPrepTime: number;
         defaultStationId: string | null;
+        imageUrl: string | null;
     }>;
 }

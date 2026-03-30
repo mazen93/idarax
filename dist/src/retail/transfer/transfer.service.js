@@ -61,18 +61,38 @@ let TransferService = class TransferService {
             include: { source: true, destination: true, product: true }
         });
         if (dto.status === 'COMPLETED') {
-            await this.prisma.$transaction([
-                this.prisma.stockLevel.upsert({
+            await this.prisma.$transaction(async (tx) => {
+                await tx.stockLevel.upsert({
                     where: { productId_warehouseId: { productId: transfer.productId, warehouseId: transfer.sourceId } },
                     update: { quantity: { decrement: transfer.quantity } },
                     create: { productId: transfer.productId, warehouseId: transfer.sourceId, quantity: -transfer.quantity }
-                }),
-                this.prisma.stockLevel.upsert({
+                });
+                await tx.stockLevel.upsert({
                     where: { productId_warehouseId: { productId: transfer.productId, warehouseId: transfer.destinationId } },
                     update: { quantity: { increment: transfer.quantity } },
                     create: { productId: transfer.productId, warehouseId: transfer.destinationId, quantity: transfer.quantity }
-                })
-            ]);
+                });
+                await tx.stockMovement.create({
+                    data: {
+                        tenantId,
+                        productId: transfer.productId,
+                        warehouseId: transfer.sourceId,
+                        quantity: -transfer.quantity,
+                        type: 'TRANSFER',
+                        referenceId: `TRANSFER-OUT:${transfer.id}`
+                    }
+                });
+                await tx.stockMovement.create({
+                    data: {
+                        tenantId,
+                        productId: transfer.productId,
+                        warehouseId: transfer.destinationId,
+                        quantity: transfer.quantity,
+                        type: 'TRANSFER',
+                        referenceId: `TRANSFER-IN:${transfer.id}`
+                    }
+                });
+            });
         }
         return transfer;
     }

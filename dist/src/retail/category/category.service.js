@@ -24,12 +24,12 @@ let CategoryService = class CategoryService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
-        return this.prisma.category.create({
-            data: {
-                ...dto,
-                tenantId
-            }
-        });
+        const data = {
+            ...dto,
+            tenantId,
+            defaultStationId: dto.defaultStationId || null,
+        };
+        return this.prisma.category.create({ data });
     }
     async findAll(menuId) {
         const tenantId = this.tenantService.getTenantId();
@@ -48,9 +48,13 @@ let CategoryService = class CategoryService {
     }
     async update(id, dto) {
         const tenantId = this.tenantService.getTenantId();
+        const data = { ...dto };
+        if (dto.defaultStationId === '') {
+            data.defaultStationId = null;
+        }
         return this.prisma.category.update({
             where: { id, tenantId },
-            data: dto
+            data
         });
     }
     async remove(id) {

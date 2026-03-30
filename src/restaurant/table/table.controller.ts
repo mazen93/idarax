@@ -4,9 +4,12 @@ import { CreateTableDto, UpdateTableDto } from './dto/table.dto';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { Permissions } from '../../auth/permissions.decorator';
 import { Actions } from '../../auth/permissions.constants';
+import { RequiresFeature } from '../../auth/subscription.decorator';
+import { SubscriptionGuard } from '../../auth/subscription.guard';
 
 @Controller('restaurant/tables')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SubscriptionGuard)
+@RequiresFeature('RESTAURANT')
 export class TableController {
     constructor(private readonly tableService: TableService) { }
 

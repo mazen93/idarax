@@ -34,13 +34,13 @@ let SettingsController = class SettingsController {
 exports.SettingsController = SettingsController;
 __decorate([
     (0, common_1.Get)(),
-    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.SETTINGS.VIEW),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], SettingsController.prototype, "get", null);
 __decorate([
     (0, common_1.Patch)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.SETTINGS.EDIT),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -49,7 +49,6 @@ __decorate([
 ], SettingsController.prototype, "update", null);
 exports.SettingsController = SettingsController = __decorate([
     (0, common_1.Controller)('tenant/settings'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [settings_service_1.SettingsService])
 ], SettingsController);
 //# sourceMappingURL=settings.controller.js.map

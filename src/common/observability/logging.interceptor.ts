@@ -12,6 +12,13 @@ export class LoggingInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
+    const response = context.switchToHttp().getResponse();
+    
+    // Increase max listeners for the response object to handle multiple logging/telemetry layers
+    if (typeof response.setMaxListeners === 'function') {
+      response.setMaxListeners(20);
+    }
+
     const { method, url, headers } = request;
     const startTime = Date.now();
 

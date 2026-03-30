@@ -19,6 +19,18 @@ export class KdsService {
 
         const { staffIds, ...rest } = dto;
 
+        const tenant = await (this.prisma.client as any).tenant.findUnique({
+            where: { id: tenantId }, select: { maxKds: true }
+        });
+        
+        const currentCount = await (this.prisma.client as any).kitchenStation.count({
+            where: { tenantId }
+        });
+        
+        if (currentCount >= (tenant?.maxKds || 0)) {
+            throw new ForbiddenException(`You have reached your maximum limit of ${tenant?.maxKds || 0} KDS screens for this subscription. Please upgrade your plan.`);
+        }
+
         return (this.prisma.client as any).kitchenStation.create({
             data: {
                 ...rest,

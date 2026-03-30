@@ -11,6 +11,9 @@ export declare class AuthController {
         role: string;
         name: string;
         permissions: string[];
+        features: string[];
+        isExpired: boolean;
+        daysRemaining: number;
     }>;
     login(dto: LoginDto): Promise<{
         access_token: string;
@@ -20,6 +23,9 @@ export declare class AuthController {
         role: string;
         name: string;
         permissions: string[];
+        features: string[];
+        isExpired: boolean;
+        daysRemaining: number;
     }>;
     loginByPin(dto: PinLoginDto): Promise<{
         access_token: string;
@@ -29,6 +35,9 @@ export declare class AuthController {
         role: string;
         name: string;
         permissions: string[];
+        features: string[];
+        isExpired: boolean;
+        daysRemaining: number;
     }>;
     refreshToken(dto: RefreshTokenDto): Promise<{
         access_token: string;
@@ -38,6 +47,9 @@ export declare class AuthController {
         role: string;
         name: string;
         permissions: string[];
+        features: string[];
+        isExpired: boolean;
+        daysRemaining: number;
     }>;
     logout(req: any): Promise<{
         message: string;

@@ -52,9 +52,11 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
             tenantId: payload.tenantId,
             branchId: payload.branchId,
             role: payload.role,
-            name: payload.name,
             jti: payload.jti,
             permissions: payload.permissions || [],
+            features: payload.features || [],
+            isExpired: payload.isExpired || false,
+            daysRemaining: payload.daysRemaining || 999,
         };
     }
 };

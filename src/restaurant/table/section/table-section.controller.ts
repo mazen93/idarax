@@ -4,9 +4,12 @@ import { CreateTableSectionDto, UpdateTableSectionDto } from './dto/table-sectio
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { Permissions } from '../../../auth/permissions.decorator';
 import { Actions } from '../../../auth/permissions.constants';
+import { RequiresFeature } from '../../../auth/subscription.decorator';
+import { SubscriptionGuard } from '../../../auth/subscription.guard';
 
 @Controller('restaurant/table-sections')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SubscriptionGuard)
+@RequiresFeature('RESTAURANT')
 export class TableSectionController {
     constructor(private readonly sectionService: TableSectionService) { }
 

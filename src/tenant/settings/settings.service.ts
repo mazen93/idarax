@@ -21,9 +21,11 @@ export class SettingsService {
             include: { tenant: true }
         });
 
-        if (!globalSettings) {
+        let settings: any = globalSettings;
+
+        if (!settings) {
             // Create default settings if they don't exist
-            return this.prisma.settings.create({
+            settings = await this.prisma.settings.create({
                 data: { tenantId },
                 include: { tenant: true }
             });
@@ -36,17 +38,23 @@ export class SettingsService {
 
             if (branchSettings) {
                 // Merge branch overrides into global settings
-                const merged = { ...globalSettings };
+                const merged = { ...settings };
                 Object.keys(branchSettings).forEach(key => {
                     if (branchSettings[key] !== null && branchSettings[key] !== undefined && key !== 'id' && key !== 'branchId' && key !== 'tenantId') {
                         (merged as any)[key] = branchSettings[key];
                     }
                 });
-                return merged;
+                settings = merged;
             }
         }
 
-        return globalSettings;
+        // Strip sensitive fields
+        if (settings) {
+            delete settings.drovoApiKey;
+            delete settings.drovoTenantId;
+        }
+
+        return settings;
     }
 
     async update(dto: UpdateSettingsDto) {
@@ -54,19 +62,23 @@ export class SettingsService {
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
 
         const branchId = this.tenantService.getBranchId();
-        const { name, ...settingsData } = dto;
+        const { name, slug, customDomain, ...settingsData } = dto;
 
         if (settingsData.drovoApiKey || settingsData.drovoTenantId) {
-            const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId } });
+            const tenant = await (this.prisma.tenant as any).findUnique({ where: { id: tenantId } });
             if (!tenant?.hasDeliveryIntegration) {
                 throw new ForbiddenException('Your subscription plan does not include Delivery Management integrations.');
             }
         }
 
-        if (name && !branchId) {
-            await this.prisma.tenant.update({
+        if ((name || slug || customDomain) && !branchId) {
+            await (this.prisma.tenant as any).update({
                 where: { id: tenantId },
-                data: { name }
+                data: { 
+                    name: name || undefined,
+                    slug: slug || undefined,
+                    customDomain: customDomain || undefined
+                }
             });
         }
 

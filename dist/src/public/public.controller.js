@@ -18,10 +18,25 @@ const public_service_1 = require("./public.service");
 const swagger_1 = require("@nestjs/swagger");
 const public_dto_1 = require("./dto/public.dto");
 const order_dto_1 = require("../order/dto/order.dto");
+const invoice_service_1 = require("../order/invoice.service");
 let PublicController = class PublicController {
     publicService;
-    constructor(publicService) {
+    invoiceService;
+    constructor(publicService, invoiceService) {
         this.publicService = publicService;
+        this.invoiceService = invoiceService;
+    }
+    async getOrderInvoice(id, res) {
+        const buffer = await this.invoiceService.generateInvoicePdf(id);
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=invoice-${id}.pdf`,
+            'Content-Length': buffer.length,
+        });
+        res.end(buffer);
+    }
+    getPublicOrder(id) {
+        return this.publicService.getPublicOrder(id);
     }
     getTenant(id) {
         return this.publicService.getTenantBranding(id);
@@ -56,6 +71,23 @@ let PublicController = class PublicController {
     }
 };
 exports.PublicController = PublicController;
+__decorate([
+    (0, common_1.Get)('order/:id/invoice'),
+    (0, swagger_1.ApiOperation)({ summary: 'Download order invoice as PDF (Public)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PublicController.prototype, "getOrderInvoice", null);
+__decorate([
+    (0, common_1.Get)('order/:id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get order details for guests' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], PublicController.prototype, "getPublicOrder", null);
 __decorate([
     (0, common_1.Get)('tenant/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get restaurant branding and settings' }),
@@ -136,6 +168,7 @@ __decorate([
 exports.PublicController = PublicController = __decorate([
     (0, swagger_1.ApiTags)('Public Menu'),
     (0, common_1.Controller)('public'),
-    __metadata("design:paramtypes", [public_service_1.PublicService])
+    __metadata("design:paramtypes", [public_service_1.PublicService,
+        invoice_service_1.InvoiceService])
 ], PublicController);
 //# sourceMappingURL=public.controller.js.map

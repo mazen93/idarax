@@ -8,15 +8,25 @@ datasource db {
 }
 
 model Tenant {
-  id                     String                @id @default(uuid())
+  id                     String                 @id @default(uuid())
   name                   String
-  domain                 String?               @unique
+  slug                   String?                @unique
+  domain                 String?                @unique
+  customDomain           String?                @unique
   type                   TenantType
-  createdAt              DateTime              @default(now())
-  updatedAt              DateTime              @updatedAt
-  hasDeliveryIntegration Boolean               @default(false)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  hasDeliveryIntegration Boolean                @default(false)
   planId                 String?
-  branches               Branch[]
+  isTrial                Boolean                @default(true)
+  maxBranches            Int                    @default(1)
+  maxUsers               Int                    @default(5)
+  maxPos                 Int                    @default(1)
+  maxKds                 Int                    @default(0)
+  subscriptionExpiresAt  DateTime?
+  trialExpiresAt         DateTime?
+  attendances          Attendance[]
+  branches             Branch[]
   branchSettings         BranchSettings[]
   categories             Category[]
   customers              Customer[]
@@ -26,6 +36,7 @@ model Tenant {
   invoiceCounters        InvoiceCounter[]
   kitchenStations        KitchenStation[]
   marketingCampaigns     MarketingCampaign[]
+  marketingRule          MarketingCampaignRule?
   menus                  Menu[]
   notifications          Notification[]
   orders                 Order[]
@@ -38,6 +49,7 @@ model Tenant {
   purchaseOrders         PurchaseOrder[]
   receiptCounters        ReceiptCounter[]
   reservations           Reservation[]
+  rewardCatalogItems     RewardCatalogItem[]
   roles                  Role[]
   rolePermissions        RolePermission[]
   scheduledReports       ScheduledReport[]
@@ -49,15 +61,15 @@ model Tenant {
   stockTransfers         StockTransfer[]
   tables                 Table[]
   tableSections          TableSection[]
-  plan                   SubscriptionPlan?     @relation(fields: [planId], references: [id])
+  plan                   SubscriptionPlan?      @relation(fields: [planId], references: [id])
   users                  User[]
   userPermissions        UserPermission[]
   vendors                Vendor[]
   vendorProducts         VendorProduct[]
   waitingEntries         WaitingEntry[]
   warehouses             Warehouse[]
-  marketingRule          MarketingCampaignRule?
-  rewardCatalogItems     RewardCatalogItem[]
+  upgradeRequests        UpgradeRequest[]
+  stockAudits            StockAudit[]
 }
 
 model Branch {
@@ -83,6 +95,7 @@ model Branch {
   orders               Order[]
   printers             Printer[]
   purchaseOrders       PurchaseOrder[]
+  attendances          Attendance[]
   receiptCounters      ReceiptCounter[]
   reservations         Reservation[]
   scheduledShifts      ScheduledShift[]
@@ -137,8 +150,8 @@ model Settings {
   drovoTenantId               String?
   brandColor                  String   @default("#10b981")
   secondaryColor              String   @default("#1f2937")
-  loyaltyRatioEarning         Float    @default(1.0)
-  loyaltyRatioRedemption      Float    @default(0.01)
+  loyaltyRatioEarning         Decimal  @default(1.0)
+  loyaltyRatioRedemption      Decimal  @default(0.01)
   tenant                      Tenant   @relation(fields: [tenantId], references: [id])
 }
 
@@ -193,6 +206,9 @@ model User {
   pinCode         String?
   roleId          String?
   isActive        Boolean          @default(true)
+  hourlyRate      Decimal?
+  fixedSalary     Decimal?
+  attendances     Attendance[]
   drawerSessions  DrawerSession[]
   orders          Order[]
   scheduledShifts ScheduledShift[]
@@ -260,6 +276,7 @@ model Category {
   defaultPrepTime  Int             @default(0)
   defaultStationId String?
   defaultStation   KitchenStation? @relation("CategoryDefaultStation", fields: [defaultStationId], references: [id])
+  imageUrl         String?
   tenant           Tenant          @relation(fields: [tenantId], references: [id])
   menus            MenuCategory[]
   products         Product[]
@@ -322,16 +339,20 @@ model Product {
   usedInRecipes      ProductRecipe[]     @relation("RecipeIngredient")
   recipeComponents   ProductRecipe[]     @relation("RecipeParent")
   purchaseOrderItems PurchaseOrderItem[]
+  rewardCatalogItems RewardCatalogItem[]
   serialNumbers      SerialNumber[]
   stockLevels        StockLevel[]
   stockMovements     StockMovement[]
   stockTransfers     StockTransfer[]
+  stockAuditItems    StockAuditItem[]
+  imageUrl           String?
   variants           Variant[]
   vendorProducts     VendorProduct[]
-  rewardCatalogItems RewardCatalogItem[]
 
   @@unique([sku, tenantId])
   @@unique([barcode, tenantId])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, categoryId])
 }
 
 model BranchProduct {
@@ -402,51 +423,54 @@ model TableSection {
 }
 
 model Order {
-  id               String                @id @default(uuid())
-  status           OrderStatus           @default(PENDING)
-  totalAmount      Decimal
-  tenantId         String
-  customerId       String?
-  tableId          String?
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
-  note             String?
-  paidAmount       Decimal               @default(0)
-  paymentMethod    String                @default("CASH")
-  branchId         String?
-  guestName        String?
-  guestPhone       String?
-  deliveryAddress  String?
-  discountAmount   Decimal?              @default(0)
+  id                String                @id @default(uuid())
+  status            OrderStatus           @default(PENDING)
+  totalAmount       Decimal
+  tenantId          String
+  customerId        String?
+  tableId           String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  note              String?
+  paidAmount        Decimal               @default(0)
+  paymentMethod     String                @default("CASH")
+  branchId          String?
+  guestName         String?
+  guestPhone        String?
+  deliveryAddress   String?
+  discountAmount    Decimal?              @default(0)
   /// Permanent globally-unique invoice number e.g. INV-20250313-0042
-  invoiceNumber    String?               @unique
-  offerCode        String?
+  invoiceNumber     String?               @unique
+  offerCode         String?
   /// Short daily receipt number (1-999, resets each business day per branch)
-  receiptNumber    Int?
-  serviceFeeAmount Decimal?              @default(0)
-  taxAmount        Decimal?              @default(0)
-  userId           String?
-  orderType        OrderType             @default(IN_STORE)
-  deliveryFee      Decimal?              @default(0)
-  loyaltyPointsUsed Int                 @default(0)
-  loyaltyCashback   Decimal              @default(0)
-  externalOrderId  String?
-  externalPlatform String?
-  isSplit          Boolean               @default(false)
-  parentOrderId    String?
-  source           OrderSource           @default(POS)
-  branch           Branch?               @relation(fields: [branchId], references: [id])
-  customer         Customer?             @relation(fields: [customerId], references: [id])
-  table            Table?                @relation(fields: [tableId], references: [id])
-  tenant           Tenant                @relation(fields: [tenantId], references: [id])
-  user             User?                 @relation(fields: [userId], references: [id])
-  feedback         OrderFeedback?
-  items            OrderItem[]
-  payments         Payment[]
-  promoRedemptions PromoCodeRedemption[]
-  refunds          Refund[]
+  receiptNumber     Int?
+  serviceFeeAmount  Decimal?              @default(0)
+  taxAmount         Decimal?              @default(0)
+  userId            String?
+  orderType         OrderType             @default(IN_STORE)
+  deliveryFee       Decimal?              @default(0)
+  externalOrderId   String?
+  externalPlatform  String?
+  isSplit           Boolean               @default(false)
+  parentOrderId     String?
+  source            OrderSource           @default(POS)
+  loyaltyCashback   Decimal               @default(0)
+  loyaltyPointsUsed Int                   @default(0)
+  branch            Branch?               @relation(fields: [branchId], references: [id])
+  customer          Customer?             @relation(fields: [customerId], references: [id])
+  table             Table?                @relation(fields: [tableId], references: [id])
+  tenant            Tenant                @relation(fields: [tenantId], references: [id])
+  user              User?                 @relation(fields: [userId], references: [id])
+  feedback          OrderFeedback?
+  items             OrderItem[]
+  payments          Payment[]
+  promoRedemptions  PromoCodeRedemption[]
+  refunds           Refund[]
 
   @@index([tenantId, branchId, receiptNumber])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status])
+  @@index([customerId])
   @@index([invoiceNumber])
 }
 
@@ -463,10 +487,10 @@ model OrderItem {
   variantId     String?
   completedAt   DateTime?
   costPrice     Decimal             @default(0)
-  isReward      Boolean             @default(false)
-  pointsCost    Int                 @default(0)
   fireAt        DateTime?
   startedAt     DateTime?
+  isReward      Boolean             @default(false)
+  pointsCost    Int                 @default(0)
   order         Order               @relation(fields: [orderId], references: [id])
   product       Product             @relation(fields: [productId], references: [id])
   station       KitchenStation?     @relation(fields: [stationId], references: [id])
@@ -474,6 +498,10 @@ model OrderItem {
   modifiers     OrderItemModifier[]
   refundItems   RefundItem[]
   serialNumbers SerialNumber[]
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([orderId, productId])
 }
 
 model KitchenStation {
@@ -526,7 +554,6 @@ model Customer {
   referredById       String?
   referredBy         Customer?             @relation("Referrals", fields: [referredById], references: [id])
   referrals          Customer[]            @relation("Referrals")
-  segments           CustomerSegment[]
   tenant             Tenant                @relation(fields: [tenantId], references: [id])
   addresses          CustomerAddress[]
   loyaltyHistory     CustomerLoyalty[]
@@ -535,6 +562,10 @@ model Customer {
   promoRedemptions   PromoCodeRedemption[]
   reservations       Reservation[]
   waitingEntries     WaitingEntry[]
+  segments           CustomerSegment[]     @relation("CustomerToCustomerSegment")
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, phone])
 }
 
 model CustomerSegment {
@@ -543,10 +574,10 @@ model CustomerSegment {
   description String?
   color       String?
   tenantId    String
-  tenant      Tenant     @relation(fields: [tenantId], references: [id])
-  customers   Customer[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  customers   Customer[] @relation("CustomerToCustomerSegment")
 }
 
 model CustomerLoyalty {
@@ -577,7 +608,7 @@ model Discount {
   code                 String    @unique
   description          String?
   type                 String
-  value                Float
+  value                Decimal
   isActive             Boolean   @default(true)
   tenantId             String
   createdAt            DateTime  @default(now())
@@ -639,7 +670,7 @@ model PromoCodeRedemption {
   promoCodeId     String
   customerId      String
   orderId         String
-  discountApplied Float
+  discountApplied Decimal
   redeemedAt      DateTime  @default(now())
   tenantId        String
   customer        Customer  @relation(fields: [customerId], references: [id])
@@ -649,33 +680,28 @@ model PromoCodeRedemption {
 }
 
 model MarketingCampaignRule {
-  id               String    @id @default(uuid())
-  tenantId         String    @unique
-  name             String    @default("Win-Back Campaign")
-  isActive         Boolean   @default(true)
-  inactiveDays     Int       @default(30)
-  discountValue    Decimal   @default(15)
-  discountType     String    @default("PERCENTAGE_OFF")
-  emailSubject     String    @default("We miss you!")
-  emailContent     String?
-  
-  // Birthday Engine
-  birthdayActive   Boolean   @default(false)
-  birthdayReward   Decimal   @default(10)
-  birthdayRewardType String  @default("PERCENTAGE_OFF")
-  birthdaySubject  String    @default("Happy Birthday, {{customer_name}}!")
-  birthdayContent  String?
-
-  // Referral Engine
-  referralActive   Boolean   @default(false)
-  referralReward   Decimal   @default(50) // e.g. 50 points or 5 units
-  referralFriendReward Decimal @default(25)
-  referralSubject  String    @default("Gift from {{referrer_name}}!")
-  referralContent  String?
-
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  tenant           Tenant    @relation(fields: [tenantId], references: [id])
+  id                   String   @id @default(uuid())
+  tenantId             String   @unique
+  name                 String   @default("Win-Back Campaign")
+  isActive             Boolean  @default(true)
+  inactiveDays         Int      @default(30)
+  discountValue        Decimal  @default(15)
+  discountType         String   @default("PERCENTAGE_OFF")
+  emailSubject         String   @default("We miss you!")
+  emailContent         String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  birthdayActive       Boolean  @default(false)
+  birthdayContent      String?
+  birthdayReward       Decimal  @default(10)
+  birthdayRewardType   String   @default("PERCENTAGE_OFF")
+  birthdaySubject      String   @default("Happy Birthday, {{customer_name}}!")
+  referralActive       Boolean  @default(false)
+  referralContent      String?
+  referralFriendReward Decimal  @default(25)
+  referralReward       Decimal  @default(50)
+  referralSubject      String   @default("Gift from {{referrer_name}}!")
+  tenant               Tenant   @relation(fields: [tenantId], references: [id])
 }
 
 model Payment {
@@ -705,6 +731,7 @@ model Warehouse {
   outgoingTransfers StockTransfer[] @relation("SourceWarehouse")
   branch            Branch?         @relation(fields: [branchId], references: [id])
   tenant            Tenant          @relation(fields: [tenantId], references: [id])
+  stockAudits       StockAudit[]
 
   @@unique([name, tenantId, branchId])
 }
@@ -733,8 +760,11 @@ model StockMovement {
   tenantId    String
   createdAt   DateTime     @default(now())
   product     Product      @relation(fields: [productId], references: [id])
-  tenant      Tenant       @relation(fields: [tenantId], references: [id])
   warehouse   Warehouse    @relation(fields: [warehouseId], references: [id])
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@index([productId, warehouseId])
 }
 
 model Vendor {
@@ -781,11 +811,14 @@ model PurchaseOrder {
   receivedAt  DateTime?
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
-  branch      Branch?             @relation(fields: [branchId], references: [id])
-  tenant      Tenant              @relation(fields: [tenantId], references: [id])
   vendor      Vendor              @relation(fields: [vendorId], references: [id])
+  tenant      Tenant              @relation(fields: [tenantId], references: [id])
+  branch      Branch?             @relation(fields: [branchId], references: [id])
   warehouse   Warehouse?          @relation(fields: [warehouseId], references: [id])
   items       PurchaseOrderItem[]
+
+  @@index([tenantId, createdAt])
+  @@index([vendorId, status])
 }
 
 model PurchaseOrderItem {
@@ -815,6 +848,33 @@ model StockTransfer {
   product       Product   @relation(fields: [productId], references: [id])
   source        Warehouse @relation("SourceWarehouse", fields: [sourceId], references: [id])
   tenant        Tenant    @relation(fields: [tenantId], references: [id])
+}
+
+model StockAudit {
+  id          String           @id @default(uuid())
+  tenantId    String
+  warehouseId String
+  status      String           @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  warehouse   Warehouse        @relation(fields: [warehouseId], references: [id])
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  items       StockAuditItem[]
+
+  @@index([tenantId, createdAt])
+}
+
+model StockAuditItem {
+  id               String     @id @default(uuid())
+  auditId          String
+  productId        String
+  expectedQuantity Float
+  physicalQuantity Float
+  variance         Float
+  audit            StockAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  product          Product    @relation(fields: [productId], references: [id])
+
+  @@index([auditId])
 }
 
 /// Global invoice sequence counter per tenant per business date.
@@ -852,17 +912,52 @@ model LandingContent {
   title     String
   content   String?
   items     Json?
+  theme     String   @default("default")
   updatedAt DateTime @updatedAt
 }
 
-model SubscriptionPlan {
+model ContactMessage {
   id        String   @id @default(uuid())
   name      String
-  price     Decimal
-  features  String[]
-  isActive  Boolean  @default(true)
-  updatedAt DateTime @updatedAt
-  tenants   Tenant[]
+  email     String
+  phone     String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model SubscriptionPlan {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  price         Decimal
+  features      String[]
+  maxPos        Int      @default(1)
+  maxKds        Int      @default(0)
+  maxBranches   Int      @default(1)
+  maxUsers      Int      @default(5)
+  isActive      Boolean  @default(true)
+  updatedAt     DateTime @updatedAt
+  description   String?
+  descriptionAr String?
+  featuresAr    String[]
+  nameAr        String?
+  tenants       Tenant[]
+  upgradeRequestsFrom UpgradeRequest[] @relation("FromPlan")
+  upgradeRequestsTo   UpgradeRequest[] @relation("ToPlan")
+}
+
+model UpgradeRequest {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  fromPlanId  String?
+  fromPlan    SubscriptionPlan? @relation("FromPlan", fields: [fromPlanId], references: [id])
+  toPlanId    String
+  toPlan      SubscriptionPlan  @relation("ToPlan", fields: [toPlanId], references: [id])
+  status      String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  note        String?
+  requestedAt DateTime @default(now())
+  processedAt DateTime?
 }
 
 model Reservation {
@@ -1016,6 +1111,8 @@ model CashMovement {
   referenceId String?
   createdAt   DateTime         @default(now())
   session     DrawerSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
 }
 
 model ProductModifier {
@@ -1070,6 +1167,13 @@ model AuditLog {
   @@index([tenantId])
   @@index([userId])
   @@index([createdAt])
+}
+
+model GlobalSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
 }
 
 model UserSession {
@@ -1164,6 +1268,20 @@ model MarketingCampaign {
   @@index([tenantId, customerId])
 }
 
+model RewardCatalogItem {
+  id         String   @id @default(uuid())
+  tenantId   String
+  productId  String
+  pointsCost Int
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, productId])
+}
+
 enum LoyaltyTier {
   BRONZE
   SILVER
@@ -1212,11 +1330,13 @@ enum OrderSource {
   DELIVERY_PARTNER
   KIOSK
   MOBILE_APP
+  WEB_STORE
 }
 
 enum TenantType {
   RESTAURANT
   RETAIL
+  CAFE
 }
 
 enum ProductType {
@@ -1311,16 +1431,20 @@ enum NotificationType {
   MANAGER_ALERT
 }
 
-model RewardCatalogItem {
-  id         String   @id @default(uuid())
-  tenantId   String
-  productId  String
-  pointsCost Int
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+model Attendance {
+  id              String    @id @default(uuid())
+  tenantId        String
+  userId          String
+  branchId        String?
+  checkIn         DateTime  @default(now())
+  checkOut        DateTime?
+  durationMinutes Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  user            User      @relation(fields: [userId], references: [id])
+  branch          Branch?   @relation(fields: [branchId], references: [id])
 
-  @@unique([tenantId, productId])
+  @@index([tenantId, createdAt])
+  @@index([userId, tenantId])
 }

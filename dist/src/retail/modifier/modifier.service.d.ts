@@ -7,8 +7,8 @@ export declare class ModifierService {
     getForProduct(productId: string): Promise<({
         options: {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
             nameAr: string | null;
             sortOrder: number;
@@ -17,8 +17,8 @@ export declare class ModifierService {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         productId: string;
@@ -34,8 +34,8 @@ export declare class ModifierService {
     }): Promise<{
         options: {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
             nameAr: string | null;
             sortOrder: number;
@@ -44,8 +44,8 @@ export declare class ModifierService {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         productId: string;
@@ -61,8 +61,8 @@ export declare class ModifierService {
     }): Promise<{
         options: {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
             nameAr: string | null;
             sortOrder: number;
@@ -71,8 +71,8 @@ export declare class ModifierService {
         }[];
     } & {
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         productId: string;
@@ -82,8 +82,8 @@ export declare class ModifierService {
     }>;
     deleteGroup(modifierId: string): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         productId: string;
@@ -97,8 +97,8 @@ export declare class ModifierService {
         sortOrder?: number;
     }): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         sortOrder: number;
@@ -111,8 +111,8 @@ export declare class ModifierService {
         sortOrder?: number;
     }): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         sortOrder: number;
@@ -121,8 +121,8 @@ export declare class ModifierService {
     }>;
     deleteOption(optionId: string): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
+        createdAt: Date;
         updatedAt: Date;
         nameAr: string | null;
         sortOrder: number;

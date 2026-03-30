@@ -46,6 +46,7 @@ export declare class CreateProductDto {
     modifiers?: CreateModifierGroupDto[];
     defaultStationId?: string;
     unit?: string;
+    imageUrl?: string;
 }
 export declare class UpdateProductDto {
     name?: string;
@@ -63,4 +64,5 @@ export declare class UpdateProductDto {
     recipeComponents?: CreateRecipeComponentDto[];
     defaultStationId?: string;
     unit?: string;
+    imageUrl?: string;
 }

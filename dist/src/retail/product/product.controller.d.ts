@@ -12,8 +12,8 @@ export declare class ProductController {
         modifiers: ({
             options: {
                 id: string;
-                createdAt: Date;
                 name: string;
+                createdAt: Date;
                 updatedAt: Date;
                 nameAr: string | null;
                 sortOrder: number;
@@ -22,8 +22,8 @@ export declare class ProductController {
             }[];
         } & {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
             nameAr: string | null;
             productId: string;
@@ -34,23 +34,24 @@ export declare class ProductController {
         recipeComponents: ({
             ingredient: {
                 id: string;
+                name: string;
                 tenantId: string;
                 createdAt: Date;
-                name: string;
                 updatedAt: Date;
-                nameAr: string | null;
+                price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
+                nameAr: string | null;
                 defaultStationId: string | null;
-                price: import("@prisma/client/runtime/library").Decimal;
+                imageUrl: string | null;
                 sku: string | null;
                 barcode: string | null;
+                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
-                categoryId: string;
             };
         } & {
             id: string;
@@ -72,31 +73,32 @@ export declare class ProductController {
         }[];
     } & {
         id: string;
+        name: string;
         tenantId: string;
         createdAt: Date;
-        name: string;
         updatedAt: Date;
-        nameAr: string | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         description: string | null;
         descriptionAr: string | null;
+        nameAr: string | null;
         defaultStationId: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
+        imageUrl: string | null;
         sku: string | null;
         barcode: string | null;
+        categoryId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
         unit: string | null;
-        categoryId: string;
     }>;
     findAll(branchId?: string): Promise<any[]>;
     findByBarcode(barcode: string): Promise<({
         modifiers: ({
             options: {
                 id: string;
-                createdAt: Date;
                 name: string;
+                createdAt: Date;
                 updatedAt: Date;
                 nameAr: string | null;
                 sortOrder: number;
@@ -105,8 +107,8 @@ export declare class ProductController {
             }[];
         } & {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
             nameAr: string | null;
             productId: string;
@@ -124,23 +126,24 @@ export declare class ProductController {
         }[];
     } & {
         id: string;
+        name: string;
         tenantId: string;
         createdAt: Date;
-        name: string;
         updatedAt: Date;
-        nameAr: string | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         description: string | null;
         descriptionAr: string | null;
+        nameAr: string | null;
         defaultStationId: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
+        imageUrl: string | null;
         sku: string | null;
         barcode: string | null;
+        categoryId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
         unit: string | null;
-        categoryId: string;
     }) | null>;
     getBranchSettings(branchId: string): Promise<{
         productId: any;
@@ -172,8 +175,8 @@ export declare class ProductController {
         modifiers: ({
             options: {
                 id: string;
-                createdAt: Date;
                 name: string;
+                createdAt: Date;
                 updatedAt: Date;
                 nameAr: string | null;
                 sortOrder: number;
@@ -182,8 +185,8 @@ export declare class ProductController {
             }[];
         } & {
             id: string;
-            createdAt: Date;
             name: string;
+            createdAt: Date;
             updatedAt: Date;
             nameAr: string | null;
             productId: string;
@@ -194,23 +197,24 @@ export declare class ProductController {
         recipeComponents: ({
             ingredient: {
                 id: string;
+                name: string;
                 tenantId: string;
                 createdAt: Date;
-                name: string;
                 updatedAt: Date;
-                nameAr: string | null;
+                price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
+                nameAr: string | null;
                 defaultStationId: string | null;
-                price: import("@prisma/client/runtime/library").Decimal;
+                imageUrl: string | null;
                 sku: string | null;
                 barcode: string | null;
+                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
-                categoryId: string;
             };
         } & {
             id: string;
@@ -232,43 +236,45 @@ export declare class ProductController {
         }[];
     } & {
         id: string;
+        name: string;
         tenantId: string;
         createdAt: Date;
-        name: string;
         updatedAt: Date;
-        nameAr: string | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         description: string | null;
         descriptionAr: string | null;
+        nameAr: string | null;
         defaultStationId: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
+        imageUrl: string | null;
         sku: string | null;
         barcode: string | null;
+        categoryId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
         unit: string | null;
-        categoryId: string;
     }>;
     update(id: string, dto: UpdateProductDto): Promise<any>;
     remove(id: string): Promise<{
         id: string;
+        name: string;
         tenantId: string;
         createdAt: Date;
-        name: string;
         updatedAt: Date;
-        nameAr: string | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         description: string | null;
         descriptionAr: string | null;
+        nameAr: string | null;
         defaultStationId: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
+        imageUrl: string | null;
         sku: string | null;
         barcode: string | null;
+        categoryId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
         unit: string | null;
-        categoryId: string;
     }>;
 }

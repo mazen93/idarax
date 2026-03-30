@@ -1,48 +1,53 @@
 import { PublicService } from './public.service';
 import { CreatePublicOrderDto } from './dto/public.dto';
 import { SplitBillDto } from '../order/dto/order.dto';
+import { InvoiceService } from '../order/invoice.service';
+import type { Response } from 'express';
 export declare class PublicController {
     private readonly publicService;
-    constructor(publicService: PublicService);
+    private readonly invoiceService;
+    constructor(publicService: PublicService, invoiceService: InvoiceService);
+    getOrderInvoice(id: string, res: Response): Promise<void>;
+    getPublicOrder(id: string): Promise<any>;
     getTenant(id: string): Promise<{
-        id: string;
-        name: string;
-        type: import(".prisma/client").$Enums.TenantType;
-        logoUrl: string | null | undefined;
-        currency: string;
-        taxRate: import("@prisma/client/runtime/library").Decimal | null | undefined;
-        serviceFee: import("@prisma/client/runtime/library").Decimal | null | undefined;
-        aboutUsText: string | null | undefined;
-        bannerImageUrl: string | null | undefined;
-        facebookUrl: string | null | undefined;
-        instagramUrl: string | null | undefined;
-        twitterUrl: string | null | undefined;
-        contactEmail: string | null | undefined;
-        contactPhone: string | null | undefined;
+        id: any;
+        name: any;
+        type: any;
+        logoUrl: any;
+        currency: any;
+        taxRate: any;
+        serviceFee: any;
+        aboutUsText: any;
+        bannerImageUrl: any;
+        facebookUrl: any;
+        instagramUrl: any;
+        twitterUrl: any;
+        contactEmail: any;
+        contactPhone: any;
     }>;
     getBranches(id: string): Promise<{
         id: string;
         name: string;
-        address: string | null;
-        phone: string | null;
         nameAr: string | null;
+        phone: string | null;
+        address: string | null;
     }[]>;
     getMenu(tenantId: string, branchId?: string): Promise<{
         tenant: {
-            id: string;
-            name: string;
-            type: import(".prisma/client").$Enums.TenantType;
-            logoUrl: string | null | undefined;
-            currency: string;
-            taxRate: import("@prisma/client/runtime/library").Decimal | null | undefined;
-            serviceFee: import("@prisma/client/runtime/library").Decimal | null | undefined;
-            aboutUsText: string | null | undefined;
-            bannerImageUrl: string | null | undefined;
-            facebookUrl: string | null | undefined;
-            instagramUrl: string | null | undefined;
-            twitterUrl: string | null | undefined;
-            contactEmail: string | null | undefined;
-            contactPhone: string | null | undefined;
+            id: any;
+            name: any;
+            type: any;
+            logoUrl: any;
+            currency: any;
+            taxRate: any;
+            serviceFee: any;
+            aboutUsText: any;
+            bannerImageUrl: any;
+            facebookUrl: any;
+            instagramUrl: any;
+            twitterUrl: any;
+            contactEmail: any;
+            contactPhone: any;
         };
         categories: {
             products: {
@@ -61,17 +66,40 @@ export declare class PublicController {
                     costPrice: import("@prisma/client/runtime/library").Decimal;
                     productId: string;
                 }[];
+                modifiers: ({
+                    options: {
+                        id: string;
+                        name: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        nameAr: string | null;
+                        sortOrder: number;
+                        priceAdjust: import("@prisma/client/runtime/library").Decimal;
+                        modifierId: string;
+                    }[];
+                } & {
+                    id: string;
+                    name: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    nameAr: string | null;
+                    productId: string;
+                    required: boolean;
+                    multiSelect: boolean;
+                    sortOrder: number;
+                })[];
             }[];
             id: string;
             name: string;
+            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
-            tenantId: string;
-            nameAr: string | null;
             description: string | null;
             descriptionAr: string | null;
+            nameAr: string | null;
             defaultPrepTime: number;
             defaultStationId: string | null;
+            imageUrl: string | null;
         }[];
     }>;
     createOrder(tenantId: string, dto: CreatePublicOrderDto): Promise<any>;

@@ -204,6 +204,11 @@ export class CreateProductDto {
     @IsOptional()
     @IsString()
     unit?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    imageUrl?: string;
 }
 
 export class UpdateProductDto {
@@ -285,4 +290,9 @@ export class UpdateProductDto {
     @IsOptional()
     @IsString()
     unit?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    imageUrl?: string;
 }

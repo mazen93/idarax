@@ -45,6 +45,12 @@ let VendorController = class VendorController {
     getProducts(id) {
         return this.vendorService.getProducts(id);
     }
+    getHistory(id) {
+        return this.vendorService.getPurchaseHistory(id);
+    }
+    getAnalytics(id) {
+        return this.vendorService.getSpendAnalytics(id);
+    }
 };
 exports.VendorController = VendorController;
 __decorate([
@@ -105,6 +111,22 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], VendorController.prototype, "getProducts", null);
+__decorate([
+    (0, common_1.Get)(':id/history'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CATALOG.VIEW),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], VendorController.prototype, "getHistory", null);
+__decorate([
+    (0, common_1.Get)(':id/analytics'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CATALOG.VIEW),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], VendorController.prototype, "getAnalytics", null);
 exports.VendorController = VendorController = __decorate([
     (0, common_1.Controller)('retail/vendors'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

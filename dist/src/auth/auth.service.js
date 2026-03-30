@@ -98,17 +98,6 @@ let AuthService = class AuthService {
         if (!user.isActive) {
             throw new common_1.UnauthorizedException('Account is inactive');
         }
-        const requestedTenantId = this.tenantService.getTenantId();
-        if (requestedTenantId && user.tenantId !== requestedTenantId) {
-            await this.auditLog.log({
-                tenantId: user.tenantId,
-                userId: user.id,
-                userEmail: user.email,
-                action: 'auth.login.denied',
-                meta: { reason: 'tenant_mismatch', requestedTenantId },
-            });
-            throw new common_1.UnauthorizedException('Invalid credentials');
-        }
         const passwordMatches = await bcrypt.compare(dto.password, user.password);
         if (!passwordMatches) {
             await this.auditLog.log({
@@ -117,6 +106,18 @@ let AuthService = class AuthService {
                 userEmail: user.email,
                 action: 'auth.login.failed',
                 meta: { reason: 'invalid_password' },
+            });
+            throw new common_1.UnauthorizedException('Invalid credentials');
+        }
+        const requestedTenantId = this.tenantService.getTenantId();
+        const isAdminRole = user.role === 'SUPER_ADMIN' || user.role === 'ADMIN';
+        if (requestedTenantId && user.tenantId !== requestedTenantId && !isAdminRole) {
+            await this.auditLog.log({
+                tenantId: user.tenantId,
+                userId: user.id,
+                userEmail: user.email,
+                action: 'auth.login.denied',
+                meta: { reason: 'tenant_mismatch', requestedTenantId },
             });
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
@@ -131,7 +132,11 @@ let AuthService = class AuthService {
     async signToken(userId, email, tenantId, role, name, branchId, sessionMeta) {
         const user = await this.prisma.client.user.findUnique({
             where: { id: userId },
-            include: { customRole: { include: { permissions: true } }, permissions: true }
+            include: {
+                customRole: { include: { permissions: true } },
+                permissions: true,
+                tenant: { include: { plan: true } }
+            }
         });
         const directPerms = user?.permissions?.map(p => p.action) || [];
         const rolePerms = user?.customRole?.permissions?.map(p => p.action) || [];
@@ -139,6 +144,17 @@ let AuthService = class AuthService {
         const permissionArray = Array.from(new Set([...directPerms, ...rolePerms, ...defaultPerms]));
         const currentRole = user?.customRole?.name || role;
         const jti = (0, crypto_1.randomUUID)();
+        let daysRemaining = 999;
+        let isExpired = false;
+        if (user?.tenant) {
+            const expiryDate = user.tenant.subscriptionExpiresAt || user.tenant.trialExpiresAt;
+            if (expiryDate) {
+                const now = new Date();
+                const diffMs = new Date(expiryDate).getTime() - now.getTime();
+                daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                isExpired = daysRemaining < 0;
+            }
+        }
         const accessToken = await this.jwtService.signAsync({
             sub: userId,
             email,
@@ -147,6 +163,9 @@ let AuthService = class AuthService {
             name,
             branchId,
             permissions: permissionArray,
+            features: user?.tenant?.plan?.features || [],
+            isExpired,
+            daysRemaining,
             jti,
         }, { expiresIn: '1h' });
         const refreshToken = await this.jwtService.signAsync({ sub: userId, jti, type: 'refresh' }, { expiresIn: '7d' });
@@ -179,6 +198,9 @@ let AuthService = class AuthService {
             role: currentRole,
             name,
             permissions: permissionArray,
+            features: user?.tenant?.plan?.features || [],
+            isExpired,
+            daysRemaining,
         };
     }
     async logout(token, userId, userEmail, tenantId) {

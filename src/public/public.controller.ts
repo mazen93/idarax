@@ -1,13 +1,36 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Res } from '@nestjs/common';
 import { PublicService } from './public.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CreatePublicOrderDto } from './dto/public.dto';
 import { SplitBillDto } from '../order/dto/order.dto';
+import { InvoiceService } from '../order/invoice.service';
+import type { Response } from 'express';
 
 @ApiTags('Public Menu')
 @Controller('public')
 export class PublicController {
-    constructor(private readonly publicService: PublicService) { }
+    constructor(
+        private readonly publicService: PublicService,
+        private readonly invoiceService: InvoiceService
+    ) { }
+
+    @Get('order/:id/invoice')
+    @ApiOperation({ summary: 'Download order invoice as PDF (Public)' })
+    async getOrderInvoice(@Param('id') id: string, @Res() res: Response) {
+        const buffer = await this.invoiceService.generateInvoicePdf(id);
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=invoice-${id}.pdf`,
+            'Content-Length': buffer.length,
+        });
+        res.end(buffer);
+    }
+
+    @Get('order/:id')
+    @ApiOperation({ summary: 'Get order details for guests' })
+    getPublicOrder(@Param('id') id: string) {
+        return this.publicService.getPublicOrder(id);
+    }
 
     @Get('tenant/:id')
     @ApiOperation({ summary: 'Get restaurant branding and settings' })

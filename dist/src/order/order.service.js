@@ -192,7 +192,7 @@ let OrderService = class OrderService {
                 const timezone = settings?.timezone ?? 'UTC';
                 const cutoffHour = branchRec?.businessDayStartHour ?? 0;
                 const receiptNumber = await this.numberingService.nextReceiptNumber(tx, tenantId, branchId ?? null, timezone, cutoffHour);
-                const invoiceNumber = await this.numberingService.nextInvoiceNumber(tx, tenantId, timezone, cutoffHour);
+                const invoiceNumber = await this.numberingService.nextInvoiceNumber(tx, tenantId, timezone, branchId ?? null, cutoffHour);
                 order = await tx.order.create({
                     data: {
                         tenantId,
@@ -735,36 +735,123 @@ let OrderService = class OrderService {
     async fireOrder(id) {
         return this.updateStatus(id, 'PREPARING');
     }
-    async voidOrder(id, actorId, actorEmail) {
-        const order = await this.db.findUnique({ where: { id } });
-        if (!order)
-            throw new common_1.NotFoundException('Order not found');
-        const result = await this.updateStatus(id, 'CANCELLED');
-        if (this.auditLog) {
-            await this.auditLog.log({
-                tenantId: order.tenantId,
-                userId: actorId,
-                userEmail: actorEmail,
-                action: 'order.void',
-                resourceType: 'Order',
-                resourceId: id,
-                meta: { previousStatus: order.status, totalAmount: Number(order.totalAmount) },
+    async voidOrder(id, managerPin) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId)
+            throw new common_1.ForbiddenException('Tenant ID missing');
+        const branchId = this.tenantService.getBranchId();
+        const manager = await this.prisma.client.user.findFirst({
+            where: {
+                tenantId,
+                pinCode: managerPin,
+                isActive: true,
+                role: { in: ['ADMIN', 'MANAGER'] }
+            }
+        });
+        if (!manager) {
+            throw new common_1.ForbiddenException('Invalid manager PIN or insufficient permissions');
+        }
+        return this.prisma.$transaction(async (tx) => {
+            const order = await tx.order.findUnique({
+                where: { id },
+                include: { items: true }
             });
+            if (!order || order.tenantId !== tenantId) {
+                throw new common_1.NotFoundException('Order not found');
+            }
+            if (order.status === 'CANCELLED' || order.status === 'REFUNDED') {
+                throw new common_1.BadRequestException('Order is already cancelled or refunded');
+            }
+            const previousStatus = order.status;
+            const result = await tx.order.update({
+                where: { id },
+                data: { status: 'CANCELLED' }
+            });
+            await tx.orderItem.updateMany({
+                where: { orderId: id },
+                data: { status: 'CANCELLED' }
+            });
+            for (const item of order.items) {
+                await this.restoreStockRecursively(tx, tenantId, branchId, item.productId, item.quantity, order.id);
+            }
+            if (this.auditLog) {
+                await this.auditLog.log({
+                    tenantId,
+                    userId: manager.id,
+                    userEmail: manager.email,
+                    action: 'order.void',
+                    resourceType: 'Order',
+                    resourceId: order.id,
+                    meta: {
+                        previousStatus,
+                        reason: 'Voided by manager',
+                        orderNumber: order.invoiceNumber || order.receiptNumber,
+                        authorizedBy: manager.name
+                    }
+                });
+            }
+            if (this.notificationsService) {
+                const receiptNum = order.receiptNumber ?? '';
+                this.notificationsService.create(order.tenantId, {
+                    type: notifications_dto_1.NotificationType.ORDER_VOIDED,
+                    title: 'Order Voided',
+                    message: `Order #${receiptNum} was voided by ${manager.name}.`,
+                    branchId: order.branchId ?? undefined,
+                    meta: { orderId: id, actorId: manager.id, actorEmail: manager.email },
+                }).catch(() => { });
+            }
+            if (order.tableId) {
+                await tx.table.update({
+                    where: { id: order.tableId },
+                    data: { status: 'AVAILABLE' }
+                });
+            }
+            if (this.analyticsService) {
+                this.analyticsService.pushStatsUpdate(tenantId, branchId ?? undefined).catch(() => { });
+            }
+            return result;
+        });
+    }
+    async restoreStockRecursively(tx, tenantId, branchId, productId, quantity, orderId) {
+        const product = await tx.product.findUnique({
+            where: { id: productId },
+            select: { productType: true }
+        });
+        const recipe = await tx.productRecipe.findMany({
+            where: { parentId: productId },
+        });
+        if (recipe && recipe.length > 0 && (product?.productType === 'STANDARD' || product?.productType === 'COMBO')) {
+            for (const component of recipe) {
+                const componentQuantity = Number(component.quantity) * quantity;
+                await this.restoreStockRecursively(tx, tenantId, branchId, component.ingredientId, componentQuantity, orderId);
+            }
         }
-        if (this.analyticsService) {
-            this.analyticsService.pushStatsUpdate(order.tenantId, order.branchId).catch(() => { });
+        else {
+            const stockLevel = await tx.stockLevel.findFirst({
+                where: {
+                    productId: productId,
+                    warehouse: {
+                        ...(branchId ? { branchId } : {})
+                    },
+                },
+            });
+            if (stockLevel) {
+                await tx.stockLevel.update({
+                    where: { id: stockLevel.id },
+                    data: { quantity: { increment: quantity } },
+                });
+                await tx.stockMovement.create({
+                    data: {
+                        productId: productId,
+                        warehouseId: stockLevel.warehouseId,
+                        quantity: quantity,
+                        type: 'RETURN',
+                        referenceId: orderId,
+                        tenantId,
+                    },
+                });
+            }
         }
-        if (this.notificationsService) {
-            const receiptNum = order.receiptNumber ?? '';
-            this.notificationsService.create(order.tenantId, {
-                type: notifications_dto_1.NotificationType.ORDER_VOIDED,
-                title: 'Order Voided',
-                message: `Order #${receiptNum} was voided by ${actorEmail ?? 'staff'}.`,
-                branchId: order.branchId ?? undefined,
-                meta: { orderId: id, actorId, actorEmail },
-            }).catch(() => { });
-        }
-        return result;
     }
     async voidItem(orderId, itemId, actorId, actorEmail) {
         const order = await this.db.findUnique({ where: { id: orderId } });

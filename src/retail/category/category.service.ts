@@ -13,12 +13,15 @@ export class CategoryService {
     async create(dto: CreateCategoryDto) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
-        return this.prisma.category.create({
-            data: {
-                ...dto,
-                tenantId
-            }
-        });
+
+        // Sanitize: convert empty strings to null for optional IDs
+        const data = {
+            ...dto,
+            tenantId,
+            defaultStationId: dto.defaultStationId || null,
+        };
+
+        return this.prisma.category.create({ data });
     }
 
     async findAll(menuId?: string) {
@@ -39,9 +42,16 @@ export class CategoryService {
 
     async update(id: string, dto: UpdateCategoryDto) {
         const tenantId = this.tenantService.getTenantId();
+        
+        // Sanitize: convert empty strings to null for optional IDs
+        const data = { ...dto };
+        if (dto.defaultStationId === '') {
+            data.defaultStationId = null as any;
+        }
+
         return this.prisma.category.update({
             where: { id, tenantId },
-            data: dto
+            data
         });
     }
 

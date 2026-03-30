@@ -18,6 +18,8 @@ const reservation_service_1 = require("./reservation.service");
 const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
 const permissions_decorator_1 = require("../../auth/permissions.decorator");
 const permissions_constants_1 = require("../../auth/permissions.constants");
+const subscription_decorator_1 = require("../../auth/subscription.decorator");
+const subscription_guard_1 = require("../../auth/subscription.guard");
 let ReservationController = class ReservationController {
     service;
     constructor(service) {
@@ -63,7 +65,8 @@ __decorate([
 ], ReservationController.prototype, "remove", null);
 exports.ReservationController = ReservationController = __decorate([
     (0, common_1.Controller)('restaurant/reservations'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, subscription_guard_1.SubscriptionGuard),
+    (0, subscription_decorator_1.RequiresFeature)('RESTAURANT'),
     __metadata("design:paramtypes", [reservation_service_1.ReservationService])
 ], ReservationController);
 let WaitingController = class WaitingController {
@@ -111,7 +114,8 @@ __decorate([
 ], WaitingController.prototype, "remove", null);
 exports.WaitingController = WaitingController = __decorate([
     (0, common_1.Controller)('restaurant/waiting'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, subscription_guard_1.SubscriptionGuard),
+    (0, subscription_decorator_1.RequiresFeature)('RESTAURANT'),
     __metadata("design:paramtypes", [reservation_service_1.WaitingService])
 ], WaitingController);
 //# sourceMappingURL=reservation.controller.js.map

@@ -16,6 +16,7 @@ exports.OrderController = void 0;
 const common_1 = require("@nestjs/common");
 const order_service_1 = require("./order.service");
 const refund_service_1 = require("./refund.service");
+const invoice_service_1 = require("./invoice.service");
 const order_dto_1 = require("./dto/order.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const permissions_decorator_1 = require("../auth/permissions.decorator");
@@ -24,9 +25,20 @@ const swagger_1 = require("@nestjs/swagger");
 let OrderController = class OrderController {
     orderService;
     refundService;
-    constructor(orderService, refundService) {
+    invoiceService;
+    constructor(orderService, refundService, invoiceService) {
         this.orderService = orderService;
         this.refundService = refundService;
+        this.invoiceService = invoiceService;
+    }
+    async getOrderInvoice(id, res) {
+        const buffer = await this.invoiceService.generateInvoicePdf(id);
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=invoice-${id}.pdf`,
+            'Content-Length': buffer.length,
+        });
+        res.end(buffer);
     }
     create(req, dto) {
         return this.orderService.createAsync(dto, req.user.id);
@@ -81,8 +93,8 @@ let OrderController = class OrderController {
     fireOrder(id) {
         return this.orderService.fireOrder(id);
     }
-    voidOrder(id) {
-        return this.orderService.voidOrder(id);
+    voidOrder(id, body) {
+        return this.orderService.voidOrder(id, body.managerPin);
     }
     voidItem(id, itemId) {
         return this.orderService.voidItem(id, itemId);
@@ -95,6 +107,15 @@ let OrderController = class OrderController {
     }
 };
 exports.OrderController = OrderController;
+__decorate([
+    (0, common_1.Get)(':id/invoice'),
+    (0, permissions_decorator_1.Permissions)('orders:read'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "getOrderInvoice", null);
 __decorate([
     (0, common_1.Post)(),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.ORDERS.CREATE),
@@ -223,10 +244,11 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':id/void'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.ORDERS.CANCEL),
-    (0, swagger_1.ApiOperation)({ summary: 'Cancel unpaid order' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Cancel order with manager PIN authorization' }),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], OrderController.prototype, "voidOrder", null);
 __decorate([
@@ -264,6 +286,7 @@ exports.OrderController = OrderController = __decorate([
     (0, common_1.Controller)('orders'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [order_service_1.OrderService,
-        refund_service_1.RefundService])
+        refund_service_1.RefundService,
+        invoice_service_1.InvoiceService])
 ], OrderController);
 //# sourceMappingURL=order.controller.js.map

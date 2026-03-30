@@ -1,6 +1,8 @@
-import { Controller, Post, Body, Get, Param, Patch, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, UseGuards, Req, Query, Res } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { RefundService } from './refund.service';
+import { InvoiceService } from './invoice.service';
+import type { Response } from 'express';
 import { CreateOrderDto, SplitBillDto, RepeatOrderDto, SendReceiptDto } from './dto/order.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Permissions } from '../auth/permissions.decorator';
@@ -14,8 +16,21 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 export class OrderController {
     constructor(
         private readonly orderService: OrderService,
-        private readonly refundService: RefundService
+        private readonly refundService: RefundService,
+        private readonly invoiceService: InvoiceService,
     ) { }
+
+    @Get(':id/invoice')
+    @Permissions('orders:read')
+    async getOrderInvoice(@Param('id') id: string, @Res() res: Response) {
+        const buffer = await this.invoiceService.generateInvoicePdf(id);
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=invoice-${id}.pdf`,
+            'Content-Length': buffer.length,
+        });
+        res.end(buffer);
+    }
 
     @Post()
     @Permissions(Actions.ORDERS.CREATE)
@@ -132,9 +147,9 @@ export class OrderController {
 
     @Patch(':id/void')
     @Permissions(Actions.ORDERS.CANCEL)
-    @ApiOperation({ summary: 'Cancel unpaid order' })
-    voidOrder(@Param('id') id: string) {
-        return this.orderService.voidOrder(id);
+    @ApiOperation({ summary: 'Cancel order with manager PIN authorization' })
+    voidOrder(@Param('id') id: string, @Body() body: { managerPin: string }) {
+        return this.orderService.voidOrder(id, body.managerPin);
     }
 
     @Patch(':id/void-item/:itemId')

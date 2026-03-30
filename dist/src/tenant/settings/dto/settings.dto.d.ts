@@ -1,5 +1,7 @@
 export declare class UpdateSettingsDto {
     name?: string;
+    slug?: string;
+    customDomain?: string;
     currency?: string;
     timezone?: string;
     taxRate?: number;

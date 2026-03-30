@@ -13,6 +13,7 @@ const tenant_service_1 = require("./tenant.service");
 const tenant_controller_1 = require("./tenant.controller");
 const branch_settings_service_1 = require("./branch-settings/branch-settings.service");
 const branch_settings_controller_1 = require("./branch-settings/branch-settings.controller");
+const subscription_cron_1 = require("./subscription.cron");
 let TenantModule = class TenantModule {
 };
 exports.TenantModule = TenantModule;
@@ -20,7 +21,7 @@ exports.TenantModule = TenantModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
         imports: [(0, common_1.forwardRef)(() => prisma_module_1.PrismaModule)],
-        providers: [tenant_service_1.TenantService, branch_settings_service_1.BranchSettingsService],
+        providers: [tenant_service_1.TenantService, branch_settings_service_1.BranchSettingsService, subscription_cron_1.SubscriptionCronService],
         controllers: [tenant_controller_1.TenantAdminController, branch_settings_controller_1.BranchSettingsController],
         exports: [tenant_service_1.TenantService, branch_settings_service_1.BranchSettingsService],
     })

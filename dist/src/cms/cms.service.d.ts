@@ -1,5 +1,5 @@
 import { PrismaService } from '../prisma/prisma.service';
-import { UpsertLandingContentDto, CreatePlanDto, UpdatePlanDto, SelfRegisterDto } from './dto/cms.dto';
+import { UpsertLandingContentDto, CreatePlanDto, UpdatePlanDto, SelfRegisterDto, SubmitContactDto } from './dto/cms.dto';
 export declare class CmsService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -13,4 +13,8 @@ export declare class CmsService {
     updatePlan(id: string, dto: UpdatePlanDto): Promise<any>;
     deletePlan(id: string): Promise<any>;
     selfRegister(dto: SelfRegisterDto): Promise<any>;
+    submitContact(dto: SubmitContactDto): Promise<any>;
+    getContactMessages(): Promise<any>;
+    markContactRead(id: string): Promise<any>;
+    deleteContactMessage(id: string): Promise<any>;
 }

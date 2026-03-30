@@ -48,7 +48,8 @@ let AnalyticsService = class AnalyticsService {
                     ...(branchId ? { branchId } : {}),
                     createdAt: { gte: filterStart, lte: filterEnd },
                     status: { not: 'CANCELLED' }
-                }
+                },
+                include: { items: true, refunds: true }
             }),
             this.prisma.orderItem.count({
                 where: { order: { tenantId, ...(branchId ? { branchId } : {}), status: 'PENDING' } }
@@ -72,9 +73,27 @@ let AnalyticsService = class AnalyticsService {
                 }
             })
         ]);
-        const grossSales = ordersInRange.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+        let grossSales = 0;
+        let totalCost = 0;
+        let totalTax = 0;
+        let totalRefunds = 0;
+        ordersInRange.forEach((o) => {
+            grossSales += Number(o.totalAmount || 0);
+            totalTax += Number(o.taxAmount || 0);
+            const refundsForOrder = o.refunds?.reduce((sum, r) => sum + Number(r.amount || 0), 0) || 0;
+            totalRefunds += refundsForOrder;
+            o.items?.forEach((item) => {
+                const qty = item.quantity || 0;
+                totalCost += Number(item.costPrice || 0) * qty;
+            });
+        });
+        const netSales = grossSales - totalTax - totalRefunds;
+        const netProfit = netSales - totalCost;
         return {
             grossSales,
+            netSales,
+            totalCost,
+            netProfit,
             orderCount: ordersInRange.length,
             liveKdsTickets: kdsTickets,
             lowStockCount: lowStockItems,
@@ -141,12 +160,31 @@ let AnalyticsService = class AnalyticsService {
                 },
                 status: { not: 'CANCELLED' },
             },
+            include: { items: true, refunds: true }
         });
-        const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
+        let totalRevenue = 0;
+        let totalCost = 0;
+        let totalTax = 0;
+        let totalRefunds = 0;
+        orders.forEach((o) => {
+            totalRevenue += Number(o.totalAmount || 0);
+            totalTax += Number(o.taxAmount || 0);
+            const refundsForOrder = o.refunds?.reduce((sum, r) => sum + Number(r.amount || 0), 0) || 0;
+            totalRefunds += refundsForOrder;
+            o.items?.forEach((item) => {
+                totalCost += Number(item.costPrice || 0) * (item.quantity || 0);
+            });
+        });
+        const netSales = totalRevenue - totalTax - totalRefunds;
+        const netProfit = netSales - totalCost;
         return {
             totalRevenue,
+            netSales,
+            totalCost,
+            netProfit,
             orderCount: orders.length,
             averageOrderValue: orders.length > 0 ? totalRevenue / orders.length : 0,
+            profitMargin: netSales > 0 ? (netProfit / netSales) * 100 : 0
         };
     }
     async getTopProducts(limit = 5) {
@@ -184,7 +222,7 @@ let AnalyticsService = class AnalyticsService {
                 createdAt: { gte: startDate, lte: endDate },
                 status: { not: 'CANCELLED' }
             },
-            include: { branch: true, payments: true, refunds: true }
+            include: { branch: true, payments: true, refunds: true, items: true }
         });
         const summary = orders.reduce((acc, order) => {
             const date = order.createdAt.toISOString().split('T')[0];
@@ -198,6 +236,8 @@ let AnalyticsService = class AnalyticsService {
                     discounts_total: 0,
                     refunds_total: 0,
                     net_sales: 0,
+                    total_cost: 0,
+                    net_profit: 0,
                     sales_tax_collected: 0,
                     tips_collected: 0,
                     total_payments: 0,
@@ -215,10 +255,17 @@ let AnalyticsService = class AnalyticsService {
             const tax = Number(order.taxAmount || 0);
             const discount = Number(order.discountAmount || 0);
             const refund = order.refunds.reduce((sum, r) => sum + Number(r.amount), 0);
+            let orderCost = 0;
+            order.items?.forEach((item) => {
+                orderCost += Number(item.costPrice || 0) * (item.quantity || 0);
+            });
+            const netSales = (amount - tax - refund);
             o.gross_sales += amount;
             o.discounts_total += discount;
             o.refunds_total += refund;
-            o.net_sales += (amount - tax - refund);
+            o.net_sales += netSales;
+            o.total_cost += orderCost;
+            o.net_profit += (netSales - orderCost);
             o.sales_tax_collected += tax;
             o.order_count += 1;
             o.total_payments += amount - refund;
@@ -612,6 +659,47 @@ let AnalyticsService = class AnalyticsService {
             productStats[productId].margin = (productStats[productId].totalProfit / productStats[productId].totalRevenue) * 100;
         });
         return Object.values(productStats).sort((a, b) => b.totalProfit - a.totalProfit);
+    }
+    async getPeakHours(startDate, endDate, filterBranchId) {
+        const tenantId = this.tenantService.getTenantId();
+        const branchId = this.getQueryBranchId(filterBranchId);
+        const orders = await this.prisma.order.findMany({
+            where: {
+                tenantId,
+                ...(branchId ? { branchId } : {}),
+                createdAt: { gte: startDate, lte: endDate },
+                status: { not: 'CANCELLED' }
+            },
+            select: { totalAmount: true, createdAt: true }
+        });
+        const hourlyStats = Array.from({ length: 24 }, (_, i) => ({ hour: i, orderCount: 0, revenue: 0 }));
+        orders.forEach((o) => {
+            const hour = o.createdAt.getHours();
+            hourlyStats[hour].orderCount += 1;
+            hourlyStats[hour].revenue += Number(o.totalAmount);
+        });
+        return hourlyStats;
+    }
+    async getBusiestDays(startDate, endDate, filterBranchId) {
+        const tenantId = this.tenantService.getTenantId();
+        const branchId = this.getQueryBranchId(filterBranchId);
+        const orders = await this.prisma.order.findMany({
+            where: {
+                tenantId,
+                ...(branchId ? { branchId } : {}),
+                createdAt: { gte: startDate, lte: endDate },
+                status: { not: 'CANCELLED' }
+            },
+            select: { totalAmount: true, createdAt: true }
+        });
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayStats = dayNames.map((day, index) => ({ id: index, day, orderCount: 0, revenue: 0 }));
+        orders.forEach((o) => {
+            const dayIndex = o.createdAt.getDay();
+            dayStats[dayIndex].orderCount += 1;
+            dayStats[dayIndex].revenue += Number(o.totalAmount);
+        });
+        return dayStats;
     }
     async pushStatsUpdate(tenantId, branchId) {
         try {

@@ -53,6 +53,10 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { BackupModule } from './common/backup/backup.module';
 import { MarketingModule } from './marketing/marketing.module';
 import { SyncModule } from './common/sync/sync.module';
+import { AdminModule } from './admin/admin.module';
+import { ReportingModule } from './reporting/reporting.module';
+import { AuditModule } from './retail/audit/audit.module';
+import { AttendanceModule } from './staff/attendance/attendance.module';
 
 @Module({
   imports: [
@@ -115,6 +119,10 @@ import { SyncModule } from './common/sync/sync.module';
     BackupModule,
     MarketingModule,
     SyncModule,
+    AdminModule,
+    ReportingModule,
+    AuditModule,
+    AttendanceModule,
   ],
   controllers: [AppController],
   providers: [

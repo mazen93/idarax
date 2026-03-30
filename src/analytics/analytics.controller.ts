@@ -149,6 +149,7 @@ export class AnalyticsController {
 
     @Get('reports/customer-summary')
     @Permissions(Actions.REPORTS.VIEW_ALL)
+    @Feature('ADVANCED_ANALYTICS')
     getCustomerSalesSummary(
         @Query('start') start?: string,
         @Query('end') end?: string,
@@ -160,6 +161,7 @@ export class AnalyticsController {
 
     @Get('reports/cashier-performance')
     @Permissions(Actions.REPORTS.VIEW_ALL)
+    @Feature('ADVANCED_ANALYTICS')
     getCashierPerformance(
         @Query('start') start?: string,
         @Query('end') end?: string,
@@ -171,6 +173,7 @@ export class AnalyticsController {
 
     @Get('reports/staff-leaderboard')
     @Permissions(Actions.REPORTS.VIEW_ALL)
+    @Feature('ADVANCED_ANALYTICS')
     getStaffLeaderboard(
         @Query('start') start?: string,
         @Query('end') end?: string,
@@ -181,6 +184,7 @@ export class AnalyticsController {
 
     @Get('reports/kitchen-performance')
     @Permissions(Actions.REPORTS.VIEW_ALL)
+    @Feature('KDS_ANALYTICS')
     getKitchenPerformance(
         @Query('start') start?: string,
         @Query('end') end?: string,
@@ -202,11 +206,36 @@ export class AnalyticsController {
 
     @Get('reports/product-profitability')
     @Permissions(Actions.REPORTS.VIEW_ALL)
+    @Feature('ADVANCED_ANALYTICS')
     getProductProfitability(
         @Query('start') start?: string,
         @Query('end') end?: string,
     ) {
         const { startDate, endDate } = this.parseDateRange(start, end);
         return this.analyticsService.getProductProfitability(startDate, endDate);
+    }
+
+    @Get('reports/peak-hours')
+    @Permissions(Actions.REPORTS.VIEW_ALL)
+    @Feature('ADVANCED_ANALYTICS')
+    getPeakHours(
+        @Query('start') start?: string,
+        @Query('end') end?: string,
+        @Query('branchId') branchId?: string,
+    ) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getPeakHours(startDate, endDate, branchId);
+    }
+
+    @Get('reports/busiest-days')
+    @Permissions(Actions.REPORTS.VIEW_ALL)
+    @Feature('ADVANCED_ANALYTICS')
+    getBusiestDays(
+        @Query('start') start?: string,
+        @Query('end') end?: string,
+        @Query('branchId') branchId?: string,
+    ) {
+        const { startDate, endDate } = this.parseDateRange(start, end);
+        return this.analyticsService.getBusiestDays(startDate, endDate, branchId);
     }
 }

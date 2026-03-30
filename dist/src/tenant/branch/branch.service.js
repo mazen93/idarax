@@ -52,6 +52,16 @@ let BranchService = class BranchService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
+        const tenant = await this.prisma.client.tenant.findUnique({
+            where: { id: tenantId },
+            select: { maxBranches: true }
+        });
+        const branchCount = await this.db.count({
+            where: { tenantId }
+        });
+        if (branchCount >= (tenant?.maxBranches || 1)) {
+            throw new common_1.ForbiddenException(`You have reached the maximum number of branches (${tenant?.maxBranches || 1}) allowed for your current subscription plan. Please upgrade to add more branches.`);
+        }
         return this.prisma.$transaction(async (tx) => {
             const branch = await tx.branch.create({
                 data: {

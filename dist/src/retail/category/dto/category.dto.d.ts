@@ -4,6 +4,7 @@ export declare class CreateCategoryDto {
     description?: string;
     descriptionAr?: string;
     defaultStationId?: string;
+    imageUrl?: string;
 }
 export declare class UpdateCategoryDto {
     name?: string;
@@ -11,4 +12,5 @@ export declare class UpdateCategoryDto {
     description?: string;
     descriptionAr?: string;
     defaultStationId?: string;
+    imageUrl?: string;
 }

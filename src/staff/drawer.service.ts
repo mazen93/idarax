@@ -29,6 +29,18 @@ export class DrawerService {
             }
         }
 
+        const tenant = await (this.prisma.client as any).tenant.findUnique({
+            where: { id: tenantId }, select: { maxPos: true }
+        });
+        
+        const currentCount = await (this.prisma.client as any).drawerSession.count({
+            where: { tenantId, status: 'OPEN' }
+        });
+        
+        if (currentCount >= (tenant?.maxPos || 1)) {
+            throw new ForbiddenException(`You have reached your maximum active POS limit of ${tenant?.maxPos || 1} for this subscription. Please upgrade your plan or close another register.`);
+        }
+
         const session = await (this.prisma.client as any).drawerSession.create({
             data: {
                 userId,
