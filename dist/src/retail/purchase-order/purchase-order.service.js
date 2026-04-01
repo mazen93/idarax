@@ -55,6 +55,34 @@ let PurchaseOrderService = class PurchaseOrderService {
             orderBy: { createdAt: 'desc' }
         });
     }
+    async update(id, dto) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId)
+            throw new common_1.ForbiddenException('Tenant ID missing');
+        const po = await this.prisma.purchaseOrder.findUnique({ where: { id, tenantId } });
+        if (!po)
+            throw new common_1.NotFoundException('Purchase Order not found');
+        return this.prisma.purchaseOrder.update({
+            where: { id },
+            data: {
+                vendorId: dto.vendorId,
+                warehouseId: dto.warehouseId,
+                branchId: dto.branchId,
+                note: dto.note,
+                ...(dto.items && dto.items.length > 0 ? {
+                    items: {
+                        deleteMany: {},
+                        create: dto.items.map(item => ({
+                            productId: item.productId,
+                            quantity: item.quantity,
+                            costPrice: item.costPrice
+                        }))
+                    }
+                } : {})
+            },
+            include: { items: true, vendor: true, warehouse: true }
+        });
+    }
     async updateStatus(id, dto) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)

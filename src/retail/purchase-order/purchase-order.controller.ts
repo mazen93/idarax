@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, UseGuards } from '@nestjs/common';
 import { PurchaseOrderService } from './purchase-order.service';
-import { CreatePurchaseOrderDto, UpdatePurchaseOrderStatusDto } from './dto/purchase-order.dto';
+import { CreatePurchaseOrderDto, UpdatePurchaseOrderStatusDto, UpdatePurchaseOrderDto } from './dto/purchase-order.dto';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { Permissions } from '../../auth/permissions.decorator';
 import { Actions } from '../../auth/permissions.constants';
@@ -20,6 +20,12 @@ export class PurchaseOrderController {
     @Permissions(Actions.INVENTORY.VIEW)
     findAll() {
         return this.poService.findAll();
+    }
+
+    @Patch(':id')
+    @Permissions(Actions.INVENTORY.ADJUST)
+    update(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderDto) {
+        return this.poService.update(id, dto);
     }
 
     @Patch(':id/status')

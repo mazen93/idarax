@@ -24,6 +24,7 @@ let ShiftService = class ShiftService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
+        const branchId = this.tenantService.getBranchId() || undefined;
         const openShift = await this.prisma.client.shift.findFirst({
             where: { userId, status: 'OPEN', tenantId },
         });
@@ -34,6 +35,7 @@ let ShiftService = class ShiftService {
             data: {
                 userId,
                 tenantId,
+                branchId,
                 startTime: new Date(),
                 status: 'OPEN',
                 note: dto.note,

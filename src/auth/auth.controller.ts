@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthService } from './auth.service';
@@ -54,6 +54,14 @@ export class AuthController {
             req.user?.email,
             req.user?.tenantId,
         );
+    }
+
+    @Get('me')
+    @SkipThrottle()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: 'Get current user profile and fresh features from DB' })
+    getMe(@Request() req: any) {
+        return this.authService.getMe(req.user?.id);
     }
 
     @Post('verify-override')

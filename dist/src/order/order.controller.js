@@ -43,7 +43,7 @@ let OrderController = class OrderController {
     create(req, dto) {
         return this.orderService.createAsync(dto, req.user.id);
     }
-    findAll(start, end) {
+    findAll(start, end, status, limit) {
         let startDate;
         let endDate;
         if (start) {
@@ -58,7 +58,7 @@ let OrderController = class OrderController {
                 endDate = d;
             }
         }
-        return this.orderService.findAll(startDate, endDate);
+        return this.orderService.findAll(startDate, endDate, status, limit ? parseInt(limit, 10) : undefined);
     }
     lookupByReceipt(receiptNumber, date, branchId) {
         return this.orderService.lookupByReceipt(Number(receiptNumber), date, branchId);
@@ -131,8 +131,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'List all orders for the tenant' }),
     __param(0, (0, common_1.Query)('start')),
     __param(1, (0, common_1.Query)('end')),
+    __param(2, (0, common_1.Query)('status')),
+    __param(3, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], OrderController.prototype, "findAll", null);
 __decorate([

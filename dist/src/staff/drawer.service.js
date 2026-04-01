@@ -179,14 +179,26 @@ let DrawerService = DrawerService_1 = class DrawerService {
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
         const branchId = this.tenantService.getBranchId();
-        const session = await this.prisma.client.drawerSession.findFirst({
+        let session = await this.prisma.client.drawerSession.findFirst({
             where: { userId, tenantId, status: 'OPEN', ...(branchId ? { branchId } : {}) },
             include: {
                 movements: { orderBy: { createdAt: 'asc' } },
                 user: { select: { name: true } },
                 branch: { select: { name: true } },
             },
+            orderBy: { openedAt: 'desc' }
         });
+        if (!session && branchId) {
+            session = await this.prisma.client.drawerSession.findFirst({
+                where: { userId, tenantId, status: 'OPEN' },
+                include: {
+                    movements: { orderBy: { createdAt: 'asc' } },
+                    user: { select: { name: true } },
+                    branch: { select: { name: true } },
+                },
+                orderBy: { openedAt: 'desc' }
+            });
+        }
         if (!session)
             return null;
         const balance = session.movements.reduce((acc, m) => {
@@ -253,9 +265,16 @@ let DrawerService = DrawerService_1 = class DrawerService {
     }
     async _requireOpenSession(userId, tenantId) {
         const branchId = this.tenantService.getBranchId();
-        const session = await this.prisma.client.drawerSession.findFirst({
+        let session = await this.prisma.client.drawerSession.findFirst({
             where: { userId, tenantId, status: 'OPEN', ...(branchId ? { branchId } : {}) },
+            orderBy: { openedAt: 'desc' }
         });
+        if (!session && branchId) {
+            session = await this.prisma.client.drawerSession.findFirst({
+                where: { userId, tenantId, status: 'OPEN' },
+                orderBy: { openedAt: 'desc' }
+            });
+        }
         if (!session)
             throw new common_1.BadRequestException('No open drawer session found for this user in this branch');
         return session;

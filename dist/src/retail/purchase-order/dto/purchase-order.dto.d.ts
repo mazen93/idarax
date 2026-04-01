@@ -10,6 +10,9 @@ export declare class CreatePurchaseOrderDto {
     note?: string;
     items: CreatePurchaseOrderItemDto[];
 }
+declare const UpdatePurchaseOrderDto_base: import("@nestjs/common").Type<Partial<CreatePurchaseOrderDto>>;
+export declare class UpdatePurchaseOrderDto extends UpdatePurchaseOrderDto_base {
+}
 export declare class UpdatePurchaseOrderStatusDto {
     status: 'PENDING' | 'ORDERED' | 'PARTIALLY_RECEIVED' | 'RECEIVED' | 'CANCELLED';
     receivedItems?: {
@@ -17,3 +20,4 @@ export declare class UpdatePurchaseOrderStatusDto {
         quantity: number;
     }[];
 }
+export {};

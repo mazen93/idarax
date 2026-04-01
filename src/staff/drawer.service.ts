@@ -204,14 +204,27 @@ export class DrawerService {
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
         const branchId = this.tenantService.getBranchId();
 
-        const session = await (this.prisma.client as any).drawerSession.findFirst({
+        let session = await (this.prisma.client as any).drawerSession.findFirst({
             where: { userId, tenantId, status: 'OPEN', ...(branchId ? { branchId } : {}) },
             include: {
                 movements: { orderBy: { createdAt: 'asc' } },
                 user: { select: { name: true } },
                 branch: { select: { name: true } },
             },
+            orderBy: { openedAt: 'desc' }
         });
+
+        if (!session && branchId) {
+            session = await (this.prisma.client as any).drawerSession.findFirst({
+                where: { userId, tenantId, status: 'OPEN' },
+                include: {
+                    movements: { orderBy: { createdAt: 'asc' } },
+                    user: { select: { name: true } },
+                    branch: { select: { name: true } },
+                },
+                orderBy: { openedAt: 'desc' }
+            });
+        }
 
         if (!session) return null;
 
@@ -284,9 +297,18 @@ export class DrawerService {
 
     private async _requireOpenSession(userId: string, tenantId: string) {
         const branchId = this.tenantService.getBranchId();
-        const session = await (this.prisma.client as any).drawerSession.findFirst({
+        let session = await (this.prisma.client as any).drawerSession.findFirst({
             where: { userId, tenantId, status: 'OPEN', ...(branchId ? { branchId } : {}) },
+            orderBy: { openedAt: 'desc' }
         });
+
+        if (!session && branchId) {
+            session = await (this.prisma.client as any).drawerSession.findFirst({
+                where: { userId, tenantId, status: 'OPEN' },
+                orderBy: { openedAt: 'desc' }
+            });
+        }
+
         if (!session) throw new BadRequestException('No open drawer session found for this user in this branch');
         return session;
     }

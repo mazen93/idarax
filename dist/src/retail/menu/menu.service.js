@@ -68,11 +68,19 @@ let MenuService = class MenuService {
                     { branchId: branchId || null },
                     { branchId: null }
                 ],
-                daysOfWeek: { has: currentDay }
             },
             include: { categories: { include: { category: true } } }
         });
-        const activeMenus = allMenus.filter((menu) => {
+        return allMenus.filter((menu) => {
+            if (!menu.daysOfWeek || menu.daysOfWeek.length === 0) {
+                return true;
+            }
+            if (!menu.daysOfWeek.includes(currentDay)) {
+                return false;
+            }
+            if (!menu.startTime || !menu.endTime) {
+                return true;
+            }
             if (menu.startTime <= menu.endTime) {
                 return currentTime >= menu.startTime && currentTime <= menu.endTime;
             }
@@ -80,7 +88,6 @@ let MenuService = class MenuService {
                 return currentTime >= menu.startTime || currentTime <= menu.endTime;
             }
         });
-        return activeMenus;
     }
     async findOne(id) {
         const tenantId = this.tenantService.getTenantId();

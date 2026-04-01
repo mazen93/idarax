@@ -54,6 +54,16 @@ export declare class AuthController {
     logout(req: any): Promise<{
         message: string;
     }>;
+    getMe(req: any): Promise<{
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+        tenantId: string;
+        branchId: string | null;
+        permissions: any[];
+        features: string[];
+    }>;
     verifyOverride(dto: VerifyOverrideDto): Promise<{
         override_token: string;
         managerName: string;

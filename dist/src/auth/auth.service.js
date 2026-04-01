@@ -309,6 +309,33 @@ let AuthService = class AuthService {
             managerName: user.name,
         };
     }
+    async getMe(userId) {
+        const user = await this.prisma.client.user.findUnique({
+            where: { id: userId },
+            include: {
+                tenant: { include: { plan: true } },
+                customRole: { include: { permissions: true } },
+                permissions: true
+            }
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
+        }
+        const directPerms = user.permissions?.map((p) => p.action) || [];
+        const rolePerms = user.customRole?.permissions?.map((p) => p.action) || [];
+        const defaultPerms = permissions_constants_1.RoleDefaultPermissions[user.role] || [];
+        const permissionArray = Array.from(new Set([...directPerms, ...rolePerms, ...defaultPerms]));
+        return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.customRole?.name || user.role,
+            tenantId: user.tenantId,
+            branchId: user.branchId,
+            permissions: permissionArray,
+            features: user.tenant?.plan?.features || [],
+        };
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([

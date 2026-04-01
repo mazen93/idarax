@@ -13,7 +13,7 @@ export declare class OrderController {
         jobId: import("bull").JobId;
         status: string;
     }>;
-    findAll(start?: string, end?: string): Promise<({
+    findAll(start?: string, end?: string, status?: string, limit?: string): Promise<({
         user: {
             name: string;
         } | null;

@@ -1,3 +1,4 @@
+import { OrderStatus } from '@prisma/client';
 import { Injectable, ForbiddenException, NotFoundException, Optional, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantService } from '../tenant/tenant.service';
@@ -101,7 +102,7 @@ export class OrderService {
             const existingOrder = dto.tableId ? await tx.order.findFirst({
                 where: {
                     tableId: dto.tableId,
-                    status: { in: ['PENDING', 'PREPARING', 'READY'] }
+                    status: { in: ['PENDING', 'PREPARING', 'READY', 'HELD'] }
                 },
                 orderBy: { createdAt: 'desc' }
             }) : null;
@@ -161,7 +162,7 @@ export class OrderService {
                         payments: {
                             create: paymentsData.filter(p => p.amount > 0)
                         },
-                        status: (existingOrder.status === 'PENDING' && isFullyPaid) ? 'COMPLETED' : existingOrder.status,
+                        status: (['PENDING', 'HELD', 'PREPARING', 'READY'].includes(existingOrder.status) && isFullyPaid) ? 'COMPLETED' : existingOrder.status,
                     },
                     include: {
                         items: {
@@ -306,9 +307,13 @@ export class OrderService {
             // 3. If a table is assigned, manage its status
             if (dto.tableId) {
                 const isFullyPaid = Math.round(Number(order.paidAmount) * 100) >= Math.round(Number(order.totalAmount) * 100);
+                // A HELD order means the table is ALWAYS occupied. 
+                // Only return to AVAILABLE if it's NOT held AND is fully paid.
+                const newStatus = (order.status === 'HELD') ? 'OCCUPIED' : (isFullyPaid ? 'AVAILABLE' : 'OCCUPIED');
+                
                 await tx.table.update({
                     where: { id: dto.tableId },
-                    data: { status: isFullyPaid ? 'AVAILABLE' : 'OCCUPIED' },
+                    data: { status: newStatus },
                 });
             }
 
@@ -533,7 +538,7 @@ export class OrderService {
         }
     }
 
-    async findAll(startDate?: Date, endDate?: Date) {
+    async findAll(startDate?: Date, endDate?: Date, status?: string, limit?: number) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
 
@@ -543,10 +548,18 @@ export class OrderService {
         if (startDate && !isNaN(startDate.getTime())) dateFilter.gte = startDate;
         if (endDate && !isNaN(endDate.getTime())) dateFilter.lte = endDate;
 
+        // Support multi-status: "HELD,PENDING" -> ['HELD', 'PENDING']
+        const statusFilter = status
+            ? status.includes(',')
+                ? { in: status.split(',').map(s => s.trim()) as OrderStatus[] }
+                : (status as OrderStatus)
+            : undefined;
+
         return this.db.findMany({
             where: {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
+                ...(statusFilter ? { status: statusFilter } : {}),
                 ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}),
             },
             include: {
@@ -567,7 +580,7 @@ export class OrderService {
                 user: { select: { name: true } },
             },
             orderBy: { createdAt: 'desc' },
-            take: 1000,
+            take: limit ?? 1000,
         });
     }
 

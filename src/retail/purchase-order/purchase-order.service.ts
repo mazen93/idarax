@@ -1,7 +1,7 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TenantService } from '../../tenant/tenant.service';
-import { CreatePurchaseOrderDto, UpdatePurchaseOrderStatusDto } from './dto/purchase-order.dto';
+import { CreatePurchaseOrderDto, UpdatePurchaseOrderStatusDto, UpdatePurchaseOrderDto } from './dto/purchase-order.dto';
 
 @Injectable()
 export class PurchaseOrderService {
@@ -45,6 +45,35 @@ export class PurchaseOrderService {
             where: { tenantId },
             include: { vendor: true, items: { include: { product: true } }, warehouse: true },
             orderBy: { createdAt: 'desc' }
+        });
+    }
+
+    async update(id: string, dto: UpdatePurchaseOrderDto) {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+
+        const po = await this.prisma.purchaseOrder.findUnique({ where: { id, tenantId } });
+        if (!po) throw new NotFoundException('Purchase Order not found');
+
+        return this.prisma.purchaseOrder.update({
+            where: { id },
+            data: {
+                vendorId: dto.vendorId,
+                warehouseId: dto.warehouseId,
+                branchId: dto.branchId,
+                note: dto.note,
+                ...(dto.items && dto.items.length > 0 ? {
+                    items: {
+                        deleteMany: {},
+                        create: dto.items.map(item => ({
+                            productId: item.productId,
+                            quantity: item.quantity,
+                            costPrice: item.costPrice
+                        }))
+                    }
+                } : {})
+            },
+            include: { items: true, vendor: true, warehouse: true }
         });
     }
 

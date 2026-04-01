@@ -40,6 +40,9 @@ let AuthController = class AuthController {
         const token = req.headers.authorization?.split(' ')[1];
         return this.authService.logout(token || '', req.user?.id, req.user?.email, req.user?.tenantId);
     }
+    getMe(req) {
+        return this.authService.getMe(req.user?.id);
+    }
     verifyOverride(dto) {
         return this.authService.verifyOverride(dto);
     }
@@ -95,6 +98,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "logout", null);
+__decorate([
+    (0, common_1.Get)('me'),
+    (0, throttler_1.SkipThrottle)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Get current user profile and fresh features from DB' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "getMe", null);
 __decorate([
     (0, common_1.Post)('verify-override'),
     (0, swagger_1.ApiOperation)({ summary: 'Verify Manager PIN for an override action' }),

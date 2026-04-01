@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsNumber, IsNotEmpty, IsArray, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreatePurchaseOrderItemDto {
     @ApiProperty()
@@ -48,6 +48,8 @@ export class CreatePurchaseOrderDto {
     @Type(() => CreatePurchaseOrderItemDto)
     items: CreatePurchaseOrderItemDto[];
 }
+
+export class UpdatePurchaseOrderDto extends PartialType(CreatePurchaseOrderDto) {}
 
 export class UpdatePurchaseOrderStatusDto {
     @ApiProperty({ enum: ['PENDING', 'ORDERED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'] })

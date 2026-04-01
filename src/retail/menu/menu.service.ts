@@ -57,6 +57,7 @@ export class MenuService {
         const currentTime = now.toTimeString().substring(0, 5); // HH:mm
         const currentDay = now.getDay(); // 0-6
 
+        // Fetch scheduled menus (have days set) AND unscheduled menus (always active)
         const allMenus = await this.db.menu.findMany({
             where: {
                 tenantId,
@@ -64,12 +65,26 @@ export class MenuService {
                     { branchId: branchId || null },
                     { branchId: null }
                 ],
-                daysOfWeek: { has: currentDay }
             },
             include: { categories: { include: { category: true } } }
         });
 
-        const activeMenus = allMenus.filter((menu: any) => {
+        return allMenus.filter((menu: any) => {
+            // Menus with no days configured are always active
+            if (!menu.daysOfWeek || menu.daysOfWeek.length === 0) {
+                return true;
+            }
+
+            // Must match today
+            if (!menu.daysOfWeek.includes(currentDay)) {
+                return false;
+            }
+
+            // If no time window set, active all day
+            if (!menu.startTime || !menu.endTime) {
+                return true;
+            }
+
             if (menu.startTime <= menu.endTime) {
                 // Normal window (e.g. 08:00 - 12:00)
                 return currentTime >= menu.startTime && currentTime <= menu.endTime;
@@ -78,8 +93,6 @@ export class MenuService {
                 return currentTime >= menu.startTime || currentTime <= menu.endTime;
             }
         });
-
-        return activeMenus;
     }
 
     async findOne(id: string) {

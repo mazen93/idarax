@@ -30,6 +30,9 @@ let PurchaseOrderController = class PurchaseOrderController {
     findAll() {
         return this.poService.findAll();
     }
+    update(id, dto) {
+        return this.poService.update(id, dto);
+    }
     updateStatus(id, dto) {
         return this.poService.updateStatus(id, dto);
     }
@@ -50,6 +53,15 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], PurchaseOrderController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.INVENTORY.ADJUST),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, purchase_order_dto_1.UpdatePurchaseOrderDto]),
+    __metadata("design:returntype", void 0)
+], PurchaseOrderController.prototype, "update", null);
 __decorate([
     (0, common_1.Patch)(':id/status'),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.INVENTORY.ADJUST),

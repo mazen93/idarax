@@ -47,7 +47,7 @@ export declare class OrderService {
     private calculateBOMCost;
     private calculateFireTimes;
     private deductStockRecursively;
-    findAll(startDate?: Date, endDate?: Date): Promise<({
+    findAll(startDate?: Date, endDate?: Date, status?: string, limit?: number): Promise<({
         user: {
             name: string;
         } | null;

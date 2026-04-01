@@ -111,7 +111,7 @@ let OrderService = class OrderService {
             const existingOrder = dto.tableId ? await tx.order.findFirst({
                 where: {
                     tableId: dto.tableId,
-                    status: { in: ['PENDING', 'PREPARING', 'READY'] }
+                    status: { in: ['PENDING', 'PREPARING', 'READY', 'HELD'] }
                 },
                 orderBy: { createdAt: 'desc' }
             }) : null;
@@ -164,7 +164,7 @@ let OrderService = class OrderService {
                         payments: {
                             create: paymentsData.filter(p => p.amount > 0)
                         },
-                        status: (existingOrder.status === 'PENDING' && isFullyPaid) ? 'COMPLETED' : existingOrder.status,
+                        status: (['PENDING', 'HELD', 'PREPARING', 'READY'].includes(existingOrder.status) && isFullyPaid) ? 'COMPLETED' : existingOrder.status,
                     },
                     include: {
                         items: {
@@ -289,9 +289,10 @@ let OrderService = class OrderService {
             }
             if (dto.tableId) {
                 const isFullyPaid = Math.round(Number(order.paidAmount) * 100) >= Math.round(Number(order.totalAmount) * 100);
+                const newStatus = (order.status === 'HELD') ? 'OCCUPIED' : (isFullyPaid ? 'AVAILABLE' : 'OCCUPIED');
                 await tx.table.update({
                     where: { id: dto.tableId },
-                    data: { status: isFullyPaid ? 'AVAILABLE' : 'OCCUPIED' },
+                    data: { status: newStatus },
                 });
             }
             const paymentMethod = order.paymentMethod || dto.paymentMethod || 'CASH';
@@ -470,7 +471,7 @@ let OrderService = class OrderService {
             }
         }
     }
-    async findAll(startDate, endDate) {
+    async findAll(startDate, endDate, status, limit) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
@@ -480,10 +481,16 @@ let OrderService = class OrderService {
             dateFilter.gte = startDate;
         if (endDate && !isNaN(endDate.getTime()))
             dateFilter.lte = endDate;
+        const statusFilter = status
+            ? status.includes(',')
+                ? { in: status.split(',').map(s => s.trim()) }
+                : status
+            : undefined;
         return this.db.findMany({
             where: {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
+                ...(statusFilter ? { status: statusFilter } : {}),
                 ...(Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {}),
             },
             include: {
@@ -504,7 +511,7 @@ let OrderService = class OrderService {
                 user: { select: { name: true } },
             },
             orderBy: { createdAt: 'desc' },
-            take: 1000,
+            take: limit ?? 1000,
         });
     }
     async updateStatus(id, status) {

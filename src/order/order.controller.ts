@@ -41,7 +41,12 @@ export class OrderController {
     @Get()
     @Permissions(Actions.ORDERS.VIEW_ALL)
     @ApiOperation({ summary: 'List all orders for the tenant' })
-    findAll(@Query('start') start?: string, @Query('end') end?: string) {
+    findAll(
+        @Query('start') start?: string,
+        @Query('end') end?: string,
+        @Query('status') status?: string,
+        @Query('limit') limit?: string,
+    ) {
         let startDate: Date | undefined;
         let endDate: Date | undefined;
 
@@ -58,7 +63,7 @@ export class OrderController {
             }
         }
 
-        return this.orderService.findAll(startDate, endDate);
+        return this.orderService.findAll(startDate, endDate, status, limit ? parseInt(limit, 10) : undefined);
     }
 
     @Get('lookup')

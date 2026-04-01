@@ -86,4 +86,14 @@ export declare class AuthService {
         override_token: string;
         managerName: string;
     }>;
+    getMe(userId: string): Promise<{
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+        tenantId: string;
+        branchId: string | null;
+        permissions: any[];
+        features: string[];
+    }>;
 }

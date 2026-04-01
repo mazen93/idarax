@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdatePurchaseOrderStatusDto = exports.CreatePurchaseOrderDto = exports.CreatePurchaseOrderItemDto = void 0;
+exports.UpdatePurchaseOrderStatusDto = exports.UpdatePurchaseOrderDto = exports.CreatePurchaseOrderDto = exports.CreatePurchaseOrderItemDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
@@ -78,6 +78,9 @@ __decorate([
     (0, class_transformer_1.Type)(() => CreatePurchaseOrderItemDto),
     __metadata("design:type", Array)
 ], CreatePurchaseOrderDto.prototype, "items", void 0);
+class UpdatePurchaseOrderDto extends (0, swagger_1.PartialType)(CreatePurchaseOrderDto) {
+}
+exports.UpdatePurchaseOrderDto = UpdatePurchaseOrderDto;
 class UpdatePurchaseOrderStatusDto {
     status;
     receivedItems;

@@ -13,6 +13,7 @@ export class ShiftService {
     async clockIn(userId: string, dto: ClockInDto) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+        const branchId = this.tenantService.getBranchId() || undefined;
 
         // Check for open shift
         const openShift = await (this.prisma.client as any).shift.findFirst({
@@ -27,6 +28,7 @@ export class ShiftService {
             data: {
                 userId,
                 tenantId,
+                branchId,
                 startTime: new Date(),
                 status: 'OPEN',
                 note: dto.note,
