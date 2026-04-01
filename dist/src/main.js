@@ -47,6 +47,7 @@ const nestjs_pino_1 = require("nestjs-pino");
 const Sentry = __importStar(require("@sentry/nestjs"));
 const prisma_service_1 = require("./prisma/prisma.service");
 const bcrypt = __importStar(require("bcryptjs"));
+const compression = __importStar(require("compression"));
 Sentry.init({
     dsn: process.env.SENTRY_DSN,
     integrations: [],
@@ -160,6 +161,7 @@ async function bootstrap() {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
     });
+    app.use(compression());
     app.setGlobalPrefix('api/v1');
     await seedDatabase(app);
     app.useGlobalPipes(new common_1.ValidationPipe({

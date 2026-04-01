@@ -14,6 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductController = void 0;
 const common_1 = require("@nestjs/common");
+const cache_manager_1 = require("@nestjs/cache-manager");
+const tenant_cache_interceptor_1 = require("../../common/interceptors/tenant-cache.interceptor");
 const product_service_1 = require("./product.service");
 const product_dto_1 = require("./dto/product.dto");
 const branch_product_dto_1 = require("./dto/branch-product.dto");
@@ -66,6 +68,8 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CATALOG.VIEW),
+    (0, common_1.UseInterceptors)(tenant_cache_interceptor_1.TenantCacheInterceptor),
+    (0, cache_manager_1.CacheTTL)(15000),
     (0, swagger_1.ApiQuery)({ name: 'branchId', required: false, description: 'Filter products by branch availability' }),
     __param(0, (0, common_1.Query)('branchId')),
     __metadata("design:type", Function),

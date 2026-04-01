@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Put, UseInterceptors } from '@nestjs/common';
+import { CacheTTL } from '@nestjs/cache-manager';
+import { TenantCacheInterceptor } from '../../common/interceptors/tenant-cache.interceptor';
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import { UpsertBranchProductDto } from './dto/branch-product.dto';
@@ -22,6 +24,8 @@ export class ProductController {
 
     @Get()
     @Permissions(Actions.CATALOG.VIEW)
+    @UseInterceptors(TenantCacheInterceptor)
+    @CacheTTL(15000) // 15 Seconds cache to prevent extreme rapid polling while staying fresh
     @ApiQuery({ name: 'branchId', required: false, description: 'Filter products by branch availability' })
     findAll(@Query('branchId') branchId?: string) {
         return this.productService.findAll(branchId);

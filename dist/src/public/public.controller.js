@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PublicController = void 0;
 const common_1 = require("@nestjs/common");
+const cache_manager_1 = require("@nestjs/cache-manager");
 const public_service_1 = require("./public.service");
 const swagger_1 = require("@nestjs/swagger");
 const public_dto_1 = require("./dto/public.dto");
@@ -91,6 +92,8 @@ __decorate([
 __decorate([
     (0, common_1.Get)('tenant/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get restaurant branding and settings' }),
+    (0, common_1.UseInterceptors)(cache_manager_1.CacheInterceptor),
+    (0, cache_manager_1.CacheTTL)(30000),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -107,6 +110,8 @@ __decorate([
 __decorate([
     (0, common_1.Get)('menu/:tenantId'),
     (0, swagger_1.ApiOperation)({ summary: 'Get public menu categories and products' }),
+    (0, common_1.UseInterceptors)(cache_manager_1.CacheInterceptor),
+    (0, cache_manager_1.CacheTTL)(30000),
     __param(0, (0, common_1.Param)('tenantId')),
     __param(1, (0, common_1.Query)('branchId')),
     __metadata("design:type", Function),

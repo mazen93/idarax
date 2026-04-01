@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Query, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Res, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { PublicService } from './public.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CreatePublicOrderDto } from './dto/public.dto';
@@ -34,6 +35,8 @@ export class PublicController {
 
     @Get('tenant/:id')
     @ApiOperation({ summary: 'Get restaurant branding and settings' })
+    @UseInterceptors(CacheInterceptor)
+    @CacheTTL(30000)
     getTenant(@Param('id') id: string) {
         return this.publicService.getTenantBranding(id);
     }
@@ -46,6 +49,8 @@ export class PublicController {
 
     @Get('menu/:tenantId')
     @ApiOperation({ summary: 'Get public menu categories and products' })
+    @UseInterceptors(CacheInterceptor)
+    @CacheTTL(30000)
     async getMenu(
         @Param('tenantId') tenantId: string,
         @Query('branchId') branchId?: string

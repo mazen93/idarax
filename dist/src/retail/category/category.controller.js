@@ -14,6 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CategoryController = void 0;
 const common_1 = require("@nestjs/common");
+const cache_manager_1 = require("@nestjs/cache-manager");
+const tenant_cache_interceptor_1 = require("../../common/interceptors/tenant-cache.interceptor");
 const category_service_1 = require("./category.service");
 const category_dto_1 = require("./dto/category.dto");
 const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
@@ -50,6 +52,8 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CATALOG.VIEW),
+    (0, common_1.UseInterceptors)(tenant_cache_interceptor_1.TenantCacheInterceptor),
+    (0, cache_manager_1.CacheTTL)(15000),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)

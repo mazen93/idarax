@@ -18,6 +18,7 @@ import { Logger } from 'nestjs-pino';
 import * as Sentry from '@sentry/nestjs';
 import { PrismaService } from './prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import * as compression from 'compression';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -144,6 +145,9 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
+
+  // Enable Gzip compression globally to vastly reduce JSON response sizes for Lists/Catalog
+  app.use(compression());
 
   app.setGlobalPrefix('api/v1');
   await seedDatabase(app);

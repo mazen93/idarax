@@ -13,6 +13,8 @@ exports.TenantMiddleware = void 0;
 const common_1 = require("@nestjs/common");
 const tenant_service_1 = require("./tenant.service");
 const prisma_service_1 = require("../prisma/prisma.service");
+const domainCache = new Map();
+const CACHE_TTL = 10 * 60 * 1000;
 let TenantMiddleware = class TenantMiddleware {
     tenantService;
     prisma;
@@ -25,12 +27,21 @@ let TenantMiddleware = class TenantMiddleware {
         const branchId = req.headers['x-branch-id'] || undefined;
         if (!tenantId) {
             const host = req.hostname;
-            if (host && !host.includes('localhost') && !host.includes('idarax.com')) {
-                const tenant = await this.prisma.tenant.findUnique({
-                    where: { domain: host }
-                });
-                if (tenant) {
-                    tenantId = tenant.id;
+            if (host && !host.includes('localhost') && !host.includes('idarax.com') && !host.includes('127.0.0.1')) {
+                const now = Date.now();
+                const cached = domainCache.get(host);
+                if (cached && cached.expires > now) {
+                    if (cached.id)
+                        tenantId = cached.id;
+                }
+                else {
+                    const tenant = await this.prisma.tenant.findUnique({
+                        where: { domain: host }
+                    });
+                    domainCache.set(host, { id: tenant?.id || null, expires: now + CACHE_TTL });
+                    if (tenant) {
+                        tenantId = tenant.id;
+                    }
                 }
             }
         }

@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CacheTTL } from '@nestjs/cache-manager';
+import { TenantCacheInterceptor } from '../../common/interceptors/tenant-cache.interceptor';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto/category.dto';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
@@ -21,6 +23,8 @@ export class CategoryController {
 
     @Get()
     @Permissions(Actions.CATALOG.VIEW)
+    @UseInterceptors(TenantCacheInterceptor)
+    @CacheTTL(15000)
     findAll() {
         return this.categoryService.findAll();
     }

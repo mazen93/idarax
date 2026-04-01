@@ -28,9 +28,9 @@ export declare class PublicController {
     getBranches(id: string): Promise<{
         id: string;
         name: string;
-        nameAr: string | null;
-        phone: string | null;
         address: string | null;
+        phone: string | null;
+        nameAr: string | null;
     }[]>;
     getMenu(tenantId: string, branchId?: string): Promise<{
         tenant: {
@@ -94,9 +94,9 @@ export declare class PublicController {
             tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            nameAr: string | null;
             description: string | null;
             descriptionAr: string | null;
-            nameAr: string | null;
             defaultPrepTime: number;
             defaultStationId: string | null;
             imageUrl: string | null;
