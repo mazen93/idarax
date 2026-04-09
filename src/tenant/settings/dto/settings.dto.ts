@@ -173,4 +173,58 @@ export class UpdateSettingsDto {
     @IsOptional()
     @IsNumber()
     loyaltyRatioRedemption?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsBoolean()
+    preOrderEnabled?: boolean;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    @Max(365)
+    preOrderMaxDaysAhead?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    @Max(1440)
+    preOrderLeadMinutes?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    zatcaVatNumber?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    zatcaSellerNameAr?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    zatcaSellerNameEn?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    zatcaPhase?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsBoolean()
+    zatcaIsOnboarded?: boolean;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsBoolean()
+    requireOpenShift?: boolean;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsBoolean()
+    requireOpenDrawer?: boolean;
 }

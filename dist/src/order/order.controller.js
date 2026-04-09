@@ -67,7 +67,7 @@ let OrderController = class OrderController {
         return this.orderService.createDirect({ ...dto, userId: req.user.id });
     }
     updateStatus(id, body) {
-        return this.orderService.updateStatus(id, body.status);
+        return this.orderService.updateStatus(id, body.status, body.paymentMethod, body.paidAmount);
     }
     assignTable(id, body) {
         return this.orderService.assignTable(id, body.tableId);

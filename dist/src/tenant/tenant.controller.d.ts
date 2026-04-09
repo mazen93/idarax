@@ -18,12 +18,14 @@ export declare class TenantAdminController {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
         slug: string | null;
         domain: string | null;
         customDomain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
         hasDeliveryIntegration: boolean;
         planId: string | null;
+        status: string;
         isTrial: boolean;
         maxBranches: number;
         maxUsers: number;
@@ -31,5 +33,8 @@ export declare class TenantAdminController {
         maxKds: number;
         subscriptionExpiresAt: Date | null;
         trialExpiresAt: Date | null;
+        country: string | null;
+        countryCode: string | null;
+        vatNumber: string | null;
     })[]>;
 }

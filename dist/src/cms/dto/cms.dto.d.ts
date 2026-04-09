@@ -31,6 +31,9 @@ export declare class SelfRegisterDto {
     adminLastName: string;
     planId?: string;
     type?: string;
+    country?: string;
+    countryCode?: string;
+    vatNumber?: string;
 }
 export declare class SubmitContactDto {
     name: string;

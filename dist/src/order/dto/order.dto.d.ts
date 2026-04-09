@@ -45,6 +45,8 @@ export declare class CreateOrderDto {
     loyaltyPointsToRedeem?: number;
     rewards?: any[];
     redeemAsCashback?: boolean;
+    scheduledAt?: string;
+    isPreOrder?: boolean;
 }
 export declare class SplitBillDto {
     orderId: string;

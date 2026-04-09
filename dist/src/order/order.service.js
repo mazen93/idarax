@@ -28,6 +28,8 @@ const mail_service_1 = require("../mail/mail.service");
 const notifications_service_1 = require("../notifications/notifications.service");
 const notifications_dto_1 = require("../notifications/dto/notifications.dto");
 const drovo_service_1 = require("../delivery-aggregator/drovo.service");
+const zatca_reporting_service_1 = require("../zatca/zatca-reporting.service");
+const shift_service_1 = require("../staff/shift.service");
 let OrderService = class OrderService {
     prisma;
     tenantService;
@@ -35,6 +37,7 @@ let OrderService = class OrderService {
     numberingService;
     mailService;
     orderQueue;
+    preOrderQueue;
     drawerService;
     auditLog;
     analyticsService;
@@ -42,13 +45,16 @@ let OrderService = class OrderService {
     kdsGateway;
     notificationsService;
     drovoService;
-    constructor(prisma, tenantService, offerService, numberingService, mailService, orderQueue, drawerService, auditLog, analyticsService, crmService, kdsGateway, notificationsService, drovoService) {
+    zatcaService;
+    shiftService;
+    constructor(prisma, tenantService, offerService, numberingService, mailService, orderQueue, preOrderQueue, drawerService, auditLog, analyticsService, crmService, kdsGateway, notificationsService, drovoService, zatcaService, shiftService) {
         this.prisma = prisma;
         this.tenantService = tenantService;
         this.offerService = offerService;
         this.numberingService = numberingService;
         this.mailService = mailService;
         this.orderQueue = orderQueue;
+        this.preOrderQueue = preOrderQueue;
         this.drawerService = drawerService;
         this.auditLog = auditLog;
         this.analyticsService = analyticsService;
@@ -56,6 +62,8 @@ let OrderService = class OrderService {
         this.kdsGateway = kdsGateway;
         this.notificationsService = notificationsService;
         this.drovoService = drovoService;
+        this.zatcaService = zatcaService;
+        this.shiftService = shiftService;
     }
     get db() {
         return this.prisma.client.order;
@@ -65,6 +73,7 @@ let OrderService = class OrderService {
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
         const branchId = this.tenantService.getBranchId();
+        await this.validateShiftAndDrawer(tenantId, branchId, userId);
         const job = await this.orderQueue.add('create-order', {
             orderData: {
                 tableId: dto.tableId,
@@ -85,6 +94,8 @@ let OrderService = class OrderService {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)
             throw new common_1.ForbiddenException('Tenant ID missing');
+        const branchId = this.tenantService.getBranchId() || dto.branchId;
+        await this.validateShiftAndDrawer(tenantId, branchId, dto.userId);
         let finalTotalAmount = dto.totalAmount;
         let appliedDiscount = 0;
         let pointsToDeduct = 0;
@@ -201,7 +212,9 @@ let OrderService = class OrderService {
                         customerId: dto.customerId || null,
                         totalAmount: finalTotalAmount,
                         paidAmount: totalPaidNow,
-                        status: dto.status || (isFullyPaid ? 'COMPLETED' : 'PENDING'),
+                        status: dto.isPreOrder
+                            ? 'SCHEDULED'
+                            : dto.status || (isFullyPaid ? 'COMPLETED' : 'PENDING'),
                         orderType: dto.orderType || (dto.tableId ? 'DINE_IN' : 'IN_STORE'),
                         paymentMethod: dto.splitPayments?.length ? 'MULTI' : (dto.paymentMethod || 'CASH'),
                         guestName: dto.guestName,
@@ -217,6 +230,8 @@ let OrderService = class OrderService {
                         userId: dto.userId || null,
                         receiptNumber,
                         invoiceNumber,
+                        isPreOrder: dto.isPreOrder || false,
+                        scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
                         items: {
                             create: resolvedItems.map((item, idx) => ({
                                 productId: item.productId,
@@ -262,8 +277,10 @@ let OrderService = class OrderService {
                     },
                 });
             }
-            for (const item of dto.items) {
-                await this.deductStockRecursively(tx, tenantId, branchId, item.productId, item.quantity, order.id);
+            if (!dto.isPreOrder) {
+                for (const item of dto.items) {
+                    await this.deductStockRecursively(tx, tenantId, branchId, item.productId, item.quantity, order.id);
+                }
             }
             if (dto.customerId && pointsToDeduct > 0) {
                 const customer = await tx.customer.findUnique({ where: { id: dto.customerId } });
@@ -339,7 +356,7 @@ let OrderService = class OrderService {
             if (this.analyticsService) {
                 this.analyticsService.pushStatsUpdate(tenantId, branchId).catch(() => { });
             }
-            if (this.kdsGateway) {
+            if (this.kdsGateway && !dto.isPreOrder) {
                 this.kdsGateway.notifyNewOrder(tenantId, order);
                 if (order.items) {
                     const stationItemsMap = new Map();
@@ -366,13 +383,111 @@ let OrderService = class OrderService {
                     }
                 }
             }
-            if (this.drovoService && order.orderType === 'DELIVERY') {
+            if (this.drovoService && order.orderType === 'DELIVERY' && !dto.isPreOrder) {
                 this.drovoService.dispatchOrder(order.id, tenantId).catch(err => {
                     console.error('Failed to trigger Drovo dispatch background task:', err);
                 });
             }
+            if (this.zatcaService && isFullyPaid && !dto.isPreOrder) {
+                try {
+                    const zatcaStatus = await this.zatcaService.reportOrder(order.id);
+                    order.zatcaReport = zatcaStatus;
+                }
+                catch (err) {
+                    console.error('Failed to trigger ZATCA reporting task:', err);
+                }
+            }
+            if (dto.isPreOrder && dto.scheduledAt) {
+                const branchSettings = branchId
+                    ? await this.prisma.client.branchSettings.findUnique({ where: { branchId } })
+                    : null;
+                const leadMinutes = branchSettings?.preOrderLeadMinutes ?? 30;
+                const scheduledTime = new Date(dto.scheduledAt).getTime();
+                const fireAt = scheduledTime - leadMinutes * 60 * 1000;
+                const delayMs = Math.max(0, fireAt - Date.now());
+                await this.preOrderQueue.add('fire-pre-order', { orderId: order.id, tenantId, branchId }, { delay: delayMs, attempts: 3, backoff: { type: 'exponential', delay: 5000 } });
+                if (this.notificationsService) {
+                    const receiptNum = order.receiptNumber ?? '';
+                    this.notificationsService.create(tenantId, {
+                        type: notifications_dto_1.NotificationType.PRE_ORDER_RECEIVED,
+                        title: 'Pre-Order Received',
+                        message: `Pre-order #${receiptNum} scheduled for ${new Date(dto.scheduledAt).toLocaleString()}.`,
+                        branchId: branchId ?? undefined,
+                        meta: { orderId: order.id, scheduledAt: dto.scheduledAt },
+                    }).catch(() => { });
+                }
+            }
             return order;
         });
+    }
+    async firePreOrder(orderId) {
+        const order = await this.prisma.client.order.findUnique({
+            where: { id: orderId },
+            include: {
+                items: {
+                    include: {
+                        product: { include: { category: { select: { name: true } }, usedInRecipes: { include: { ingredient: { select: { name: true } } } } } },
+                        variant: { select: { name: true } },
+                        modifiers: { include: { option: true } },
+                    },
+                },
+                customer: { select: { name: true } },
+                table: { select: { number: true } },
+                user: { select: { name: true } },
+                payments: true,
+            },
+        });
+        if (!order || order.status !== 'SCHEDULED') {
+            return null;
+        }
+        const fired = await this.prisma.client.order.update({
+            where: { id: orderId },
+            data: { status: 'PENDING' },
+        });
+        for (const item of order.items) {
+            await this.deductStockRecursively(this.prisma.client, order.tenantId, order.branchId, item.productId, item.quantity, orderId);
+        }
+        if (this.kdsGateway) {
+            this.kdsGateway.notifyNewOrder(order.tenantId, { ...order, status: 'PENDING' });
+            if (order.items) {
+                const stationItemsMap = new Map();
+                for (const item of order.items) {
+                    if (item.stationId) {
+                        if (!stationItemsMap.has(item.stationId))
+                            stationItemsMap.set(item.stationId, []);
+                        stationItemsMap.get(item.stationId).push(item);
+                    }
+                }
+                for (const [stationId, items] of stationItemsMap.entries()) {
+                    for (const item of items) {
+                        this.kdsGateway.notifyStationOrder(order.tenantId, stationId, {
+                            ...item,
+                            order: {
+                                orderNumber: order.receiptNumber,
+                                tableName: order.table?.number || order.tableId,
+                                table: order.table,
+                            },
+                        });
+                    }
+                }
+            }
+        }
+        if (this.drovoService && order.orderType === 'DELIVERY') {
+            this.drovoService.dispatchOrder(orderId, order.tenantId).catch(err => console.error('Pre-order Drovo dispatch failed:', err));
+        }
+        if (this.notificationsService) {
+            this.notificationsService.create(order.tenantId, {
+                type: notifications_dto_1.NotificationType.PRE_ORDER_FIRED,
+                title: 'Pre-Order Sent to Kitchen',
+                message: `Pre-order #${order.receiptNumber} has been fired to the kitchen.`,
+                branchId: order.branchId ?? undefined,
+                meta: { orderId },
+            }).catch(() => { });
+        }
+        if (this.analyticsService) {
+            this.analyticsService.pushStatsUpdate(order.tenantId, order.branchId).catch(() => { });
+        }
+        return fired;
     }
     async resolveStationIds(tx, items) {
         if (!items || items.length === 0)
@@ -514,25 +629,29 @@ let OrderService = class OrderService {
             take: limit ?? 1000,
         });
     }
-    async updateStatus(id, status) {
+    async updateStatus(id, status, paymentMethod, paidAmount) {
         const order = await this.db.findUnique({ where: { id } });
         if (!order)
             throw new common_1.NotFoundException('Order not found');
         const data = { status };
         if (status === 'COMPLETED' && Number(order.paidAmount) < Number(order.totalAmount)) {
             const balance = Number(order.totalAmount) - Number(order.paidAmount);
-            data.paidAmount = { increment: balance };
+            const settlementAmount = paidAmount || balance;
+            data.paidAmount = { increment: settlementAmount };
+            const methodToUse = paymentMethod || order.paymentMethod || 'CASH';
             await this.prisma.client.payment.create({
                 data: {
                     orderId: id,
-                    amount: balance,
-                    method: order.paymentMethod || 'CASH',
+                    amount: settlementAmount,
+                    method: methodToUse,
                     status: 'COMPLETED',
                 }
             });
-            if ((order.paymentMethod === 'CASH' || !order.paymentMethod) && this.drawerService) {
+            if (paymentMethod)
+                data.paymentMethod = paymentMethod;
+            if ((methodToUse === 'CASH') && this.drawerService) {
                 const branchId = this.tenantService.getBranchId() || order.branchId;
-                await this.drawerService.recordSaleByTenant(order.tenantId, branchId, balance, order.id);
+                await this.drawerService.recordSaleByTenant(order.tenantId, branchId, settlementAmount, order.id);
             }
         }
         const updated = await this.db.update({
@@ -554,6 +673,16 @@ let OrderService = class OrderService {
             }
             catch (error) {
                 console.error('Failed to process loyalty for order:', error);
+            }
+        }
+        if (status === 'COMPLETED' && this.zatcaService) {
+            try {
+                await this.zatcaService.reportOrder(updated.id).catch(err => {
+                    console.error('Failed to report order to ZATCA:', err);
+                });
+            }
+            catch (error) {
+                console.error('Failed to process ZATCA reporting for completed order:', error);
             }
         }
         if (updated.tableId) {
@@ -1053,28 +1182,59 @@ let OrderService = class OrderService {
             </div>
         `;
     }
+    async validateShiftAndDrawer(tenantId, branchId, userId) {
+        if (!userId)
+            return;
+        const settings = await this.prisma.settings.findUnique({
+            where: { tenantId },
+            select: { requireOpenShift: true, requireOpenDrawer: true }
+        });
+        const branchSettings = branchId ? await this.prisma.client.branchSettings.findUnique({
+            where: { branchId },
+            select: { requireOpenShift: true, requireOpenDrawer: true }
+        }) : null;
+        const requireShift = branchSettings?.requireOpenShift ?? settings?.requireOpenShift ?? false;
+        const requireDrawer = branchSettings?.requireOpenDrawer ?? settings?.requireOpenDrawer ?? false;
+        if (requireShift && this.shiftService) {
+            const hasShift = await this.shiftService.hasOpenShift(tenantId, userId);
+            if (!hasShift) {
+                throw new common_1.BadRequestException('You must open a shift before you can take orders.');
+            }
+        }
+        if (requireDrawer && this.drawerService) {
+            const hasDrawer = await this.drawerService.hasOpenSession(tenantId, branchId, userId);
+            if (!hasDrawer) {
+                throw new common_1.BadRequestException('You must open a cash drawer before you can take orders.');
+            }
+        }
+    }
 };
 exports.OrderService = OrderService;
 exports.OrderService = OrderService = __decorate([
     (0, common_1.Injectable)(),
     __param(5, (0, bull_1.InjectQueue)('orders')),
-    __param(6, (0, common_1.Optional)()),
+    __param(6, (0, bull_1.InjectQueue)('pre-orders')),
     __param(7, (0, common_1.Optional)()),
     __param(8, (0, common_1.Optional)()),
     __param(9, (0, common_1.Optional)()),
     __param(10, (0, common_1.Optional)()),
     __param(11, (0, common_1.Optional)()),
     __param(12, (0, common_1.Optional)()),
+    __param(13, (0, common_1.Optional)()),
+    __param(14, (0, common_1.Optional)()),
+    __param(15, (0, common_1.Optional)()),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         tenant_service_1.TenantService,
         offer_service_1.OfferService,
         numbering_service_1.NumberingService,
-        mail_service_1.MailService, Object, drawer_service_1.DrawerService,
+        mail_service_1.MailService, Object, Object, drawer_service_1.DrawerService,
         audit_log_service_1.AuditLogService,
         analytics_service_1.AnalyticsService,
         crm_service_1.CrmService,
         kds_gateway_1.KdsGateway,
         notifications_service_1.NotificationsService,
-        drovo_service_1.DrovoService])
+        drovo_service_1.DrovoService,
+        zatca_reporting_service_1.ZatcaReportingService,
+        shift_service_1.ShiftService])
 ], OrderService);
 //# sourceMappingURL=order.service.js.map

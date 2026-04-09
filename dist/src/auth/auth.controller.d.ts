@@ -14,6 +14,8 @@ export declare class AuthController {
         features: string[];
         isExpired: boolean;
         daysRemaining: number;
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     login(dto: LoginDto): Promise<{
         access_token: string;
@@ -26,6 +28,8 @@ export declare class AuthController {
         features: string[];
         isExpired: boolean;
         daysRemaining: number;
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     loginByPin(dto: PinLoginDto): Promise<{
         access_token: string;
@@ -38,6 +42,8 @@ export declare class AuthController {
         features: string[];
         isExpired: boolean;
         daysRemaining: number;
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     refreshToken(dto: RefreshTokenDto): Promise<{
         access_token: string;
@@ -50,6 +56,8 @@ export declare class AuthController {
         features: string[];
         isExpired: boolean;
         daysRemaining: number;
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     logout(req: any): Promise<{
         message: string;
@@ -63,6 +71,8 @@ export declare class AuthController {
         branchId: string | null;
         permissions: any[];
         features: string[];
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     verifyOverride(dto: VerifyOverrideDto): Promise<{
         override_token: string;

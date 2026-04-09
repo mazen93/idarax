@@ -28,10 +28,11 @@ let AdminController = class AdminController {
     getTenantsDetailed() {
         return this.adminService.getTenantsWithStats();
     }
-    getFilteredTenants(plan, status, search, page, limit) {
+    getFilteredTenants(plan, status, countryCode, search, page, limit) {
         return this.adminService.getFilteredTenants({
             plan,
             status,
+            countryCode,
             search,
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 20,
@@ -39,6 +40,9 @@ let AdminController = class AdminController {
     }
     getSubscriptionAnalytics() {
         return this.adminService.getSubscriptionAnalytics();
+    }
+    getCountryAnalytics() {
+        return this.adminService.getCountryAnalytics();
     }
     getAllPlans() {
         return this.adminService.getAllPlans();
@@ -57,6 +61,9 @@ let AdminController = class AdminController {
     }
     extendTrial(id, dto) {
         return this.adminService.extendTrial(id, dto.days);
+    }
+    approveTenant(id) {
+        return this.adminService.approveTenant(id);
     }
     getSettings() {
         return this.adminService.getGlobalSettings();
@@ -94,16 +101,18 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get filtered/paginated tenant list (superadmin)' }),
     (0, swagger_1.ApiQuery)({ name: 'plan', required: false }),
     (0, swagger_1.ApiQuery)({ name: 'status', required: false, enum: ['ACTIVE', 'TRIAL', 'EXPIRED'] }),
+    (0, swagger_1.ApiQuery)({ name: 'countryCode', required: false }),
     (0, swagger_1.ApiQuery)({ name: 'search', required: false }),
     (0, swagger_1.ApiQuery)({ name: 'page', required: false }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false }),
     __param(0, (0, common_1.Query)('plan')),
     __param(1, (0, common_1.Query)('status')),
-    __param(2, (0, common_1.Query)('search')),
-    __param(3, (0, common_1.Query)('page')),
-    __param(4, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('countryCode')),
+    __param(3, (0, common_1.Query)('search')),
+    __param(4, (0, common_1.Query)('page')),
+    __param(5, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "getFilteredTenants", null);
 __decorate([
@@ -115,6 +124,15 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "getSubscriptionAnalytics", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Get)('country-analytics'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get geographical distribution analytics (superadmin)' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "getCountryAnalytics", null);
 __decorate([
     (0, common_1.Get)('plans'),
     (0, swagger_1.ApiOperation)({ summary: 'Get all subscription plans (public)' }),
@@ -176,6 +194,16 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "extendTrial", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Put)('tenants/:id/approve'),
+    (0, swagger_1.ApiOperation)({ summary: 'Activate/Approve a pending tenant (superadmin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "approveTenant", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, swagger_1.ApiBearerAuth)(),

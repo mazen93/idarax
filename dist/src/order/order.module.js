@@ -14,6 +14,7 @@ const order_service_1 = require("./order.service");
 const order_controller_1 = require("./order.controller");
 const bull_1 = require("@nestjs/bull");
 const order_processor_1 = require("./order.processor");
+const pre_order_processor_1 = require("./pre-order.processor");
 const inventory_module_1 = require("../retail/inventory/inventory.module");
 const offer_module_1 = require("../retail/offer/offer.module");
 const refund_service_1 = require("./refund.service");
@@ -26,18 +27,18 @@ const kds_module_1 = require("../restaurant/kds/kds.module");
 const mail_module_1 = require("../mail/mail.module");
 const notifications_module_1 = require("../notifications/notifications.module");
 const drovo_module_1 = require("../delivery-aggregator/drovo.module");
+const zatca_module_1 = require("../zatca/zatca.module");
 let OrderModule = class OrderModule {
 };
 exports.OrderModule = OrderModule;
 exports.OrderModule = OrderModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule, inventory_module_1.InventoryModule, offer_module_1.OfferModule, staff_module_1.StaffModule, audit_log_module_1.AuditLogModule, crm_module_1.CrmModule, kds_module_1.KdsModule, mail_module_1.MailModule, notifications_module_1.NotificationsModule,
-            bull_1.BullModule.registerQueue({
-                name: 'orders',
-            }),
+            bull_1.BullModule.registerQueue({ name: 'orders' }, { name: 'pre-orders' }),
             drovo_module_1.DrovoModule,
+            zatca_module_1.ZatcaModule,
         ],
-        providers: [order_service_1.OrderService, order_processor_1.OrderProcessor, refund_service_1.RefundService, numbering_service_1.NumberingService, invoice_service_1.InvoiceService],
+        providers: [order_service_1.OrderService, order_processor_1.OrderProcessor, pre_order_processor_1.PreOrderProcessor, refund_service_1.RefundService, numbering_service_1.NumberingService, invoice_service_1.InvoiceService],
         controllers: [order_controller_1.OrderController],
         exports: [order_service_1.OrderService, refund_service_1.RefundService, numbering_service_1.NumberingService, invoice_service_1.InvoiceService],
     })

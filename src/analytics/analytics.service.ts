@@ -36,7 +36,7 @@ export class AnalyticsService {
                     tenantId,
                     ...(branchId ? { branchId } : {}),
                     createdAt: { gte: filterStart, lte: filterEnd },
-                    status: { not: 'CANCELLED' }
+                    status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
                 },
                 include: { items: true, refunds: true }
             }),
@@ -111,7 +111,7 @@ export class AnalyticsService {
                 tenantId,
                 branchId: this.tenantService.getBranchId(),
                 createdAt: { gte: filterStart, lte: filterEnd },
-                status: { not: 'CANCELLED' },
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             select: { totalAmount: true, createdAt: true },
         });
@@ -161,7 +161,7 @@ export class AnalyticsService {
                     gte: startDate,
                     lte: endDate,
                 },
-                status: { not: 'CANCELLED' },
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             include: { items: true, refunds: true }
         });
@@ -204,7 +204,7 @@ export class AnalyticsService {
                 order: {
                     tenantId,
                     branchId: this.tenantService.getBranchId(),
-                    status: { not: 'CANCELLED' }
+                    status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
                 }
             },
             include: { product: true }
@@ -234,7 +234,7 @@ export class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             include: { branch: true, payments: true, refunds: true, items: true }
         });
@@ -495,7 +495,7 @@ export class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
         });
 
@@ -541,7 +541,7 @@ export class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             include: { customer: true }
         });
@@ -585,7 +585,7 @@ export class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             include: { user: { select: { name: true } } }
         });
@@ -732,7 +732,7 @@ export class AnalyticsService {
                     tenantId,
                     ...(branchId ? { branchId } : {}),
                     createdAt: { gte: startDate, lte: endDate },
-                    status: { not: 'CANCELLED' }
+                    status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
                 }
             },
             include: { product: { select: { name: true } } }
@@ -769,7 +769,7 @@ export class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             select: { totalAmount: true, createdAt: true }
         });
@@ -794,7 +794,7 @@ export class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             select: { totalAmount: true, createdAt: true }
         });

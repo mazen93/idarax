@@ -7,6 +7,8 @@ export enum NotificationType {
   ORDER_CANCELLED = 'ORDER_CANCELLED',
   ORDER_VOIDED = 'ORDER_VOIDED',
   MANAGER_ALERT = 'MANAGER_ALERT',
+  PRE_ORDER_RECEIVED = 'PRE_ORDER_RECEIVED',
+  PRE_ORDER_FIRED = 'PRE_ORDER_FIRED',
 }
 
 export class CreateNotificationDto {

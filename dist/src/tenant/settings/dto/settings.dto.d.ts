@@ -33,4 +33,14 @@ export declare class UpdateSettingsDto {
     drovoApiKey?: string;
     loyaltyRatioEarning?: number;
     loyaltyRatioRedemption?: number;
+    preOrderEnabled?: boolean;
+    preOrderMaxDaysAhead?: number;
+    preOrderLeadMinutes?: number;
+    zatcaVatNumber?: string;
+    zatcaSellerNameAr?: string;
+    zatcaSellerNameEn?: string;
+    zatcaPhase?: number;
+    zatcaIsOnboarded?: boolean;
+    requireOpenShift?: boolean;
+    requireOpenDrawer?: boolean;
 }

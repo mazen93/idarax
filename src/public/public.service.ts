@@ -70,7 +70,7 @@ export class PublicService {
 
         if (!tenant) return [];
 
-        const branches = await this.prisma.branch.findMany({
+        const branches = await (this.prisma.client as any).branch.findMany({
             where: {
                 tenantId: tenant.id,
                 isActive: true,
@@ -81,11 +81,27 @@ export class PublicService {
                 nameAr: true,
                 address: true,
                 phone: true,
+                settings: {
+                    select: {
+                        preOrderEnabled: true,
+                        preOrderMaxDaysAhead: true,
+                        preOrderLeadMinutes: true,
+                    }
+                }
             },
             orderBy: { name: 'asc' },
         });
 
-        return branches;
+        return (branches as any[]).map((b: any) => ({
+            id: b.id,
+            name: b.name,
+            nameAr: b.nameAr,
+            address: b.address,
+            phone: b.phone,
+            preOrderEnabled: b.settings?.preOrderEnabled ?? false,
+            preOrderMaxDaysAhead: b.settings?.preOrderMaxDaysAhead ?? 7,
+            preOrderLeadMinutes: b.settings?.preOrderLeadMinutes ?? 30,
+        }));
     }
 
     async getMenu(tenantIdOrDomain: string, branchId?: string) {
@@ -275,7 +291,10 @@ export class PublicService {
                     orderType: (finalOrderType === 'PICKUP' ? 'TAKEAWAY' : finalOrderType) as any,
                     source: (dto.source || 'WEB_STORE') as any, 
                     note: dto.note,
-                    status: 'PENDING',
+                    // Pre-order: if scheduledAt provided, hold as SCHEDULED
+                    status: dto.isPreOrder && dto.scheduledAt ? 'SCHEDULED' : 'PENDING',
+                    isPreOrder: dto.isPreOrder || false,
+                    scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
                     receiptNumber,
                     invoiceNumber,
                     items: {

@@ -66,6 +66,8 @@ const admin_module_1 = require("./admin/admin.module");
 const reporting_module_1 = require("./reporting/reporting.module");
 const audit_module_1 = require("./retail/audit/audit.module");
 const attendance_module_1 = require("./staff/attendance/attendance.module");
+const zatca_module_1 = require("./zatca/zatca.module");
+const tenant_active_guard_1 = require("./auth/tenant-active.guard");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(tenant_middleware_1.TenantMiddleware).forRoutes('*path');
@@ -139,11 +141,13 @@ exports.AppModule = AppModule = __decorate([
             reporting_module_1.ReportingModule,
             audit_module_1.AuditModule,
             attendance_module_1.AttendanceModule,
+            zatca_module_1.ZatcaModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
             app_service_1.AppService,
             { provide: core_1.APP_GUARD, useClass: throttler_1.ThrottlerGuard },
+            { provide: core_1.APP_GUARD, useClass: tenant_active_guard_1.TenantActiveGuard },
             { provide: core_1.APP_FILTER, useClass: http_exception_filter_1.HttpExceptionFilter },
         ],
     })

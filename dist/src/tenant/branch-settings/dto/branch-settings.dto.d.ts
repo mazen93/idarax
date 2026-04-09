@@ -22,4 +22,7 @@ export declare class UpdateBranchSettingsDto {
     receiptShowTotal?: boolean;
     receiptShowPaymentMethod?: boolean;
     receiptShowBarcode?: boolean;
+    preOrderEnabled?: boolean;
+    preOrderMaxDaysAhead?: number;
+    preOrderLeadMinutes?: number;
 }

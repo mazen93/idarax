@@ -7,8 +7,14 @@ export declare class BranchController {
         _count: {
             orders: number;
             tables: number;
-            users: number;
         };
+        users: {
+            id: string;
+            email: string;
+            name: string;
+            role: import(".prisma/client").$Enums.UserRole;
+            pinCode: string | null;
+        }[];
     } & {
         id: string;
         name: string;

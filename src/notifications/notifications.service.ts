@@ -11,11 +11,11 @@ export class NotificationsService {
   ) {}
 
   async create(tenantId: string, dto: CreateNotificationDto) {
-    const notification = await (this.prisma.client as any).notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         tenantId,
         branchId: dto.branchId ?? null,
-        type: dto.type,
+        type: dto.type as any, // Cast to any because of enum mismatch between DTO and Prisma
         title: dto.title,
         message: dto.message,
         meta: dto.meta ?? undefined,
@@ -29,7 +29,7 @@ export class NotificationsService {
   }
 
   async findAll(tenantId: string, branchId?: string) {
-    return (this.prisma.client as any).notification.findMany({
+    return this.prisma.notification.findMany({
       where: {
         tenantId,
         ...(branchId ? { branchId } : {}),
@@ -40,21 +40,21 @@ export class NotificationsService {
   }
 
   async markRead(tenantId: string, ids: string[]) {
-    return (this.prisma.client as any).notification.updateMany({
+    return this.prisma.notification.updateMany({
       where: { tenantId, id: { in: ids } },
       data: { isRead: true },
     });
   }
 
   async markAllRead(tenantId: string) {
-    return (this.prisma.client as any).notification.updateMany({
+    return this.prisma.notification.updateMany({
       where: { tenantId, isRead: false },
       data: { isRead: true },
     });
   }
 
   async remove(tenantId: string, id: string) {
-    return (this.prisma.client as any).notification.deleteMany({
+    return this.prisma.notification.deleteMany({
       where: { tenantId, id },
     });
   }

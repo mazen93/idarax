@@ -29,12 +29,14 @@ export class AdminController {
   @ApiOperation({ summary: 'Get filtered/paginated tenant list (superadmin)' })
   @ApiQuery({ name: 'plan', required: false })
   @ApiQuery({ name: 'status', required: false, enum: ['ACTIVE', 'TRIAL', 'EXPIRED'] })
+  @ApiQuery({ name: 'countryCode', required: false })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   getFilteredTenants(
     @Query('plan') plan?: string,
     @Query('status') status?: string,
+    @Query('countryCode') countryCode?: string,
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -42,6 +44,7 @@ export class AdminController {
     return this.adminService.getFilteredTenants({
       plan,
       status,
+      countryCode,
       search,
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 20,
@@ -54,6 +57,13 @@ export class AdminController {
   @ApiOperation({ summary: 'Get detailed subscription analytics (superadmin)' })
   getSubscriptionAnalytics() {
     return this.adminService.getSubscriptionAnalytics();
+  }
+
+  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
+  @Get('country-analytics')
+  @ApiOperation({ summary: 'Get geographical distribution analytics (superadmin)' })
+  getCountryAnalytics() {
+    return this.adminService.getCountryAnalytics();
   }
 
   // ── Plans ──────────────────────────────────────────────────────────────────
@@ -105,6 +115,13 @@ export class AdminController {
     @Body() dto: { days: number }
   ) {
     return this.adminService.extendTrial(id, dto.days);
+  }
+
+  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
+  @Put('tenants/:id/approve')
+  @ApiOperation({ summary: 'Activate/Approve a pending tenant (superadmin)' })
+  approveTenant(@Param('id') id: string) {
+    return this.adminService.approveTenant(id);
   }
 
   // ── Settings ───────────────────────────────────────────────────────────────

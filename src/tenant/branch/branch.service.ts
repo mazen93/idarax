@@ -20,9 +20,17 @@ export class BranchService {
 
         return this.db.findMany({
             include: {
+                users: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                        pinCode: true,
+                    }
+                },
                 _count: {
                     select: {
-                        users: true,
                         orders: true,
                         tables: true,
                     }

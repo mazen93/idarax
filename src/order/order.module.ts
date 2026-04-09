@@ -5,6 +5,7 @@ import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { BullModule } from '@nestjs/bull';
 import { OrderProcessor } from './order.processor';
+import { PreOrderProcessor } from './pre-order.processor';
 import { InventoryModule } from '../retail/inventory/inventory.module';
 import { OfferModule } from '../retail/offer/offer.module';
 import { RefundService } from './refund.service';
@@ -17,15 +18,18 @@ import { KdsModule } from '../restaurant/kds/kds.module';
 import { MailModule } from '../mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { DrovoModule } from '../delivery-aggregator/drovo.module';
+import { ZatcaModule } from '../zatca/zatca.module';
 
 @Module({
   imports: [PrismaModule, TenantModule, InventoryModule, OfferModule, StaffModule, AuditLogModule, CrmModule, KdsModule, MailModule, NotificationsModule,
-    BullModule.registerQueue({
-      name: 'orders',
-    }),
+    BullModule.registerQueue(
+      { name: 'orders' },
+      { name: 'pre-orders' },
+    ),
     DrovoModule,
+    ZatcaModule,
   ],
-  providers: [OrderService, OrderProcessor, RefundService, NumberingService, InvoiceService],
+  providers: [OrderService, OrderProcessor, PreOrderProcessor, RefundService, NumberingService, InvoiceService],
   controllers: [OrderController],
   exports: [OrderService, RefundService, NumberingService, InvoiceService],
 })

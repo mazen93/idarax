@@ -47,6 +47,16 @@ class UpdateSettingsDto {
     drovoApiKey;
     loyaltyRatioEarning;
     loyaltyRatioRedemption;
+    preOrderEnabled;
+    preOrderMaxDaysAhead;
+    preOrderLeadMinutes;
+    zatcaVatNumber;
+    zatcaSellerNameAr;
+    zatcaSellerNameEn;
+    zatcaPhase;
+    zatcaIsOnboarded;
+    requireOpenShift;
+    requireOpenDrawer;
 }
 exports.UpdateSettingsDto = UpdateSettingsDto;
 __decorate([
@@ -255,4 +265,68 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], UpdateSettingsDto.prototype, "loyaltyRatioRedemption", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateSettingsDto.prototype, "preOrderEnabled", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(365),
+    __metadata("design:type", Number)
+], UpdateSettingsDto.prototype, "preOrderMaxDaysAhead", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(1440),
+    __metadata("design:type", Number)
+], UpdateSettingsDto.prototype, "preOrderLeadMinutes", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateSettingsDto.prototype, "zatcaVatNumber", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateSettingsDto.prototype, "zatcaSellerNameAr", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateSettingsDto.prototype, "zatcaSellerNameEn", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdateSettingsDto.prototype, "zatcaPhase", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateSettingsDto.prototype, "zatcaIsOnboarded", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateSettingsDto.prototype, "requireOpenShift", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateSettingsDto.prototype, "requireOpenDrawer", void 0);
 //# sourceMappingURL=settings.dto.js.map

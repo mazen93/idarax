@@ -21,7 +21,7 @@ let NotificationsService = class NotificationsService {
         this.gateway = gateway;
     }
     async create(tenantId, dto) {
-        const notification = await this.prisma.client.notification.create({
+        const notification = await this.prisma.notification.create({
             data: {
                 tenantId,
                 branchId: dto.branchId ?? null,
@@ -35,7 +35,7 @@ let NotificationsService = class NotificationsService {
         return notification;
     }
     async findAll(tenantId, branchId) {
-        return this.prisma.client.notification.findMany({
+        return this.prisma.notification.findMany({
             where: {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
@@ -45,19 +45,19 @@ let NotificationsService = class NotificationsService {
         });
     }
     async markRead(tenantId, ids) {
-        return this.prisma.client.notification.updateMany({
+        return this.prisma.notification.updateMany({
             where: { tenantId, id: { in: ids } },
             data: { isRead: true },
         });
     }
     async markAllRead(tenantId) {
-        return this.prisma.client.notification.updateMany({
+        return this.prisma.notification.updateMany({
             where: { tenantId, isRead: false },
             data: { isRead: true },
         });
     }
     async remove(tenantId, id) {
-        return this.prisma.client.notification.deleteMany({
+        return this.prisma.notification.deleteMany({
             where: { tenantId, id },
         });
     }

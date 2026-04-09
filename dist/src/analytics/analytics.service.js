@@ -47,7 +47,7 @@ let AnalyticsService = class AnalyticsService {
                     tenantId,
                     ...(branchId ? { branchId } : {}),
                     createdAt: { gte: filterStart, lte: filterEnd },
-                    status: { not: 'CANCELLED' }
+                    status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
                 },
                 include: { items: true, refunds: true }
             }),
@@ -113,7 +113,7 @@ let AnalyticsService = class AnalyticsService {
                 tenantId,
                 branchId: this.tenantService.getBranchId(),
                 createdAt: { gte: filterStart, lte: filterEnd },
-                status: { not: 'CANCELLED' },
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             select: { totalAmount: true, createdAt: true },
         });
@@ -158,7 +158,7 @@ let AnalyticsService = class AnalyticsService {
                     gte: startDate,
                     lte: endDate,
                 },
-                status: { not: 'CANCELLED' },
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             include: { items: true, refunds: true }
         });
@@ -194,7 +194,7 @@ let AnalyticsService = class AnalyticsService {
                 order: {
                     tenantId,
                     branchId: this.tenantService.getBranchId(),
-                    status: { not: 'CANCELLED' }
+                    status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
                 }
             },
             include: { product: true }
@@ -220,7 +220,7 @@ let AnalyticsService = class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             include: { branch: true, payments: true, refunds: true, items: true }
         });
@@ -454,7 +454,7 @@ let AnalyticsService = class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
         });
         const summary = orders.reduce((acc, order) => {
@@ -494,7 +494,7 @@ let AnalyticsService = class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             include: { customer: true }
         });
@@ -531,7 +531,7 @@ let AnalyticsService = class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             include: { user: { select: { name: true } } }
         });
@@ -638,7 +638,7 @@ let AnalyticsService = class AnalyticsService {
                     tenantId,
                     ...(branchId ? { branchId } : {}),
                     createdAt: { gte: startDate, lte: endDate },
-                    status: { not: 'CANCELLED' }
+                    status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
                 }
             },
             include: { product: { select: { name: true } } }
@@ -668,7 +668,7 @@ let AnalyticsService = class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             select: { totalAmount: true, createdAt: true }
         });
@@ -688,7 +688,7 @@ let AnalyticsService = class AnalyticsService {
                 tenantId,
                 ...(branchId ? { branchId } : {}),
                 createdAt: { gte: startDate, lte: endDate },
-                status: { not: 'CANCELLED' }
+                status: { in: ['COMPLETED', 'READY', 'DELIVERED'] }
             },
             select: { totalAmount: true, createdAt: true }
         });

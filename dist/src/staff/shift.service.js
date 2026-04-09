@@ -142,6 +142,13 @@ let ShiftService = class ShiftService {
             orderBy: { startTime: 'desc' }
         });
     }
+    async hasOpenShift(tenantId, userId) {
+        const shift = await this.prisma.client.shift.findFirst({
+            where: { userId, status: 'OPEN', tenantId },
+            select: { id: true }
+        });
+        return !!shift;
+    }
 };
 exports.ShiftService = ShiftService;
 exports.ShiftService = ShiftService = __decorate([

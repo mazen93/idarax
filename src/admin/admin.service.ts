@@ -11,17 +11,7 @@ export class AdminService {
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    const [
-      totalTenants,
-      totalBranches,
-      totalOrders,
-      revenueResult,
-      activeSubscriptions,
-      trialTenants,
-      expiringSoon,
-      newTenantsThisMonth,
-      newTenantsLastMonth,
-    ] = await Promise.all([
+    const results = await Promise.all([
       this.prisma.tenant.count(),
       this.prisma.branch.count(),
       this.prisma.order.count(),
@@ -33,7 +23,32 @@ export class AdminService {
       }),
       this.prisma.tenant.count({ where: { createdAt: { gte: startOfMonth } } }),
       this.prisma.tenant.count({ where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } } }),
+      (this.prisma.tenant as any).groupBy({
+        by: ['countryCode', 'country'],
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 10
+      }),
     ]);
+
+    const [
+        totalTenants,
+        totalBranches,
+        totalOrders,
+        revenueResult,
+        activeSubscriptions,
+        trialTenants,
+        expiringSoon,
+        newTenantsThisMonth,
+        newTenantsLastMonth,
+        tenantsByCountryRaw
+      ] = results as any[];
+
+    const tenantsByCountry = (tenantsByCountryRaw as any[]).map(c => ({
+      country: c.country || 'Unknown',
+      code: c.countryCode || '??',
+      count: c._count.id
+    }));
 
     const mrr = revenueResult._sum.totalAmount ? Number(revenueResult._sum.totalAmount) / 12 : 0;
     const growth = newTenantsLastMonth > 0
@@ -51,6 +66,7 @@ export class AdminService {
       expiringSoon,
       newTenantsThisMonth,
       growthPercent: growth,
+      tenantsByCountry,
     };
   }
 
@@ -75,10 +91,11 @@ export class AdminService {
     plan?: string;
     status?: string;
     search?: string;
+    countryCode?: string;
     page?: number;
     limit?: number;
   }) {
-    const { plan, status, search, page = 1, limit = 20 } = filter;
+    const { plan, status, search, countryCode, page = 1, limit = 20 } = filter;
     const skip = (page - 1) * limit;
     const now = new Date();
 
@@ -99,6 +116,10 @@ export class AdminService {
         { subscriptionExpiresAt: null },
       ];
       where.isTrial = false;
+    }
+
+    if (countryCode) {
+      where.countryCode = countryCode;
     }
 
     if (search) {
@@ -253,6 +274,12 @@ export class AdminService {
     // Upgrade tenant — default 365 days
     await this.updateTenantSubscription(request.tenantId, request.toPlanId, 365);
 
+    // Activate tenant if it was pending
+    await (this.prisma as any).tenant.update({
+      where: { id: request.tenantId },
+      data: { isActive: true, status: 'ACTIVE' }
+    });
+
     return (this.prisma as any).upgradeRequest.update({
       where: { id: requestId },
       data: { status: 'APPROVED', processedAt: new Date() },
@@ -326,6 +353,71 @@ export class AdminService {
         maxPos: plan.maxPos,
         maxKds: plan.maxKds,
       },
+    });
+  }
+
+  async getCountryAnalytics() {
+    const tenants = await this.prisma.tenant.findMany({
+      select: {
+        country: true,
+        countryCode: true,
+        isTrial: true,
+        _count: { select: { orders: true } },
+        orders: {
+          select: { totalAmount: true }
+        }
+      }
+    });
+
+    const countryMap: Record<string, any> = {};
+    for (const t of tenants) {
+      const code = t.countryCode || '??';
+      if (!countryMap[code]) {
+        countryMap[code] = {
+          country: t.country || 'Unknown',
+          code,
+          tenantCount: 0,
+          activeCount: 0,
+          trialCount: 0,
+          totalRevenue: 0,
+          totalOrders: 0
+        };
+      }
+      const data = countryMap[code];
+      data.tenantCount++;
+      if (t.isTrial) data.trialCount++; else data.activeCount++;
+      data.totalOrders += t._count.orders;
+      data.totalRevenue += t.orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+    }
+
+    return Object.values(countryMap).sort((a: any, b: any) => b.totalRevenue - a.totalRevenue);
+  }
+
+  async updateTenantCountry(tenantId: string, country: string, countryCode: string) {
+    return (this.prisma.tenant as any).update({
+      where: { id: tenantId },
+      data: { country, countryCode }
+    });
+  }
+
+  async approveTenant(id: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id },
+      include: { plan: true }
+    });
+    if (!tenant) throw new NotFoundException('Tenant not found');
+
+    const now = new Date();
+    const expiry = tenant.subscriptionExpiresAt || new Date(now.getTime() + 30 * 86400000);
+
+    return this.prisma.tenant.update({
+      where: { id },
+      data: {
+        isActive: true,
+        status: 'ACTIVE',
+        subscriptionExpiresAt: expiry,
+        isTrial: false,
+      }
     });
   }
 

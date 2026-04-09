@@ -20,4 +20,6 @@ export declare class CreatePublicOrderDto {
     source?: string;
     note?: string;
     items: PublicOrderItemDto[];
+    scheduledAt?: string;
+    isPreOrder?: boolean;
 }

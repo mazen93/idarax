@@ -153,4 +153,13 @@ export class ShiftService {
             orderBy: { startTime: 'desc' }
         });
     }
+
+    /** Helper for OrderService validation */
+    async hasOpenShift(tenantId: string, userId: string): Promise<boolean> {
+        const shift = await (this.prisma.client as any).shift.findFirst({
+            where: { userId, status: 'OPEN', tenantId },
+            select: { id: true }
+        });
+        return !!shift;
+    }
 }

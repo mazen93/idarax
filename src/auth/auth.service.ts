@@ -148,6 +148,9 @@ export class AuthService {
             }
         }
 
+        const isTenantActive = user?.role === 'SUPER_ADMIN' ? true : (user?.tenant?.isActive ?? false);
+        const tenantStatus = user?.tenant?.status || (user?.role === 'SUPER_ADMIN' ? 'ACTIVE' : 'PENDING');
+
         // Sign access token
         const accessToken = await this.jwtService.signAsync(
             {
@@ -161,6 +164,8 @@ export class AuthService {
                 features: user?.tenant?.plan?.features || [],
                 isExpired,
                 daysRemaining,
+                isTenantActive,
+                tenantStatus,
                 jti,
             },
             { expiresIn: '1h' }
@@ -207,6 +212,8 @@ export class AuthService {
             features: user?.tenant?.plan?.features || [],
             isExpired,
             daysRemaining,
+            isTenantActive,
+            tenantStatus,
         };
     }
 
@@ -380,6 +387,8 @@ export class AuthService {
             branchId: user.branchId,
             permissions: permissionArray,
             features: user.tenant?.plan?.features || [],
+            isTenantActive: user.role === 'SUPER_ADMIN' ? true : (user.tenant?.isActive ?? false),
+            tenantStatus: user.tenant?.status || (user.role === 'SUPER_ADMIN' ? 'ACTIVE' : 'PENDING'),
         };
     }
 }

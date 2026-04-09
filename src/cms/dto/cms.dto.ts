@@ -37,6 +37,9 @@ export class SelfRegisterDto {
     @ApiProperty() @IsString() adminLastName: string;
     @ApiProperty({ required: false }) @IsOptional() @IsString() planId?: string;
     @ApiProperty({ required: false }) @IsOptional() @IsString() type?: string;
+    @ApiProperty({ required: false }) @IsOptional() @IsString() country?: string;
+    @ApiProperty({ required: false }) @IsOptional() @IsString() countryCode?: string;
+    @ApiProperty({ required: false }) @IsOptional() @IsString() vatNumber?: string;
 }
 
 export class SubmitContactDto {

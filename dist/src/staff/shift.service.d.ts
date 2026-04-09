@@ -14,4 +14,5 @@ export declare class ShiftService {
     startBreak(userId: string, dto: StartBreakDto): Promise<any>;
     endBreak(userId: string): Promise<any>;
     getAllShifts(from?: Date, to?: Date, branchId?: string): Promise<any>;
+    hasOpenShift(tenantId: string, userId: string): Promise<boolean>;
 }

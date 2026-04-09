@@ -157,6 +157,9 @@ class SelfRegisterDto {
     adminLastName;
     planId;
     type;
+    country;
+    countryCode;
+    vatNumber;
 }
 exports.SelfRegisterDto = SelfRegisterDto;
 __decorate([
@@ -196,6 +199,24 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], SelfRegisterDto.prototype, "type", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SelfRegisterDto.prototype, "country", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SelfRegisterDto.prototype, "countryCode", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SelfRegisterDto.prototype, "vatNumber", void 0);
 class SubmitContactDto {
     name;
     email;

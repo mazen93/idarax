@@ -87,8 +87,11 @@ export class OrderController {
     @Patch(':id/status')
     @Permissions(Actions.ORDERS.CREATE) // Or POS access
     @ApiOperation({ summary: 'Update order status (KDS actions)' })
-    updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
-        return this.orderService.updateStatus(id, body.status);
+    updateStatus(
+        @Param('id') id: string, 
+        @Body() body: { status: string; paymentMethod?: string; paidAmount?: number }
+    ) {
+        return this.orderService.updateStatus(id, body.status, body.paymentMethod, body.paidAmount);
     }
 
     @Patch(':id/table')

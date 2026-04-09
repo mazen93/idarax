@@ -24,6 +24,8 @@ export declare class AuthService {
         features: string[];
         isExpired: boolean;
         daysRemaining: number;
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     login(dto: LoginDto): Promise<{
         access_token: string;
@@ -36,6 +38,8 @@ export declare class AuthService {
         features: string[];
         isExpired: boolean;
         daysRemaining: number;
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     signToken(userId: string, email: string, tenantId: string, role: string, name: string, branchId?: string, sessionMeta?: {
         deviceName?: string;
@@ -52,6 +56,8 @@ export declare class AuthService {
         features: string[];
         isExpired: boolean;
         daysRemaining: number;
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     logout(token: string, userId?: string, userEmail?: string, tenantId?: string): Promise<{
         message: string;
@@ -69,6 +75,8 @@ export declare class AuthService {
         features: string[];
         isExpired: boolean;
         daysRemaining: number;
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     loginByPin(dto: PinLoginDto): Promise<{
         access_token: string;
@@ -81,6 +89,8 @@ export declare class AuthService {
         features: string[];
         isExpired: boolean;
         daysRemaining: number;
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
     verifyOverride(dto: VerifyOverrideDto): Promise<{
         override_token: string;
@@ -95,5 +105,7 @@ export declare class AuthService {
         branchId: string | null;
         permissions: any[];
         features: string[];
+        isTenantActive: boolean;
+        tenantStatus: string;
     }>;
 }

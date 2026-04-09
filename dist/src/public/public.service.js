@@ -104,7 +104,7 @@ let PublicService = class PublicService {
         });
         if (!tenant)
             return [];
-        const branches = await this.prisma.branch.findMany({
+        const branches = await this.prisma.client.branch.findMany({
             where: {
                 tenantId: tenant.id,
                 isActive: true,
@@ -115,10 +115,26 @@ let PublicService = class PublicService {
                 nameAr: true,
                 address: true,
                 phone: true,
+                settings: {
+                    select: {
+                        preOrderEnabled: true,
+                        preOrderMaxDaysAhead: true,
+                        preOrderLeadMinutes: true,
+                    }
+                }
             },
             orderBy: { name: 'asc' },
         });
-        return branches;
+        return branches.map((b) => ({
+            id: b.id,
+            name: b.name,
+            nameAr: b.nameAr,
+            address: b.address,
+            phone: b.phone,
+            preOrderEnabled: b.settings?.preOrderEnabled ?? false,
+            preOrderMaxDaysAhead: b.settings?.preOrderMaxDaysAhead ?? 7,
+            preOrderLeadMinutes: b.settings?.preOrderLeadMinutes ?? 30,
+        }));
     }
     async getMenu(tenantIdOrDomain, branchId) {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantIdOrDomain);
@@ -283,7 +299,9 @@ let PublicService = class PublicService {
                     orderType: (finalOrderType === 'PICKUP' ? 'TAKEAWAY' : finalOrderType),
                     source: (dto.source || 'WEB_STORE'),
                     note: dto.note,
-                    status: 'PENDING',
+                    status: dto.isPreOrder && dto.scheduledAt ? 'SCHEDULED' : 'PENDING',
+                    isPreOrder: dto.isPreOrder || false,
+                    scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
                     receiptNumber,
                     invoiceNumber,
                     items: {

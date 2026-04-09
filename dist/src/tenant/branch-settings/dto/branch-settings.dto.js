@@ -36,6 +36,9 @@ class UpdateBranchSettingsDto {
     receiptShowTotal;
     receiptShowPaymentMethod;
     receiptShowBarcode;
+    preOrderEnabled;
+    preOrderMaxDaysAhead;
+    preOrderLeadMinutes;
 }
 exports.UpdateBranchSettingsDto = UpdateBranchSettingsDto;
 __decorate([
@@ -176,4 +179,22 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateBranchSettingsDto.prototype, "receiptShowBarcode", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, description: 'Enable customers to schedule future orders from the web store', example: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateBranchSettingsDto.prototype, "preOrderEnabled", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, description: 'How many days ahead a customer can schedule (default 7)', example: 7 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdateBranchSettingsDto.prototype, "preOrderMaxDaysAhead", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, description: 'Minutes before scheduled time the kitchen is notified (default 30)', example: 30 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdateBranchSettingsDto.prototype, "preOrderLeadMinutes", void 0);
 //# sourceMappingURL=branch-settings.dto.js.map

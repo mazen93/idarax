@@ -49,4 +49,21 @@ export class UpdateBranchSettingsDto {
     @ApiProperty({ required: false }) @IsOptional() @IsBoolean() receiptShowTotal?: boolean;
     @ApiProperty({ required: false }) @IsOptional() @IsBoolean() receiptShowPaymentMethod?: boolean;
     @ApiProperty({ required: false }) @IsOptional() @IsBoolean() receiptShowBarcode?: boolean;
+
+    // ─── Pre-Order Settings ───────────────────────────────────────────────────
+
+    @ApiProperty({ required: false, description: 'Enable customers to schedule future orders from the web store', example: true })
+    @IsOptional()
+    @IsBoolean()
+    preOrderEnabled?: boolean;
+
+    @ApiProperty({ required: false, description: 'How many days ahead a customer can schedule (default 7)', example: 7 })
+    @IsOptional()
+    @IsNumber()
+    preOrderMaxDaysAhead?: number;
+
+    @ApiProperty({ required: false, description: 'Minutes before scheduled time the kitchen is notified (default 30)', example: 30 })
+    @IsOptional()
+    @IsNumber()
+    preOrderLeadMinutes?: number;
 }

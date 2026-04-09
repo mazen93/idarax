@@ -1,4 +1,4 @@
-import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -167,6 +167,16 @@ export class CreateOrderDto {
     @ApiProperty({ required: false })
     @IsOptional()
     redeemAsCashback?: boolean;
+
+    @ApiProperty({ required: false, description: 'ISO 8601 datetime for scheduled (pre-)orders' })
+    @IsOptional()
+    @IsDateString()
+    scheduledAt?: string;
+
+    @ApiProperty({ required: false, description: 'Mark this order as a pre-order (scheduled for the future)' })
+    @IsOptional()
+    @IsBoolean()
+    isPreOrder?: boolean;
 }
 
 export class SplitBillDto {

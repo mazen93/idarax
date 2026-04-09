@@ -16,6 +16,8 @@ import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/dto/notifications.dto';
 import { DrovoService } from '../delivery-aggregator/drovo.service';
+import { ZatcaReportingService } from '../zatca/zatca-reporting.service';
+import { ShiftService } from '../staff/shift.service';
 
 @Injectable()
 export class OrderService {
@@ -26,6 +28,7 @@ export class OrderService {
         private numberingService: NumberingService,
         private mailService: MailService,
         @InjectQueue('orders') private orderQueue: Queue,
+        @InjectQueue('pre-orders') private preOrderQueue: Queue,
         @Optional() private drawerService?: DrawerService,
         @Optional() private auditLog?: AuditLogService,
         @Optional() private analyticsService?: AnalyticsService,
@@ -33,6 +36,8 @@ export class OrderService {
         @Optional() private kdsGateway?: KdsGateway,
         @Optional() private notificationsService?: NotificationsService,
         @Optional() private drovoService?: DrovoService,
+        @Optional() private zatcaService?: ZatcaReportingService,
+        @Optional() private shiftService?: ShiftService,
     ) { }
 
     private get db() {
@@ -42,8 +47,11 @@ export class OrderService {
     async createAsync(dto: CreateOrderDto, userId?: string) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
-
         const branchId = this.tenantService.getBranchId();
+
+        // VALIDATION: Check for open shift and drawer if required
+        await this.validateShiftAndDrawer(tenantId, branchId, userId);
+
         const job = await this.orderQueue.add('create-order', {
             orderData: {
                 tableId: dto.tableId,
@@ -65,6 +73,10 @@ export class OrderService {
     async createDirect(dto: CreateOrderDto & { userId?: string; orderType?: string; paymentMethod?: string; note?: string; paidAmount?: number; splitPayments?: { method: string, amount: number }[] }) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+        const branchId = this.tenantService.getBranchId() || (dto as any).branchId;
+
+        // VALIDATION: Check for open shift and drawer if required
+        await this.validateShiftAndDrawer(tenantId, branchId, dto.userId);
 
         let finalTotalAmount = dto.totalAmount;
         let appliedDiscount = 0;
@@ -207,7 +219,10 @@ export class OrderService {
                         customerId: dto.customerId || null,
                         totalAmount: finalTotalAmount,
                         paidAmount: totalPaidNow,
-                        status: dto.status || (isFullyPaid ? 'COMPLETED' : 'PENDING'),
+                        // Pre-orders hold SCHEDULED status regardless of payment
+                        status: dto.isPreOrder
+                            ? 'SCHEDULED'
+                            : dto.status || (isFullyPaid ? 'COMPLETED' : 'PENDING'),
                         orderType: dto.orderType || (dto.tableId ? 'DINE_IN' : 'IN_STORE'),
                         paymentMethod: dto.splitPayments?.length ? 'MULTI' : (dto.paymentMethod || 'CASH'),
                         guestName: dto.guestName,
@@ -223,6 +238,9 @@ export class OrderService {
                         userId: dto.userId || null,
                         receiptNumber,
                         invoiceNumber,
+                        // Pre-order tracking fields
+                        isPreOrder: dto.isPreOrder || false,
+                        scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
                         items: {
                             create: resolvedItems.map((item, idx) => ({
                                 productId: item.productId,
@@ -270,8 +288,11 @@ export class OrderService {
             }
 
             // 2. Deduct stock for each item (recursively handling recipes)
-            for (const item of dto.items) {
-                await this.deductStockRecursively(tx, tenantId, branchId, item.productId, item.quantity, order.id);
+            // For pre-orders, stock is deducted when the order fires to kitchen (not now)
+            if (!dto.isPreOrder) {
+                for (const item of dto.items) {
+                    await this.deductStockRecursively(tx, tenantId, branchId, item.productId, item.quantity, order.id);
+                }
             }
 
             // 3. Handle Loyalty Point Deduction
@@ -367,8 +388,8 @@ export class OrderService {
                 this.analyticsService.pushStatsUpdate(tenantId, branchId).catch(() => { });
             }
 
-            // 6. Notify KDS
-            if (this.kdsGateway) {
+            // 6. Notify KDS (skip for pre-orders — kitchen fires when scheduledAt approaches)
+            if (this.kdsGateway && !dto.isPreOrder) {
                 // Notify for the whole order first
                 this.kdsGateway.notifyNewOrder(tenantId, order);
 
@@ -401,16 +422,151 @@ export class OrderService {
                 }
             }
 
-            // 7. Dispatch to Drovo if applicable
-            if (this.drovoService && order.orderType === 'DELIVERY') {
+            // 7. Dispatch to Drovo if applicable (skip for pre-orders)
+            if (this.drovoService && order.orderType === 'DELIVERY' && !dto.isPreOrder) {
                 // Fire and forget so we don't delay POS response
                 this.drovoService.dispatchOrder(order.id, tenantId).catch(err => {
                     console.error('Failed to trigger Drovo dispatch background task:', err);
                 });
             }
 
+            // 8. Trigger ZATCA reporting if applicable (not for pre-orders — fire when fulfilled)
+            if (this.zatcaService && isFullyPaid && !dto.isPreOrder) {
+                try {
+                const zatcaStatus = await this.zatcaService.reportOrder(order.id);
+                (order as any).zatcaReport = zatcaStatus;
+                } catch (err) {
+                    console.error('Failed to trigger ZATCA reporting task:', err);
+                }
+            }
+
+            // 9. Schedule pre-order Bull delayed job
+            if (dto.isPreOrder && dto.scheduledAt) {
+                const branchSettings = branchId
+                    ? await (this.prisma.client as any).branchSettings.findUnique({ where: { branchId } })
+                    : null;
+                const leadMinutes: number = branchSettings?.preOrderLeadMinutes ?? 30;
+                const scheduledTime = new Date(dto.scheduledAt).getTime();
+                const fireAt = scheduledTime - leadMinutes * 60 * 1000;
+                const delayMs = Math.max(0, fireAt - Date.now());
+
+                await this.preOrderQueue.add(
+                    'fire-pre-order',
+                    { orderId: order.id, tenantId, branchId },
+                    { delay: delayMs, attempts: 3, backoff: { type: 'exponential', delay: 5000 } },
+                );
+
+                // Notify manager that a pre-order was received
+                if (this.notificationsService) {
+                    const receiptNum = (order as any).receiptNumber ?? '';
+                    this.notificationsService.create(tenantId, {
+                        type: NotificationType.PRE_ORDER_RECEIVED,
+                        title: 'Pre-Order Received',
+                        message: `Pre-order #${receiptNum} scheduled for ${new Date(dto.scheduledAt).toLocaleString()}.`,
+                        branchId: branchId ?? undefined,
+                        meta: { orderId: order.id, scheduledAt: dto.scheduledAt },
+                    }).catch(() => {});
+                }
+            }
+
             return order;
         });
+    }
+
+    /**
+     * Fires a SCHEDULED pre-order to the kitchen.
+     * Called by the pre-order Bull processor when scheduledAt - leadMinutes is reached.
+     */
+    async firePreOrder(orderId: string) {
+        const order = await (this.prisma.client as any).order.findUnique({
+            where: { id: orderId },
+            include: {
+                items: {
+                    include: {
+                        product: { include: { category: { select: { name: true } }, usedInRecipes: { include: { ingredient: { select: { name: true } } } } } },
+                        variant: { select: { name: true } },
+                        modifiers: { include: { option: true } },
+                    },
+                },
+                customer: { select: { name: true } },
+                table: { select: { number: true } },
+                user: { select: { name: true } },
+                payments: true,
+            },
+        });
+
+        if (!order || order.status !== 'SCHEDULED') {
+            return null; // Already fired or cancelled
+        }
+
+        // Transition to PENDING so kitchen sees it
+        const fired = await (this.prisma.client as any).order.update({
+            where: { id: orderId },
+            data: { status: 'PENDING' },
+        });
+
+        // Deduct stock now
+        for (const item of order.items) {
+            await this.deductStockRecursively(
+                this.prisma.client,
+                order.tenantId,
+                order.branchId,
+                item.productId,
+                item.quantity,
+                orderId,
+            );
+        }
+
+        // Notify KDS
+        if (this.kdsGateway) {
+            this.kdsGateway.notifyNewOrder(order.tenantId, { ...order, status: 'PENDING' });
+
+            if (order.items) {
+                const stationItemsMap = new Map<string, any[]>();
+                for (const item of order.items) {
+                    if (item.stationId) {
+                        if (!stationItemsMap.has(item.stationId)) stationItemsMap.set(item.stationId, []);
+                        stationItemsMap.get(item.stationId)!.push(item);
+                    }
+                }
+                for (const [stationId, items] of stationItemsMap.entries()) {
+                    for (const item of items) {
+                        this.kdsGateway.notifyStationOrder(order.tenantId, stationId, {
+                            ...item,
+                            order: {
+                                orderNumber: order.receiptNumber,
+                                tableName: order.table?.number || order.tableId,
+                                table: order.table,
+                            },
+                        });
+                    }
+                }
+            }
+        }
+
+        // Dispatch to Drovo if delivery
+        if (this.drovoService && order.orderType === 'DELIVERY') {
+            this.drovoService.dispatchOrder(orderId, order.tenantId).catch(err =>
+                console.error('Pre-order Drovo dispatch failed:', err),
+            );
+        }
+
+        // Notify staff
+        if (this.notificationsService) {
+            this.notificationsService.create(order.tenantId, {
+                type: NotificationType.PRE_ORDER_FIRED,
+                title: 'Pre-Order Sent to Kitchen',
+                message: `Pre-order #${order.receiptNumber} has been fired to the kitchen.`,
+                branchId: order.branchId ?? undefined,
+                meta: { orderId },
+            }).catch(() => {});
+        }
+
+        if (this.analyticsService) {
+            this.analyticsService.pushStatsUpdate(order.tenantId, order.branchId).catch(() => {});
+        }
+
+        return fired;
     }
 
     private async resolveStationIds(tx: any, items: any[]) {
@@ -584,7 +740,7 @@ export class OrderService {
         });
     }
 
-    async updateStatus(id: string, status: string) {
+    async updateStatus(id: string, status: string, paymentMethod?: string, paidAmount?: number) {
         const order = await this.db.findUnique({ where: { id } });
         if (!order) throw new NotFoundException('Order not found');
 
@@ -593,23 +749,27 @@ export class OrderService {
         // If marking as COMPLETED, ensure it's fully paid
         if (status === 'COMPLETED' && Number(order.paidAmount) < Number(order.totalAmount)) {
             const balance = Number(order.totalAmount) - Number(order.paidAmount);
-            data.paidAmount = { increment: balance };
+            const settlementAmount = paidAmount || balance;
+            data.paidAmount = { increment: settlementAmount };
+            const methodToUse = paymentMethod || order.paymentMethod || 'CASH';
 
             // Create a payment record for the balance
             await (this.prisma.client as any).payment.create({
                 data: {
                     orderId: id,
-                    amount: balance,
-                    method: order.paymentMethod || 'CASH',
+                    amount: settlementAmount,
+                    method: methodToUse,
                     status: 'COMPLETED',
                 }
             });
 
+            // Update order payment method if provide
+            if (paymentMethod) data.paymentMethod = paymentMethod;
+
             // Auto-record in cash drawer if settled in cash
-            if ((order.paymentMethod === 'CASH' || !order.paymentMethod) && this.drawerService) {
+            if ((methodToUse === 'CASH') && this.drawerService) {
                 const branchId = this.tenantService.getBranchId() || (order as any).branchId;
-                // Remove the catch to let errors bubble up
-                await this.drawerService.recordSaleByTenant(order.tenantId, branchId, balance, order.id);
+                await this.drawerService.recordSaleByTenant(order.tenantId, branchId, settlementAmount, order.id);
             }
         }
 
@@ -637,6 +797,17 @@ export class OrderService {
                 );
             } catch (error) {
                 console.error('Failed to process loyalty for order:', error);
+            }
+        }
+
+        // Trigger ZATCA Reporting for COMPLETED orders
+        if (status === 'COMPLETED' && this.zatcaService) {
+            try {
+                await this.zatcaService.reportOrder(updated.id).catch(err => {
+                    console.error('Failed to report order to ZATCA:', err);
+                });
+            } catch (error) {
+                console.error('Failed to process ZATCA reporting for completed order:', error);
             }
         }
 
@@ -1211,4 +1382,36 @@ export class OrderService {
         `;
     }
 
+    private async validateShiftAndDrawer(tenantId: string, branchId: string | undefined, userId?: string) {
+        if (!userId) return; // Cannot enforce for guest/system actions without a user context
+
+        // 1. Fetch settings (both global and branch-specific if applicable)
+        const settings = await this.prisma.settings.findUnique({
+            where: { tenantId },
+            select: { requireOpenShift: true, requireOpenDrawer: true }
+        });
+
+        const branchSettings = branchId ? await (this.prisma.client as any).branchSettings.findUnique({
+            where: { branchId },
+            select: { requireOpenShift: true, requireOpenDrawer: true }
+        }) : null;
+
+        const requireShift = branchSettings?.requireOpenShift ?? settings?.requireOpenShift ?? false;
+        const requireDrawer = branchSettings?.requireOpenDrawer ?? settings?.requireOpenDrawer ?? false;
+
+        // 2. Perform checks
+        if (requireShift && this.shiftService) {
+            const hasShift = await this.shiftService.hasOpenShift(tenantId, userId);
+            if (!hasShift) {
+                throw new BadRequestException('You must open a shift before you can take orders.');
+            }
+        }
+
+        if (requireDrawer && this.drawerService) {
+            const hasDrawer = await this.drawerService.hasOpenSession(tenantId, branchId, userId);
+            if (!hasDrawer) {
+                throw new BadRequestException('You must open a cash drawer before you can take orders.');
+            }
+        }
+    }
 }

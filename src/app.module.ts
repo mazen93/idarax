@@ -58,6 +58,8 @@ import { AdminModule } from './admin/admin.module';
 import { ReportingModule } from './reporting/reporting.module';
 import { AuditModule } from './retail/audit/audit.module';
 import { AttendanceModule } from './staff/attendance/attendance.module';
+import { ZatcaModule } from './zatca/zatca.module';
+import { TenantActiveGuard } from './auth/tenant-active.guard';
 
 @Module({
   imports: [
@@ -125,11 +127,13 @@ import { AttendanceModule } from './staff/attendance/attendance.module';
     ReportingModule,
     AuditModule,
     AttendanceModule,
+    ZatcaModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: TenantActiveGuard },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
   ],
 })

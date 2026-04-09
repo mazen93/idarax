@@ -23,14 +23,20 @@ async function main() {
     userId: user.id,
     tenantId: user.tenantId,
     tenantName: user.tenant?.name,
+    status: user.tenant?.status,
+    isActive: user.tenant?.isActive,
     planName: user.tenant?.plan?.name,
     features: user.tenant?.plan?.features,
     expiryDate: user.tenant?.subscriptionExpiresAt,
-    maxPos: user.tenant?.maxPos,
-    maxKds: user.tenant?.maxKds,
-    planMaxPos: user.tenant?.plan?.maxPos,
-    planMaxKds: user.tenant?.plan?.maxKds,
   }, null, 2));
+
+  const requests = await prisma.upgradeRequest.findMany({
+    where: { tenantId: user.tenantId, status: 'PENDING' },
+    include: { toPlan: true }
+  });
+
+  console.log('--- Pending Upgrade Requests ---');
+  console.log(JSON.stringify(requests, null, 2));
 }
 
 main()

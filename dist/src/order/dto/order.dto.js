@@ -123,6 +123,8 @@ class CreateOrderDto {
     loyaltyPointsToRedeem;
     rewards;
     redeemAsCashback;
+    scheduledAt;
+    isPreOrder;
 }
 exports.CreateOrderDto = CreateOrderDto;
 __decorate([
@@ -244,6 +246,18 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)
 ], CreateOrderDto.prototype, "redeemAsCashback", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, description: 'ISO 8601 datetime for scheduled (pre-)orders' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "scheduledAt", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false, description: 'Mark this order as a pre-order (scheduled for the future)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateOrderDto.prototype, "isPreOrder", void 0);
 class SplitBillDto {
     orderId;
     splitType;

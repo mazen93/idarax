@@ -90,7 +90,9 @@ export class SettingsService {
                 'receiptShowTimestamp', 'receiptShowOrderType', 'receiptShowOperator',
                 'receiptShowItemsDescription', 'receiptShowItemsQty', 'receiptShowItemsPrice',
                 'receiptShowSubtotal', 'receiptShowTax', 'receiptShowServiceCharge',
-                'receiptShowDiscount', 'receiptShowTotal', 'receiptShowPaymentMethod', 'receiptShowBarcode'
+                'receiptShowDiscount', 'receiptShowTotal', 'receiptShowPaymentMethod', 'receiptShowBarcode',
+                'preOrderEnabled', 'preOrderMaxDaysAhead', 'preOrderLeadMinutes',
+                'requireOpenShift', 'requireOpenDrawer'
             ];
 
             const branchData: any = {};

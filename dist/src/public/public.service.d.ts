@@ -23,11 +23,14 @@ export declare class PublicService {
         contactPhone: any;
     }>;
     getBranches(tenantIdOrDomain: string): Promise<{
-        id: string;
-        name: string;
-        nameAr: string | null;
-        phone: string | null;
-        address: string | null;
+        id: any;
+        name: any;
+        nameAr: any;
+        address: any;
+        phone: any;
+        preOrderEnabled: any;
+        preOrderMaxDaysAhead: any;
+        preOrderLeadMinutes: any;
     }[]>;
     getMenu(tenantIdOrDomain: string, branchId?: string): Promise<{
         products: {

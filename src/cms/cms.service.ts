@@ -72,8 +72,26 @@ export class CmsService {
                     name: dto.tenantName, 
                     type: (dto.type as any) || 'RESTAURANT',
                     planId: dto.planId,
+                    isActive: false, // Must be approved by super admin
+                    status: 'PENDING',
+                    country: dto.country,
+                    countryCode: dto.countryCode,
+                    vatNumber: dto.vatNumber,
                 },
             });
+
+            // Create initial upgrade/subscription request
+            if (dto.planId) {
+                await tx.upgradeRequest.create({
+                    data: {
+                        tenantId: tenant.id,
+                        toPlanId: dto.planId,
+                        status: 'PENDING',
+                        note: 'Initial subscription during registration'
+                    }
+                });
+            }
+
             const user = await tx.user.create({
                 data: {
                     email: dto.adminEmail,
@@ -89,11 +107,11 @@ export class CmsService {
                 data: {
                     name: 'Main Branch',
                     tenantId: tenant.id,
-                    isActive: true,
+                    isActive: true, // Internal branch remains active, but tenant is not
                 }
             });
 
-            return { tenantId: tenant.id, userId: user.id, message: 'Registration successful! You can now log in.' };
+            return { tenantId: tenant.id, userId: user.id, message: 'Registration successful! Your account is pending Super Admin approval. You will be notified once activated.' };
         });
     }
 

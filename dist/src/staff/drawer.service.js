@@ -174,6 +174,20 @@ let DrawerService = DrawerService_1 = class DrawerService {
             data: { sessionId: session.id, amount, type: 'REFUND', referenceId: orderId },
         });
     }
+    async hasOpenSession(tenantId, branchId, userId) {
+        let where = { userId, tenantId, status: 'OPEN' };
+        if (branchId) {
+            where.OR = [
+                { branchId },
+                { branchId: null }
+            ];
+        }
+        const session = await this.prisma.client.drawerSession.findFirst({
+            where,
+            select: { id: true }
+        });
+        return !!session;
+    }
     async getCurrentSession(userId) {
         const tenantId = this.tenantService.getTenantId();
         if (!tenantId)

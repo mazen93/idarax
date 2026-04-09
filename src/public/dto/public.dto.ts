@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsArray, IsNumber, IsOptional, ValidateNested, IsPhoneNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray, IsNumber, IsOptional, IsBoolean, IsDateString, ValidateNested, IsPhoneNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreatePublicOrderItemModifierDto {
@@ -76,4 +76,12 @@ export class CreatePublicOrderDto {
     @ValidateNested({ each: true })
     @Type(() => PublicOrderItemDto)
     items: PublicOrderItemDto[];
+
+    @IsString()
+    @IsOptional()
+    scheduledAt?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    isPreOrder?: boolean;
 }

@@ -3,16 +3,21 @@ export declare class AdminController {
     private readonly adminService;
     constructor(adminService: AdminService);
     getPlatformOverview(): Promise<{
-        activeTenants: number;
-        totalBranches: number;
-        totalOrders: number;
+        activeTenants: any;
+        totalBranches: any;
+        totalOrders: any;
         totalRevenue: number;
         mrr: number;
-        activeSubscriptions: number;
-        trialTenants: number;
-        expiringSoon: number;
-        newTenantsThisMonth: number;
+        activeSubscriptions: any;
+        trialTenants: any;
+        expiringSoon: any;
+        newTenantsThisMonth: any;
         growthPercent: string | null;
+        tenantsByCountry: {
+            country: any;
+            code: any;
+            count: any;
+        }[];
     }>;
     getTenantsDetailed(): Promise<{
         branchCount: number;
@@ -45,12 +50,14 @@ export declare class AdminController {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
         slug: string | null;
         domain: string | null;
         customDomain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
         hasDeliveryIntegration: boolean;
         planId: string | null;
+        status: string;
         isTrial: boolean;
         maxBranches: number;
         maxUsers: number;
@@ -58,8 +65,11 @@ export declare class AdminController {
         maxKds: number;
         subscriptionExpiresAt: Date | null;
         trialExpiresAt: Date | null;
+        country: string | null;
+        countryCode: string | null;
+        vatNumber: string | null;
     }[]>;
-    getFilteredTenants(plan?: string, status?: string, search?: string, page?: string, limit?: string): Promise<{
+    getFilteredTenants(plan?: string, status?: string, countryCode?: string, search?: string, page?: string, limit?: string): Promise<{
         data: {
             orderCount: number;
             userCount: number;
@@ -90,12 +100,14 @@ export declare class AdminController {
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            isActive: boolean;
             slug: string | null;
             domain: string | null;
             customDomain: string | null;
             type: import(".prisma/client").$Enums.TenantType;
             hasDeliveryIntegration: boolean;
             planId: string | null;
+            status: string;
             isTrial: boolean;
             maxBranches: number;
             maxUsers: number;
@@ -103,6 +115,9 @@ export declare class AdminController {
             maxKds: number;
             subscriptionExpiresAt: Date | null;
             trialExpiresAt: Date | null;
+            country: string | null;
+            countryCode: string | null;
+            vatNumber: string | null;
         }[];
         meta: {
             total: number;
@@ -146,6 +161,7 @@ export declare class AdminController {
             subscriptionExpiresAt: Date | null;
         }[];
     }>;
+    getCountryAnalytics(): Promise<any[]>;
     getAllPlans(): Promise<{
         id: string;
         name: string;
@@ -175,12 +191,14 @@ export declare class AdminController {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
         slug: string | null;
         domain: string | null;
         customDomain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
         hasDeliveryIntegration: boolean;
         planId: string | null;
+        status: string;
         isTrial: boolean;
         maxBranches: number;
         maxUsers: number;
@@ -188,6 +206,9 @@ export declare class AdminController {
         maxKds: number;
         subscriptionExpiresAt: Date | null;
         trialExpiresAt: Date | null;
+        country: string | null;
+        countryCode: string | null;
+        vatNumber: string | null;
     }>;
     extendTrial(id: string, dto: {
         days: number;
@@ -196,12 +217,14 @@ export declare class AdminController {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        isActive: boolean;
         slug: string | null;
         domain: string | null;
         customDomain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
         hasDeliveryIntegration: boolean;
         planId: string | null;
+        status: string;
         isTrial: boolean;
         maxBranches: number;
         maxUsers: number;
@@ -209,6 +232,33 @@ export declare class AdminController {
         maxKds: number;
         subscriptionExpiresAt: Date | null;
         trialExpiresAt: Date | null;
+        country: string | null;
+        countryCode: string | null;
+        vatNumber: string | null;
+    }>;
+    approveTenant(id: string): Promise<{
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        isActive: boolean;
+        slug: string | null;
+        domain: string | null;
+        customDomain: string | null;
+        type: import(".prisma/client").$Enums.TenantType;
+        hasDeliveryIntegration: boolean;
+        planId: string | null;
+        status: string;
+        isTrial: boolean;
+        maxBranches: number;
+        maxUsers: number;
+        maxPos: number;
+        maxKds: number;
+        subscriptionExpiresAt: Date | null;
+        trialExpiresAt: Date | null;
+        country: string | null;
+        countryCode: string | null;
+        vatNumber: string | null;
     }>;
     getSettings(): Promise<Record<string, any>>;
     updateSetting(key: string, dto: {

@@ -32,6 +32,9 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const tracing_1 = require("./tracing");
 tracing_1.otelSDK.start();
@@ -47,7 +50,7 @@ const nestjs_pino_1 = require("nestjs-pino");
 const Sentry = __importStar(require("@sentry/nestjs"));
 const prisma_service_1 = require("./prisma/prisma.service");
 const bcrypt = __importStar(require("bcryptjs"));
-const compression = __importStar(require("compression"));
+const compression_1 = __importDefault(require("compression"));
 Sentry.init({
     dsn: process.env.SENTRY_DSN,
     integrations: [],
@@ -161,7 +164,7 @@ async function bootstrap() {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
     });
-    app.use(compression());
+    app.use((0, compression_1.default)());
     app.setGlobalPrefix('api/v1');
     await seedDatabase(app);
     app.useGlobalPipes(new common_1.ValidationPipe({

@@ -68,6 +68,8 @@ class CreatePublicOrderDto {
     source;
     note;
     items;
+    scheduledAt;
+    isPreOrder;
 }
 exports.CreatePublicOrderDto = CreatePublicOrderDto;
 __decorate([
@@ -126,4 +128,14 @@ __decorate([
     (0, class_transformer_1.Type)(() => PublicOrderItemDto),
     __metadata("design:type", Array)
 ], CreatePublicOrderDto.prototype, "items", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreatePublicOrderDto.prototype, "scheduledAt", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreatePublicOrderDto.prototype, "isPreOrder", void 0);
 //# sourceMappingURL=public.dto.js.map

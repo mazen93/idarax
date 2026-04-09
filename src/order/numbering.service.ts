@@ -47,23 +47,64 @@ export class NumberingService {
         timezone: string,
         startHour = 0,
     ): Promise<number> {
+        console.log(`[NumberingService] Generating receipt number for tenant: ${tenantId}, branch: ${branchId}`);
+        
+        // Diagnostic: Check if branch exists
+        if (branchId) {
+            const branch = await tx.branch.findUnique({ where: { id: branchId } });
+            if (!branch) {
+                console.error(`[NumberingService] CRITICAL: Branch ${branchId} NOT FOUND in Branch table!`);
+            } else {
+                console.log(`[NumberingService] Confirmed: Branch ${branchId} exists (Tenant: ${branch.tenantId})`);
+            }
+        }
+
         const date = this.getBusinessDate(timezone, startHour);
 
-        // Upsert: create the row if it doesn't exist, then lock & increment.
-        // We use raw SQL for an atomic READ-MODIFY-WRITE with row-level locking.
-        const result = await tx.$queryRaw<{ sequence: number }[]>`
-            INSERT INTO "ReceiptCounter" (id, "tenantId", "branchId", date, sequence)
-            VALUES (gen_random_uuid()::text, ${tenantId}, ${branchId}, ${date}, 1)
-            ON CONFLICT ("tenantId", "branchId", date)
-            DO UPDATE SET
-                sequence = CASE
-                    WHEN "ReceiptCounter".sequence >= 999 THEN 1
-                    ELSE "ReceiptCounter".sequence + 1
-                END
-            RETURNING sequence
-        `;
+        // Try atomic update first. We split the query to avoid ambiguous parameter types (42P18) with NULLs.
+        const updated = branchId
+            ? await tx.$queryRaw<{ sequence: number }[]>`
+                UPDATE "ReceiptCounter" 
+                SET sequence = CASE WHEN sequence >= 999 THEN 1 ELSE sequence + 1 END
+                WHERE "tenantId" = ${tenantId} AND "date" = ${date} AND "branchId" = ${branchId}
+                RETURNING sequence
+            `
+            : await tx.$queryRaw<{ sequence: number }[]>`
+                UPDATE "ReceiptCounter" 
+                SET sequence = CASE WHEN sequence >= 999 THEN 1 ELSE sequence + 1 END
+                WHERE "tenantId" = ${tenantId} AND "date" = ${date} AND "branchId" IS NULL
+                RETURNING sequence
+            `;
 
-        return Number(result[0].sequence);
+        if (updated.length > 0) {
+            return Number(updated[0].sequence);
+        }
+
+        // If no row exists, try inserting. 
+        try {
+            const inserted = await tx.$queryRaw<{ sequence: number }[]>`
+                INSERT INTO "ReceiptCounter" (id, "tenantId", "branchId", date, sequence)
+                VALUES (gen_random_uuid()::text, ${tenantId}, ${branchId}, ${date}, 1)
+                RETURNING sequence
+            `;
+            return Number(inserted[0].sequence);
+        } catch (err) {
+            // Concurrent insert happened, retry update
+            const updatedRetry = branchId
+                ? await tx.$queryRaw<{ sequence: number }[]>`
+                    UPDATE "ReceiptCounter" 
+                    SET sequence = CASE WHEN sequence >= 999 THEN 1 ELSE sequence + 1 END
+                    WHERE "tenantId" = ${tenantId} AND "date" = ${date} AND "branchId" = ${branchId}
+                    RETURNING sequence
+                `
+                : await tx.$queryRaw<{ sequence: number }[]>`
+                    UPDATE "ReceiptCounter" 
+                    SET sequence = CASE WHEN sequence >= 999 THEN 1 ELSE sequence + 1 END
+                    WHERE "tenantId" = ${tenantId} AND "date" = ${date} AND "branchId" IS NULL
+                    RETURNING sequence
+                `;
+            return Number(updatedRetry[0].sequence);
+        }
     }
 
     /**

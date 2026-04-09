@@ -18,7 +18,7 @@ import { Logger } from 'nestjs-pino';
 import * as Sentry from '@sentry/nestjs';
 import { PrismaService } from './prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
-import * as compression from 'compression';
+import compression from 'compression';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,

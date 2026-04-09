@@ -155,6 +155,8 @@ let AuthService = class AuthService {
                 isExpired = daysRemaining < 0;
             }
         }
+        const isTenantActive = user?.role === 'SUPER_ADMIN' ? true : (user?.tenant?.isActive ?? false);
+        const tenantStatus = user?.tenant?.status || (user?.role === 'SUPER_ADMIN' ? 'ACTIVE' : 'PENDING');
         const accessToken = await this.jwtService.signAsync({
             sub: userId,
             email,
@@ -166,6 +168,8 @@ let AuthService = class AuthService {
             features: user?.tenant?.plan?.features || [],
             isExpired,
             daysRemaining,
+            isTenantActive,
+            tenantStatus,
             jti,
         }, { expiresIn: '1h' });
         const refreshToken = await this.jwtService.signAsync({ sub: userId, jti, type: 'refresh' }, { expiresIn: '7d' });
@@ -201,6 +205,8 @@ let AuthService = class AuthService {
             features: user?.tenant?.plan?.features || [],
             isExpired,
             daysRemaining,
+            isTenantActive,
+            tenantStatus,
         };
     }
     async logout(token, userId, userEmail, tenantId) {
@@ -334,6 +340,8 @@ let AuthService = class AuthService {
             branchId: user.branchId,
             permissions: permissionArray,
             features: user.tenant?.plan?.features || [],
+            isTenantActive: user.role === 'SUPER_ADMIN' ? true : (user.tenant?.isActive ?? false),
+            tenantStatus: user.tenant?.status || (user.role === 'SUPER_ADMIN' ? 'ACTIVE' : 'PENDING'),
         };
     }
 };

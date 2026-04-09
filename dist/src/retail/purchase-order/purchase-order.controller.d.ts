@@ -31,8 +31,8 @@ export declare class PurchaseOrderController {
         updatedAt: Date;
         branchId: string | null;
         status: import(".prisma/client").$Enums.PurchaseOrderStatus;
-        totalAmount: import("@prisma/client/runtime/library").Decimal;
         note: string | null;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
         warehouseId: string | null;
         vendorId: string;
         orderedAt: Date | null;
@@ -98,8 +98,8 @@ export declare class PurchaseOrderController {
         updatedAt: Date;
         branchId: string | null;
         status: import(".prisma/client").$Enums.PurchaseOrderStatus;
-        totalAmount: import("@prisma/client/runtime/library").Decimal;
         note: string | null;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
         warehouseId: string | null;
         vendorId: string;
         orderedAt: Date | null;
@@ -143,8 +143,8 @@ export declare class PurchaseOrderController {
         updatedAt: Date;
         branchId: string | null;
         status: import(".prisma/client").$Enums.PurchaseOrderStatus;
-        totalAmount: import("@prisma/client/runtime/library").Decimal;
         note: string | null;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
         warehouseId: string | null;
         vendorId: string;
         orderedAt: Date | null;
@@ -158,8 +158,8 @@ export declare class PurchaseOrderController {
         updatedAt: Date;
         branchId: string | null;
         status: import(".prisma/client").$Enums.PurchaseOrderStatus;
-        totalAmount: import("@prisma/client/runtime/library").Decimal;
         note: string | null;
+        totalAmount: import("@prisma/client/runtime/library").Decimal;
         warehouseId: string | null;
         vendorId: string;
         orderedAt: Date | null;

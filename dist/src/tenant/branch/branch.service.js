@@ -29,9 +29,17 @@ let BranchService = class BranchService {
             throw new common_1.ForbiddenException('Tenant ID missing');
         return this.db.findMany({
             include: {
+                users: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                        pinCode: true,
+                    }
+                },
                 _count: {
                     select: {
-                        users: true,
                         orders: true,
                         tables: true,
                     }

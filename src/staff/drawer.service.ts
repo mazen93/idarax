@@ -188,7 +188,6 @@ export class DrawerService {
         });
     }
 
-    /** Called internally from RefundService when a CASH refund is issued */
     async recordRefund(tenantId: string, userId: string, amount: number, orderId: string) {
         const session = await (this.prisma as any).drawerSession.findFirst({
             where: { userId, tenantId, status: 'OPEN' },
@@ -197,6 +196,23 @@ export class DrawerService {
         await (this.prisma as any).cashMovement.create({
             data: { sessionId: session.id, amount, type: 'REFUND', referenceId: orderId },
         });
+    }
+
+    /** Helper for OrderService validation */
+    async hasOpenSession(tenantId: string, branchId: string | null | undefined, userId: string): Promise<boolean> {
+        let where: any = { userId, tenantId, status: 'OPEN' };
+        if (branchId) {
+            where.OR = [
+                { branchId },
+                { branchId: null }
+            ];
+        }
+
+        const session = await (this.prisma.client as any).drawerSession.findFirst({
+            where,
+            select: { id: true }
+        });
+        return !!session;
     }
 
     async getCurrentSession(userId: string) {

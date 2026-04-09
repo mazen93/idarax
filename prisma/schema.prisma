@@ -18,6 +18,8 @@ model Tenant {
   updatedAt              DateTime               @updatedAt
   hasDeliveryIntegration Boolean                @default(false)
   planId                 String?
+  isActive               Boolean                @default(false)
+  status                 String                 @default("PENDING") // PENDING | ACTIVE | SUSPENDED
   isTrial                Boolean                @default(true)
   maxBranches            Int                    @default(1)
   maxUsers               Int                    @default(5)
@@ -25,6 +27,9 @@ model Tenant {
   maxKds                 Int                    @default(0)
   subscriptionExpiresAt  DateTime?
   trialExpiresAt         DateTime?
+  country                String?                @default("Saudi Arabia")
+  countryCode            String?                @default("SA")
+  vatNumber              String?
   attendances          Attendance[]
   branches             Branch[]
   branchSettings         BranchSettings[]
@@ -70,6 +75,7 @@ model Tenant {
   warehouses             Warehouse[]
   upgradeRequests        UpgradeRequest[]
   stockAudits            StockAudit[]
+  zatcaConfig            ZatcaConfig?
 }
 
 model Branch {
@@ -114,6 +120,8 @@ model Settings {
   tenantId                    String   @unique
   currency                    String   @default("USD")
   timezone                    String   @default("UTC")
+  country                     String?  @default("Saudi Arabia")
+  countryCode                 String?  @default("SA")
   logoUrl                     String?
   receiptFooter               String?
   receiptHeader               String?
@@ -152,6 +160,27 @@ model Settings {
   secondaryColor              String   @default("#1f2937")
   loyaltyRatioEarning         Decimal  @default(1.0)
   loyaltyRatioRedemption      Decimal  @default(0.01)
+  
+  /// Pre-order: allow customers to schedule orders for a future time
+  preOrderEnabled             Boolean  @default(false)
+  /// How many days ahead a customer can schedule (default 7)
+  preOrderMaxDaysAhead        Int      @default(7)
+  /// Minutes before scheduledAt the kitchen is notified (default 30)
+  preOrderLeadMinutes         Int      @default(30)
+  
+  // ZATCA (Saudi Arabia) Fiscal Compliance
+  zatcaVatNumber              String?
+  zatcaSellerNameAr           String?
+  zatcaSellerNameEn           String?
+  zatcaPhase                  Int?     @default(1)
+  zatcaEgsUuid                String?
+  zatcaEgsSerial              String?
+  zatcaIsOnboarded            Boolean  @default(false)
+  
+  /// Enforcement settings
+  requireOpenShift            Boolean  @default(false)
+  requireOpenDrawer           Boolean  @default(false)
+
   tenant                      Tenant   @relation(fields: [tenantId], references: [id])
 }
 
@@ -187,6 +216,16 @@ model BranchSettings {
   cdsEnabled                  Boolean? @default(false)
   cdsIdleImages               String[]
   cdsShowPromotions           Boolean? @default(true)
+  /// Pre-order: allow customers to schedule orders for a future time
+  preOrderEnabled             Boolean? @default(false)
+  /// How many days ahead a customer can schedule (default 7)
+  preOrderMaxDaysAhead        Int?     @default(7)
+  /// Minutes before scheduledAt the kitchen is notified (default 30)
+  preOrderLeadMinutes         Int?     @default(30)
+  
+  /// Enforcement settings (overrides global if not null)
+  requireOpenShift            Boolean?
+  requireOpenDrawer           Boolean?
   branch                      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   tenant                      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -456,6 +495,9 @@ model Order {
   source            OrderSource           @default(POS)
   loyaltyCashback   Decimal               @default(0)
   loyaltyPointsUsed Int                   @default(0)
+  /// Pre-order: the customer's requested pickup/delivery time
+  scheduledAt       DateTime?
+  isPreOrder        Boolean               @default(false)
   branch            Branch?               @relation(fields: [branchId], references: [id])
   customer          Customer?             @relation(fields: [customerId], references: [id])
   table             Table?                @relation(fields: [tableId], references: [id])
@@ -466,12 +508,14 @@ model Order {
   payments          Payment[]
   promoRedemptions  PromoCodeRedemption[]
   refunds           Refund[]
+  zatcaReport       ZatcaInvoiceReport?
 
   @@index([tenantId, branchId, receiptNumber])
   @@index([tenantId, createdAt])
   @@index([tenantId, status])
   @@index([customerId])
   @@index([invoiceNumber])
+  @@index([tenantId, scheduledAt])
 }
 
 model OrderItem {
@@ -502,6 +546,47 @@ model OrderItem {
   @@index([orderId])
   @@index([productId])
   @@index([orderId, productId])
+}
+
+// ZATCA (Saudi Arabia) Fiscal Integration
+model ZatcaConfig {
+  id                   String   @id @default(uuid())
+  tenantId             String   @unique
+  branchId             String?  @unique
+  privateKey           String   @db.Text
+  publicKey            String   @db.Text
+  certificate          String?  @db.Text
+  csr                  String?  @db.Text
+  secret               String?
+  binaryToken          String?  @db.Text
+  pih                  String?  @db.Text // Previous Invoice Hash (mandatory for chaining in Phase 2)
+  environment          String   @default("SANDBOX") // SANDBOX or PRODUCTION
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model ZatcaInvoiceReport {
+  id              String      @id @default(uuid())
+  orderId         String      @unique
+  status          ZatcaStatus @default(PENDING)
+  invoiceHash     String?
+  qrCode          String?     @db.Text
+  xmlBase64       String?     @db.Text
+  responsePayload Json?
+  errors          Json?
+  reportedAt      DateTime?
+  order           Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
+}
+
+enum ZatcaStatus {
+  PENDING
+  REPORTED
+  CLEARED
+  FAILED
 }
 
 model KitchenStation {
@@ -1306,6 +1391,7 @@ enum UserRole {
 
 enum OrderStatus {
   PENDING
+  SCHEDULED
   PREPARING
   READY
   DELIVERED
@@ -1429,6 +1515,8 @@ enum NotificationType {
   ORDER_CANCELLED
   ORDER_VOIDED
   MANAGER_ALERT
+  PRE_ORDER_RECEIVED
+  PRE_ORDER_FIRED
 }
 
 model Attendance {

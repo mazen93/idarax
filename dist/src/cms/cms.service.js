@@ -101,8 +101,23 @@ let CmsService = class CmsService {
                     name: dto.tenantName,
                     type: dto.type || 'RESTAURANT',
                     planId: dto.planId,
+                    isActive: false,
+                    status: 'PENDING',
+                    country: dto.country,
+                    countryCode: dto.countryCode,
+                    vatNumber: dto.vatNumber,
                 },
             });
+            if (dto.planId) {
+                await tx.upgradeRequest.create({
+                    data: {
+                        tenantId: tenant.id,
+                        toPlanId: dto.planId,
+                        status: 'PENDING',
+                        note: 'Initial subscription during registration'
+                    }
+                });
+            }
             const user = await tx.user.create({
                 data: {
                     email: dto.adminEmail,
@@ -119,7 +134,7 @@ let CmsService = class CmsService {
                     isActive: true,
                 }
             });
-            return { tenantId: tenant.id, userId: user.id, message: 'Registration successful! You can now log in.' };
+            return { tenantId: tenant.id, userId: user.id, message: 'Registration successful! Your account is pending Super Admin approval. You will be notified once activated.' };
         });
     }
     async submitContact(dto) {

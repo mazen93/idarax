@@ -28,6 +28,7 @@ export class InvoiceService {
                 },
                 branch: true,
                 customer: true,
+                zatcaReport: true,
             }
         });
 
@@ -166,6 +167,26 @@ export class InvoiceService {
             font: fontRegular,
             color: rgb(0.5, 0.5, 0.5),
         });
+
+        // --- ZATCA QR Code ---
+        const zatcaReport = (order as any).zatcaReport;
+        if (zatcaReport && zatcaReport.qrCode) {
+            try {
+                const QRCode = require('qrcode');
+                const qrDataUrl = await QRCode.toDataURL(zatcaReport.qrCode, { margin: 1, width: 100 });
+                const qrImageBytes = Buffer.from(qrDataUrl.split(',')[1], 'base64');
+                const qrImage = await pdfDoc.embedPng(qrImageBytes);
+                
+                page.drawImage(qrImage, {
+                    x: width / 2 - 50,
+                    y: 70,
+                    width: 100,
+                    height: 100,
+                });
+            } catch (err) {
+                console.error('Failed to embed ZATCA QR code:', err);
+            }
+        }
 
         const pdfBytes = await pdfDoc.save();
         return Buffer.from(pdfBytes);

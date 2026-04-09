@@ -26,11 +26,14 @@ export declare class PublicController {
         contactPhone: any;
     }>;
     getBranches(id: string): Promise<{
-        id: string;
-        name: string;
-        address: string | null;
-        phone: string | null;
-        nameAr: string | null;
+        id: any;
+        name: any;
+        nameAr: any;
+        address: any;
+        phone: any;
+        preOrderEnabled: any;
+        preOrderMaxDaysAhead: any;
+        preOrderLeadMinutes: any;
     }[]>;
     getMenu(tenantId: string, branchId?: string): Promise<{
         tenant: {
@@ -94,9 +97,9 @@ export declare class PublicController {
             tenantId: string;
             createdAt: Date;
             updatedAt: Date;
-            nameAr: string | null;
             description: string | null;
             descriptionAr: string | null;
+            nameAr: string | null;
             defaultPrepTime: number;
             defaultStationId: string | null;
             imageUrl: string | null;
