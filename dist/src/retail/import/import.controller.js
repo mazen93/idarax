@@ -35,6 +35,12 @@ let ImportController = class ImportController {
             throw new common_1.BadRequestException('File is required');
         return this.importService.importCustomers(file, mode);
     }
+    async exportProducts(res) {
+        const buffer = await this.importService.exportProducts();
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=products_export.csv');
+        res.send(buffer);
+    }
 };
 exports.ImportController = ImportController;
 __decorate([
@@ -77,6 +83,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], ImportController.prototype, "importCustomers", null);
+__decorate([
+    (0, common_1.Get)('export/products'),
+    (0, permissions_decorator_1.Permissions)(permissions_constants_1.Actions.CATALOG.VIEW),
+    (0, swagger_1.ApiOperation)({ summary: 'Export products to CSV' }),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ImportController.prototype, "exportProducts", null);
 exports.ImportController = ImportController = __decorate([
     (0, swagger_1.ApiTags)('Import'),
     (0, common_1.Controller)('import'),

@@ -28,8 +28,8 @@ let PrismaService = class PrismaService extends client_1.PrismaClient {
                         const branchId = tenantService.getBranchId();
                         if (!tenantId)
                             return query(args);
-                        const modelsWithTenant = ['Branch', 'Order', 'Table', 'Product', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'StockMovement', 'StockTransfer', 'Promotion', 'PromoCode', 'Customer', 'Vendor', 'Category', 'Discount', 'Settings', 'UserPermission', 'Menu', 'BranchSettings', 'StockAudit', 'StockAuditItem', 'Attendance'];
-                        const modelsWithBranch = ['Order', 'Table', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'Menu'];
+                        const modelsWithTenant = ['Branch', 'Order', 'Table', 'Product', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'StockMovement', 'StockTransfer', 'Promotion', 'PromoCode', 'Customer', 'Vendor', 'Category', 'Discount', 'Settings', 'UserPermission', 'Menu', 'BranchSettings', 'StockAudit', 'StockAuditItem', 'Attendance', 'PosDevice'];
+                        const modelsWithBranch = ['Order', 'Table', 'Warehouse', 'KitchenStation', 'Reservation', 'WaitingEntry', 'Printer', 'Shift', 'DrawerSession', 'TableSection', 'User', 'Menu', 'PosDevice'];
                         const needsTenant = modelsWithTenant.includes(model);
                         const needsBranch = branchId && modelsWithBranch.includes(model);
                         if (['findMany', 'findFirst', 'findUnique', 'count', 'update', 'updateMany', 'delete', 'deleteMany'].includes(operation)) {

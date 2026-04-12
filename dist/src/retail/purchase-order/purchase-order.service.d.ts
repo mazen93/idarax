@@ -16,23 +16,23 @@ export declare class PurchaseOrderService {
         }[];
         vendor: {
             id: string;
-            email: string | null;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string | null;
+            tenantId: string;
             nameAr: string | null;
-            phone: string | null;
             address: string | null;
+            phone: string | null;
         };
     } & {
         number: string;
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.PurchaseOrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         warehouseId: string | null;
@@ -41,27 +41,37 @@ export declare class PurchaseOrderService {
         receivedAt: Date | null;
     }>;
     findAll(): Promise<({
+        warehouse: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            branchId: string | null;
+            nameAr: string | null;
+            location: string | null;
+        } | null;
         items: ({
             product: {
                 id: string;
                 name: string;
-                tenantId: string;
                 createdAt: Date;
                 updatedAt: Date;
+                tenantId: string;
                 price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
                 nameAr: string | null;
-                defaultStationId: string | null;
                 imageUrl: string | null;
+                defaultStationId: string | null;
                 sku: string | null;
                 barcode: string | null;
-                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
+                categoryId: string;
             };
         } & {
             id: string;
@@ -71,35 +81,25 @@ export declare class PurchaseOrderService {
             purchaseOrderId: string;
             receivedQty: number;
         })[];
-        warehouse: {
-            id: string;
-            name: string;
-            tenantId: string;
-            createdAt: Date;
-            updatedAt: Date;
-            branchId: string | null;
-            nameAr: string | null;
-            location: string | null;
-        } | null;
         vendor: {
             id: string;
-            email: string | null;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string | null;
+            tenantId: string;
             nameAr: string | null;
-            phone: string | null;
             address: string | null;
+            phone: string | null;
         };
     } & {
         number: string;
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.PurchaseOrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         warehouseId: string | null;
@@ -108,6 +108,16 @@ export declare class PurchaseOrderService {
         receivedAt: Date | null;
     })[]>;
     update(id: string, dto: UpdatePurchaseOrderDto): Promise<{
+        warehouse: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            branchId: string | null;
+            nameAr: string | null;
+            location: string | null;
+        } | null;
         items: {
             id: string;
             costPrice: import("@prisma/client/runtime/library").Decimal;
@@ -116,35 +126,25 @@ export declare class PurchaseOrderService {
             purchaseOrderId: string;
             receivedQty: number;
         }[];
-        warehouse: {
-            id: string;
-            name: string;
-            tenantId: string;
-            createdAt: Date;
-            updatedAt: Date;
-            branchId: string | null;
-            nameAr: string | null;
-            location: string | null;
-        } | null;
         vendor: {
             id: string;
-            email: string | null;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            email: string | null;
+            tenantId: string;
             nameAr: string | null;
-            phone: string | null;
             address: string | null;
+            phone: string | null;
         };
     } & {
         number: string;
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.PurchaseOrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         warehouseId: string | null;
@@ -155,11 +155,11 @@ export declare class PurchaseOrderService {
     updateStatus(id: string, dto: UpdatePurchaseOrderStatusDto): Promise<{
         number: string;
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.PurchaseOrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         warehouseId: string | null;

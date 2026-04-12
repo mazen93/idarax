@@ -49,6 +49,10 @@ class CreatePlanDto {
     price;
     features;
     featuresAr;
+    maxPos;
+    maxKds;
+    maxBranches;
+    maxUsers;
 }
 exports.CreatePlanDto = CreatePlanDto;
 __decorate([
@@ -90,6 +94,30 @@ __decorate([
     (0, class_validator_1.IsArray)(),
     __metadata("design:type", Array)
 ], CreatePlanDto.prototype, "featuresAr", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreatePlanDto.prototype, "maxPos", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreatePlanDto.prototype, "maxKds", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreatePlanDto.prototype, "maxBranches", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreatePlanDto.prototype, "maxUsers", void 0);
 class UpdatePlanDto {
     name;
     nameAr;
@@ -99,6 +127,10 @@ class UpdatePlanDto {
     features;
     featuresAr;
     isActive;
+    maxPos;
+    maxKds;
+    maxBranches;
+    maxUsers;
 }
 exports.UpdatePlanDto = UpdatePlanDto;
 __decorate([
@@ -149,6 +181,30 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdatePlanDto.prototype, "isActive", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdatePlanDto.prototype, "maxPos", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdatePlanDto.prototype, "maxKds", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdatePlanDto.prototype, "maxBranches", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: false }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], UpdatePlanDto.prototype, "maxUsers", void 0);
 class SelfRegisterDto {
     tenantName;
     adminEmail;

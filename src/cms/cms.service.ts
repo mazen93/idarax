@@ -40,21 +40,6 @@ export class CmsService {
         });
     }
 
-    async getAllPlans() {
-        return (this.prisma as any).subscriptionPlan.findMany({ orderBy: { price: 'asc' } });
-    }
-
-    async createPlan(dto: CreatePlanDto) {
-        return (this.prisma as any).subscriptionPlan.create({ data: dto });
-    }
-
-    async updatePlan(id: string, dto: UpdatePlanDto) {
-        return (this.prisma as any).subscriptionPlan.update({ where: { id }, data: dto });
-    }
-
-    async deletePlan(id: string) {
-        return (this.prisma as any).subscriptionPlan.delete({ where: { id } });
-    }
 
     // ─── Self-Registration ───────────────────────────────────────────────────────
 

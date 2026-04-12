@@ -11,8 +11,8 @@ const common_1 = require("@nestjs/common");
 const async_hooks_1 = require("async_hooks");
 let TenantService = class TenantService {
     als = new async_hooks_1.AsyncLocalStorage();
-    setContext(tenantId, branchId) {
-        this.als.enterWith({ tenantId, branchId });
+    setContext(tenantId, branchId, tenantType) {
+        this.als.enterWith({ tenantId, branchId, tenantType });
     }
     setTenantId(tenantId) {
         const store = this.als.getStore();
@@ -24,11 +24,27 @@ let TenantService = class TenantService {
             this.als.enterWith({ ...store, branchId });
         }
     }
+    setTenantType(tenantType) {
+        const store = this.als.getStore();
+        if (store) {
+            this.als.enterWith({ ...store, tenantType });
+        }
+    }
     getTenantId() {
         return this.als.getStore()?.tenantId;
     }
     getBranchId() {
         return this.als.getStore()?.branchId;
+    }
+    getTenantType() {
+        return this.als.getStore()?.tenantType;
+    }
+    isRetail() {
+        return this.getTenantType() === 'RETAIL';
+    }
+    isRestaurant() {
+        const type = this.getTenantType();
+        return type === 'RESTAURANT' || type === 'CAFE' || !type;
     }
 };
 exports.TenantService = TenantService;

@@ -166,6 +166,7 @@ let AuthService = class AuthService {
             branchId,
             permissions: permissionArray,
             features: user?.tenant?.plan?.features || [],
+            tenantType: user?.tenant?.type || 'RESTAURANT',
             isExpired,
             daysRemaining,
             isTenantActive,
@@ -203,6 +204,7 @@ let AuthService = class AuthService {
             name,
             permissions: permissionArray,
             features: user?.tenant?.plan?.features || [],
+            tenantType: user?.tenant?.type || 'RESTAURANT',
             isExpired,
             daysRemaining,
             isTenantActive,
@@ -340,6 +342,7 @@ let AuthService = class AuthService {
             branchId: user.branchId,
             permissions: permissionArray,
             features: user.tenant?.plan?.features || [],
+            tenantType: user.tenant?.type || 'RESTAURANT',
             isTenantActive: user.role === 'SUPER_ADMIN' ? true : (user.tenant?.isActive ?? false),
             tenantStatus: user.tenant?.status || (user.role === 'SUPER_ADMIN' ? 'ACTIVE' : 'PENDING'),
         };

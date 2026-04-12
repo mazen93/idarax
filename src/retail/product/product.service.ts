@@ -197,6 +197,24 @@ export class ProductService {
 
         const { variants, recipeComponents, ...rest } = dto;
 
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+
+        // Check for existing barcode/sku in this tenant if it's being changed
+        if (dto.barcode && dto.barcode !== product.barcode) {
+            const existing = await this.db.findUnique({
+                where: { barcode_tenantId: { barcode: dto.barcode, tenantId } },
+            });
+            if (existing) throw new ConflictException('Barcode already exists for this tenant');
+        }
+
+        if (dto.sku && dto.sku !== product.sku) {
+            const existing = await this.db.findUnique({
+                where: { sku_tenantId: { sku: dto.sku, tenantId } },
+            });
+            if (existing) throw new ConflictException('SKU already exists for this tenant');
+        }
+
         // Run in a transaction: update fields + replace variants/recipes
         return (this.prisma.client as any).$transaction(async (tx: any) => {
             if (variants !== undefined) {

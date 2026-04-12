@@ -10,8 +10,10 @@ import { ScheduleController } from './schedule.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { TenantModule } from '../tenant/tenant.module';
 
+import { PosDeviceModule } from './pos-device/pos-device.module';
+
 @Module({
-    imports: [PrismaModule, TenantModule],
+    imports: [PrismaModule, TenantModule, PosDeviceModule],
     providers: [ShiftService, DrawerService, StaffPermissionsService, ScheduleService],
     controllers: [ShiftController, DrawerController, StaffPermissionsController, ScheduleController],
     exports: [ShiftService, DrawerService, StaffPermissionsService, ScheduleService],

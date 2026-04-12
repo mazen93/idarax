@@ -12,4 +12,5 @@ export declare class ImportService {
     constructor(prisma: PrismaService, tenantService: TenantService);
     importProducts(file: Express.Multer.File, mode?: 'OVERRIDE' | 'SKIP_EXISTING'): Promise<ImportResults>;
     importCustomers(file: Express.Multer.File, mode?: 'OVERRIDE' | 'SKIP_EXISTING'): Promise<ImportResults>;
+    exportProducts(): Promise<Buffer>;
 }

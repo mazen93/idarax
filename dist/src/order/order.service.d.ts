@@ -104,23 +104,23 @@ export declare class OrderService {
             } & {
                 id: string;
                 name: string;
-                tenantId: string;
                 createdAt: Date;
                 updatedAt: Date;
+                tenantId: string;
                 price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
                 nameAr: string | null;
-                defaultStationId: string | null;
                 imageUrl: string | null;
+                defaultStationId: string | null;
                 sku: string | null;
                 barcode: string | null;
-                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
+                categoryId: string;
             };
             variant: {
                 name: string;
@@ -145,11 +145,11 @@ export declare class OrderService {
         })[];
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         userId: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
@@ -209,11 +209,11 @@ export declare class OrderService {
         })[];
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         userId: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
@@ -285,23 +285,23 @@ export declare class OrderService {
             } & {
                 id: string;
                 name: string;
-                tenantId: string;
                 createdAt: Date;
                 updatedAt: Date;
+                tenantId: string;
                 price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
                 nameAr: string | null;
-                defaultStationId: string | null;
                 imageUrl: string | null;
+                defaultStationId: string | null;
                 sku: string | null;
                 barcode: string | null;
-                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
+                categoryId: string;
             };
             variant: {
                 id: string;
@@ -331,11 +331,11 @@ export declare class OrderService {
         })[];
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         userId: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
@@ -402,23 +402,23 @@ export declare class OrderService {
             } & {
                 id: string;
                 name: string;
-                tenantId: string;
                 createdAt: Date;
                 updatedAt: Date;
+                tenantId: string;
                 price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
                 nameAr: string | null;
-                defaultStationId: string | null;
                 imageUrl: string | null;
+                defaultStationId: string | null;
                 sku: string | null;
                 barcode: string | null;
-                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
+                categoryId: string;
             };
             variant: {
                 id: string;
@@ -448,11 +448,11 @@ export declare class OrderService {
         })[];
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         userId: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
@@ -512,11 +512,11 @@ export declare class OrderService {
         })[];
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         userId: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
@@ -576,11 +576,11 @@ export declare class OrderService {
         })[];
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         userId: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
@@ -678,11 +678,11 @@ export declare class OrderService {
         }[];
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
-        branchId: string | null;
         status: import(".prisma/client").$Enums.OrderStatus;
+        tenantId: string;
+        branchId: string | null;
         note: string | null;
         userId: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;

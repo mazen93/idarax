@@ -19,6 +19,7 @@ export declare class JwtStrategy extends JwtStrategy_base {
         jti: any;
         permissions: any;
         features: any;
+        tenantType: any;
         isExpired: any;
         daysRemaining: any;
     }>;

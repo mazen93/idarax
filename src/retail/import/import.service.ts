@@ -291,4 +291,56 @@ export class ImportService {
 
         return results;
     }
+
+    async exportProducts(): Promise<Buffer> {
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId) throw new ForbiddenException('Tenant ID missing');
+
+        const products = await this.prisma.product.findMany({
+            where: { tenantId },
+            include: {
+                category: true,
+                variants: true
+            }
+        });
+
+        const rows = [];
+        for (const p of products) {
+            rows.push({
+                Type: 'PRODUCT',
+                Handle: p.sku || p.id,
+                Name: p.name,
+                NameAr: p.nameAr || '',
+                Description: p.description || '',
+                Category: p.category?.name || '',
+                Price: p.price.toString(),
+                CostPrice: p.costPrice.toString(),
+                SKU: p.sku || '',
+                Barcode: p.barcode || ''
+            });
+
+            if (p.variants && p.variants.length > 0) {
+                for (const v of p.variants) {
+                    rows.push({
+                        Type: 'VARIANT',
+                        Handle: p.sku || p.id,
+                        Name: v.name,
+                        NameAr: '',
+                        Description: '',
+                        Category: '',
+                        Price: v.price?.toString() || p.price.toString(),
+                        CostPrice: v.costPrice.toString(),
+                        SKU: v.sku || '',
+                        Barcode: ''
+                    });
+                }
+            }
+        }
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, 'Products');
+        // Produce CSV buffer
+        return XLSX.write(wb, { type: 'buffer', bookType: 'csv' });
+    }
 }

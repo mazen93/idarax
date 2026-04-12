@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const admin_service_1 = require("./admin.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const swagger_1 = require("@nestjs/swagger");
+const admin_dto_1 = require("./dto/admin.dto");
 let AdminController = class AdminController {
     adminService;
     constructor(adminService) {
@@ -45,7 +46,7 @@ let AdminController = class AdminController {
         return this.adminService.getCountryAnalytics();
     }
     getAllPlans() {
-        return this.adminService.getAllPlans();
+        return this.adminService.getAllPlans(false);
     }
     getUpgradeRequests(status) {
         return this.adminService.getUpgradeRequests(status);
@@ -73,6 +74,18 @@ let AdminController = class AdminController {
     }
     getAuditLogs() {
         return this.adminService.getAuditLogs();
+    }
+    createPlan(dto) {
+        return this.adminService.createPlan(dto);
+    }
+    updatePlan(id, dto) {
+        return this.adminService.updatePlan(id, dto);
+    }
+    deletePlan(id) {
+        return this.adminService.deletePlan(id);
+    }
+    overrideLimits(id, dto) {
+        return this.adminService.updateTenantLimits(id, dto);
     }
 };
 exports.AdminController = AdminController;
@@ -231,6 +244,48 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "getAuditLogs", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Post)('plans'),
+    (0, swagger_1.ApiOperation)({ summary: 'Create a new subscription plan (superadmin)' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [admin_dto_1.CreatePlanDto]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "createPlan", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Patch)('plans/:id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update a subscription plan (superadmin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, admin_dto_1.UpdatePlanDto]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "updatePlan", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Delete)('plans/:id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete a subscription plan (superadmin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "deletePlan", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Patch)('tenants/:id/limits'),
+    (0, swagger_1.ApiOperation)({ summary: 'Manually override tenant limits e.g. maxPos (superadmin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, admin_dto_1.TenantLimitOverrideDto]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "overrideLimits", null);
 exports.AdminController = AdminController = __decorate([
     (0, swagger_1.ApiTags)('Superadmin Dashboard'),
     (0, common_1.Controller)('superadmin'),
@@ -249,7 +304,7 @@ let TenantSubscriptionController = class TenantSubscriptionController {
         return this.adminService.createUpgradeRequest(req.user.tenantId, dto.planId);
     }
     getPlans() {
-        return this.adminService.getAllPlans();
+        return this.adminService.getAllPlans(true);
     }
 };
 exports.TenantSubscriptionController = TenantSubscriptionController;

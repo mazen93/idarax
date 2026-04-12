@@ -42,6 +42,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             this.tenantService.setBranchId(payload.branchId);
         }
 
+        // Propagate tenantType into the ALS context for use in services
+        if (payload.tenantType) {
+            this.tenantService.setTenantType(payload.tenantType);
+        }
+
         // Return the payload data so it's directly available on req.user in guards
         return {
             id: payload.sub,
@@ -52,6 +57,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             jti: payload.jti,
             permissions: payload.permissions || [],
             features: payload.features || [],
+            tenantType: payload.tenantType || 'RESTAURANT',
             isExpired: payload.isExpired || false,
             daysRemaining: payload.daysRemaining || 999,
         };

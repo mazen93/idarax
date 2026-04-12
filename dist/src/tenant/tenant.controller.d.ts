@@ -3,28 +3,27 @@ export declare class TenantAdminController {
     private prisma;
     constructor(prisma: PrismaService);
     getAllTenants(req: any): Promise<({
+        users: {
+            name: string;
+            createdAt: Date;
+            email: string;
+        }[];
         _count: {
             orders: number;
             products: number;
             users: number;
         };
-        users: {
-            email: string;
-            name: string;
-            createdAt: Date;
-        }[];
     } & {
+        isActive: boolean;
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        isActive: boolean;
         slug: string | null;
         domain: string | null;
         customDomain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
+        createdAt: Date;
+        updatedAt: Date;
         hasDeliveryIntegration: boolean;
-        planId: string | null;
         status: string;
         isTrial: boolean;
         maxBranches: number;
@@ -36,5 +35,6 @@ export declare class TenantAdminController {
         country: string | null;
         countryCode: string | null;
         vatNumber: string | null;
+        planId: string | null;
     })[]>;
 }

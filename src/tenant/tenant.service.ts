@@ -3,10 +3,10 @@ import { AsyncLocalStorage } from 'async_hooks';
 
 @Injectable()
 export class TenantService {
-    private readonly als = new AsyncLocalStorage<{ tenantId: string, branchId?: string }>();
+    private readonly als = new AsyncLocalStorage<{ tenantId: string, branchId?: string, tenantType?: string }>();
 
-    setContext(tenantId: string, branchId?: string) {
-        this.als.enterWith({ tenantId, branchId });
+    setContext(tenantId: string, branchId?: string, tenantType?: string) {
+        this.als.enterWith({ tenantId, branchId, tenantType });
     }
 
     setTenantId(tenantId: string) {
@@ -21,11 +21,31 @@ export class TenantService {
         }
     }
 
+    setTenantType(tenantType: string) {
+        const store = this.als.getStore();
+        if (store) {
+            this.als.enterWith({ ...store, tenantType });
+        }
+    }
+
     getTenantId(): string | undefined {
         return this.als.getStore()?.tenantId;
     }
 
     getBranchId(): string | undefined {
         return this.als.getStore()?.branchId;
+    }
+
+    getTenantType(): string | undefined {
+        return this.als.getStore()?.tenantType;
+    }
+
+    isRetail(): boolean {
+        return this.getTenantType() === 'RETAIL';
+    }
+
+    isRestaurant(): boolean {
+        const type = this.getTenantType();
+        return type === 'RESTAURANT' || type === 'CAFE' || !type; // Default to restaurant if not specified
     }
 }

@@ -74,15 +74,15 @@ export declare class PublicService {
         }[];
         id: string;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         description: string | null;
         descriptionAr: string | null;
         nameAr: string | null;
         defaultPrepTime: number;
-        defaultStationId: string | null;
         imageUrl: string | null;
+        defaultStationId: string | null;
     }[]>;
     createGuestOrder(tenantIdOrDomain: string, dto: CreatePublicOrderDto): Promise<any>;
     generateTableQr(tenantIdOrDomain: string, tableId: string): Promise<{

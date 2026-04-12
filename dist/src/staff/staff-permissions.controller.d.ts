@@ -4,8 +4,8 @@ export declare class StaffPermissionsController {
     constructor(service: StaffPermissionsService);
     getUsers(req: any): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         role: import(".prisma/client").$Enums.UserRole;
         branchId: string | null;
         permissions: {

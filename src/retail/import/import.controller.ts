@@ -1,4 +1,5 @@
-import { Controller, Post, UseInterceptors, UploadedFile, Query, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, Query, BadRequestException, UseGuards, Get, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { ImportService } from './import.service';
@@ -52,5 +53,15 @@ export class ImportController {
     ) {
         if (!file) throw new BadRequestException('File is required');
         return this.importService.importCustomers(file, mode);
+    }
+
+    @Get('export/products')
+    @Permissions(Actions.CATALOG.VIEW)
+    @ApiOperation({ summary: 'Export products to CSV' })
+    async exportProducts(@Res() res: Response) {
+        const buffer = await this.importService.exportProducts();
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=products_export.csv');
+        res.send(buffer);
     }
 }

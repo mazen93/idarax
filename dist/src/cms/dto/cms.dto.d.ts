@@ -12,6 +12,10 @@ export declare class CreatePlanDto {
     price: number;
     features: string[];
     featuresAr?: string[];
+    maxPos?: number;
+    maxKds?: number;
+    maxBranches?: number;
+    maxUsers?: number;
 }
 export declare class UpdatePlanDto {
     name?: string;
@@ -22,6 +26,10 @@ export declare class UpdatePlanDto {
     features?: string[];
     featuresAr?: string[];
     isActive?: boolean;
+    maxPos?: number;
+    maxKds?: number;
+    maxBranches?: number;
+    maxUsers?: number;
 }
 export declare class SelfRegisterDto {
     tenantName: string;

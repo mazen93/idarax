@@ -12,6 +12,7 @@ export declare class AuthController {
         name: string;
         permissions: string[];
         features: string[];
+        tenantType: import(".prisma/client").$Enums.TenantType;
         isExpired: boolean;
         daysRemaining: number;
         isTenantActive: boolean;
@@ -26,6 +27,7 @@ export declare class AuthController {
         name: string;
         permissions: string[];
         features: string[];
+        tenantType: import(".prisma/client").$Enums.TenantType;
         isExpired: boolean;
         daysRemaining: number;
         isTenantActive: boolean;
@@ -40,6 +42,7 @@ export declare class AuthController {
         name: string;
         permissions: string[];
         features: string[];
+        tenantType: import(".prisma/client").$Enums.TenantType;
         isExpired: boolean;
         daysRemaining: number;
         isTenantActive: boolean;
@@ -54,6 +57,7 @@ export declare class AuthController {
         name: string;
         permissions: string[];
         features: string[];
+        tenantType: import(".prisma/client").$Enums.TenantType;
         isExpired: boolean;
         daysRemaining: number;
         isTenantActive: boolean;
@@ -71,6 +75,7 @@ export declare class AuthController {
         branchId: string | null;
         permissions: any[];
         features: string[];
+        tenantType: import(".prisma/client").$Enums.TenantType;
         isTenantActive: boolean;
         tenantStatus: string;
     }>;

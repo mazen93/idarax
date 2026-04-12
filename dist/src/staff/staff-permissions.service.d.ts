@@ -4,8 +4,8 @@ export declare class StaffPermissionsService {
     constructor(prisma: PrismaService);
     getAllUsersWithPermissions(tenantId: string): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         role: import(".prisma/client").$Enums.UserRole;
         branchId: string | null;
         permissions: {

@@ -176,6 +176,23 @@ let ProductService = class ProductService {
     async update(id, dto) {
         const product = await this.findOne(id);
         const { variants, recipeComponents, ...rest } = dto;
+        const tenantId = this.tenantService.getTenantId();
+        if (!tenantId)
+            throw new common_1.ForbiddenException('Tenant ID missing');
+        if (dto.barcode && dto.barcode !== product.barcode) {
+            const existing = await this.db.findUnique({
+                where: { barcode_tenantId: { barcode: dto.barcode, tenantId } },
+            });
+            if (existing)
+                throw new common_1.ConflictException('Barcode already exists for this tenant');
+        }
+        if (dto.sku && dto.sku !== product.sku) {
+            const existing = await this.db.findUnique({
+                where: { sku_tenantId: { sku: dto.sku, tenantId } },
+            });
+            if (existing)
+                throw new common_1.ConflictException('SKU already exists for this tenant');
+        }
         return this.prisma.client.$transaction(async (tx) => {
             if (variants !== undefined) {
                 await tx.variant.deleteMany({ where: { productId: id } });

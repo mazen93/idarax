@@ -46,6 +46,9 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         if (payload.branchId && !['SUPER_ADMIN', 'ADMIN'].includes(payload.role)) {
             this.tenantService.setBranchId(payload.branchId);
         }
+        if (payload.tenantType) {
+            this.tenantService.setTenantType(payload.tenantType);
+        }
         return {
             id: payload.sub,
             email: payload.email,
@@ -55,6 +58,7 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
             jti: payload.jti,
             permissions: payload.permissions || [],
             features: payload.features || [],
+            tenantType: payload.tenantType || 'RESTAURANT',
             isExpired: payload.isExpired || false,
             daysRemaining: payload.daysRemaining || 999,
         };

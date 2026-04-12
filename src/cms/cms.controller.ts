@@ -47,27 +47,6 @@ export class CmsController {
     @ApiOperation({ summary: 'Delete a landing page section (superadmin)' })
     deleteContent(@Param('section') section: string) { return this.cmsService.deleteContent(section); }
 
-    @UseGuards(JwtAuthGuard) @ApiBearerAuth()
-    @Get('admin/plans')
-    @ApiOperation({ summary: 'Get all plans including inactive (superadmin)' })
-    getAllPlans() { return this.cmsService.getAllPlans(); }
-
-    @UseGuards(JwtAuthGuard) @ApiBearerAuth()
-    @Post('plans')
-    @ApiOperation({ summary: 'Create a subscription plan (superadmin)' })
-    createPlan(@Body() dto: CreatePlanDto) { return this.cmsService.createPlan(dto); }
-
-    @UseGuards(JwtAuthGuard) @ApiBearerAuth()
-    @Put('plans/:id')
-    @ApiOperation({ summary: 'Update a subscription plan (superadmin)' })
-    updatePlan(@Param('id') id: string, @Body() dto: UpdatePlanDto) {
-        return this.cmsService.updatePlan(id, dto);
-    }
-
-    @UseGuards(JwtAuthGuard) @ApiBearerAuth()
-    @Delete('plans/:id')
-    @ApiOperation({ summary: 'Delete a subscription plan (superadmin)' })
-    deletePlan(@Param('id') id: string) { return this.cmsService.deletePlan(id); }
 
     // ─── Contact Messages (admin-protected) ────────────────────────────────────────
 

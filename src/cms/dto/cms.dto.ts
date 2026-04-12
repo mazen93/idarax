@@ -16,6 +16,10 @@ export class CreatePlanDto {
     @ApiProperty() @IsNumber() price: number;
     @ApiProperty({ type: [String] }) @IsArray() features: string[];
     @ApiProperty({ type: [String], required: false }) @IsOptional() @IsArray() featuresAr?: string[];
+    @ApiProperty({ required: false }) @IsOptional() @IsNumber() maxPos?: number;
+    @ApiProperty({ required: false }) @IsOptional() @IsNumber() maxKds?: number;
+    @ApiProperty({ required: false }) @IsOptional() @IsNumber() maxBranches?: number;
+    @ApiProperty({ required: false }) @IsOptional() @IsNumber() maxUsers?: number;
 }
 
 export class UpdatePlanDto {
@@ -27,6 +31,10 @@ export class UpdatePlanDto {
     @ApiProperty({ required: false }) @IsOptional() @IsArray() features?: string[];
     @ApiProperty({ required: false }) @IsOptional() @IsArray() featuresAr?: string[];
     @ApiProperty({ required: false }) @IsOptional() @IsBoolean() isActive?: boolean;
+    @ApiProperty({ required: false }) @IsOptional() @IsNumber() maxPos?: number;
+    @ApiProperty({ required: false }) @IsOptional() @IsNumber() maxKds?: number;
+    @ApiProperty({ required: false }) @IsOptional() @IsNumber() maxBranches?: number;
+    @ApiProperty({ required: false }) @IsOptional() @IsNumber() maxUsers?: number;
 }
 
 export class SelfRegisterDto {

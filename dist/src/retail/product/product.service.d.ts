@@ -38,23 +38,23 @@ export declare class ProductService {
             ingredient: {
                 id: string;
                 name: string;
-                tenantId: string;
                 createdAt: Date;
                 updatedAt: Date;
+                tenantId: string;
                 price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
                 nameAr: string | null;
-                defaultStationId: string | null;
                 imageUrl: string | null;
+                defaultStationId: string | null;
                 sku: string | null;
                 barcode: string | null;
-                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
+                categoryId: string;
             };
         } & {
             id: string;
@@ -77,23 +77,23 @@ export declare class ProductService {
     } & {
         id: string;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         price: import("@prisma/client/runtime/library").Decimal;
         description: string | null;
         descriptionAr: string | null;
         nameAr: string | null;
-        defaultStationId: string | null;
         imageUrl: string | null;
+        defaultStationId: string | null;
         sku: string | null;
         barcode: string | null;
-        categoryId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
         unit: string | null;
+        categoryId: string;
     }>;
     findAll(branchId?: string): Promise<any[]>;
     findByBarcode(barcode: string): Promise<({
@@ -130,23 +130,23 @@ export declare class ProductService {
     } & {
         id: string;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         price: import("@prisma/client/runtime/library").Decimal;
         description: string | null;
         descriptionAr: string | null;
         nameAr: string | null;
-        defaultStationId: string | null;
         imageUrl: string | null;
+        defaultStationId: string | null;
         sku: string | null;
         barcode: string | null;
-        categoryId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
         unit: string | null;
+        categoryId: string;
     }) | null>;
     findOne(id: string): Promise<{
         category: {
@@ -179,23 +179,23 @@ export declare class ProductService {
             ingredient: {
                 id: string;
                 name: string;
-                tenantId: string;
                 createdAt: Date;
                 updatedAt: Date;
+                tenantId: string;
                 price: import("@prisma/client/runtime/library").Decimal;
                 description: string | null;
                 descriptionAr: string | null;
                 nameAr: string | null;
-                defaultStationId: string | null;
                 imageUrl: string | null;
+                defaultStationId: string | null;
                 sku: string | null;
                 barcode: string | null;
-                categoryId: string;
                 costPrice: import("@prisma/client/runtime/library").Decimal;
                 isSellable: boolean;
                 productType: import(".prisma/client").$Enums.ProductType;
                 prepTime: number;
                 unit: string | null;
+                categoryId: string;
             };
         } & {
             id: string;
@@ -218,45 +218,45 @@ export declare class ProductService {
     } & {
         id: string;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         price: import("@prisma/client/runtime/library").Decimal;
         description: string | null;
         descriptionAr: string | null;
         nameAr: string | null;
-        defaultStationId: string | null;
         imageUrl: string | null;
+        defaultStationId: string | null;
         sku: string | null;
         barcode: string | null;
-        categoryId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
         unit: string | null;
+        categoryId: string;
     }>;
     update(id: string, dto: UpdateProductDto): Promise<any>;
     remove(id: string): Promise<{
         id: string;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         price: import("@prisma/client/runtime/library").Decimal;
         description: string | null;
         descriptionAr: string | null;
         nameAr: string | null;
-        defaultStationId: string | null;
         imageUrl: string | null;
+        defaultStationId: string | null;
         sku: string | null;
         barcode: string | null;
-        categoryId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         isSellable: boolean;
         productType: import(".prisma/client").$Enums.ProductType;
         prepTime: number;
         unit: string | null;
+        categoryId: string;
     }>;
     getBranchSettings(branchId: string): Promise<{
         productId: any;

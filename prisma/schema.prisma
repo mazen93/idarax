@@ -76,6 +76,7 @@ model Tenant {
   upgradeRequests        UpgradeRequest[]
   stockAudits            StockAudit[]
   zatcaConfig            ZatcaConfig?
+  posDevices             PosDevice[]
 }
 
 model Branch {
@@ -111,6 +112,7 @@ model Branch {
   users                User[]
   waitingEntries       WaitingEntry[]
   warehouses           Warehouse[]
+  posDevices           PosDevice[]
 
   @@unique([name, tenantId])
 }
@@ -1014,7 +1016,7 @@ model ContactMessage {
 model SubscriptionPlan {
   id            String   @id @default(uuid())
   name          String   @unique
-  price         Decimal
+  price         Decimal  @db.Decimal(10, 2)
   features      String[]
   maxPos        Int      @default(1)
   maxKds        Int      @default(0)
@@ -1535,4 +1537,21 @@ model Attendance {
 
   @@index([tenantId, createdAt])
   @@index([userId, tenantId])
+}
+
+model PosDevice {
+  id          String   @id @default(uuid())
+  tenantId    String
+  branchId    String?
+  deviceId    String   @unique
+  name        String?
+  isActive    Boolean  @default(true)
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch      Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([tenantId, deviceId])
 }

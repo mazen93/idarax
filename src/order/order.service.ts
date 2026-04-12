@@ -223,7 +223,7 @@ export class OrderService {
                         status: dto.isPreOrder
                             ? 'SCHEDULED'
                             : dto.status || (isFullyPaid ? 'COMPLETED' : 'PENDING'),
-                        orderType: dto.orderType || (dto.tableId ? 'DINE_IN' : 'IN_STORE'),
+                        orderType: dto.orderType || (this.tenantService.isRetail() ? 'IN_STORE' : (dto.tableId ? 'DINE_IN' : 'IN_STORE')),
                         paymentMethod: dto.splitPayments?.length ? 'MULTI' : (dto.paymentMethod || 'CASH'),
                         guestName: dto.guestName,
                         guestPhone: dto.guestPhone,
@@ -388,8 +388,8 @@ export class OrderService {
                 this.analyticsService.pushStatsUpdate(tenantId, branchId).catch(() => { });
             }
 
-            // 6. Notify KDS (skip for pre-orders — kitchen fires when scheduledAt approaches)
-            if (this.kdsGateway && !dto.isPreOrder) {
+            // 6. Notify KDS (skip for pre-orders — kitchen fires when scheduledAt approaches, and skip for Retail)
+            if (this.kdsGateway && !dto.isPreOrder && !this.tenantService.isRetail()) {
                 // Notify for the whole order first
                 this.kdsGateway.notifyNewOrder(tenantId, order);
 
@@ -517,8 +517,8 @@ export class OrderService {
             );
         }
 
-        // Notify KDS
-        if (this.kdsGateway) {
+        // Notify KDS (skip for retail)
+        if (this.kdsGateway && !this.tenantService.isRetail()) {
             this.kdsGateway.notifyNewOrder(order.tenantId, { ...order, status: 'PENDING' });
 
             if (order.items) {

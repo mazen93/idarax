@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Put, Body, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Body, Param, Query, Req, UseGuards, Delete } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { CreatePlanDto, UpdatePlanDto, TenantLimitOverrideDto } from './dto/admin.dto';
 
 @ApiTags('Superadmin Dashboard')
 @Controller('superadmin')
@@ -70,7 +71,7 @@ export class AdminController {
   @Get('plans')
   @ApiOperation({ summary: 'Get all subscription plans (public)' })
   getAllPlans() {
-    return this.adminService.getAllPlans();
+    return this.adminService.getAllPlans(false);
   }
 
   // ── Upgrade requests ───────────────────────────────────────────────────────
@@ -148,6 +149,35 @@ export class AdminController {
   getAuditLogs() {
     return this.adminService.getAuditLogs();
   }
+
+  // ── Plan Management (Superadmin) ──────────────────────────────────────────
+  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
+  @Post('plans')
+  @ApiOperation({ summary: 'Create a new subscription plan (superadmin)' })
+  createPlan(@Body() dto: CreatePlanDto) {
+    return this.adminService.createPlan(dto);
+  }
+
+  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
+  @Patch('plans/:id')
+  @ApiOperation({ summary: 'Update a subscription plan (superadmin)' })
+  updatePlan(@Param('id') id: string, @Body() dto: UpdatePlanDto) {
+    return this.adminService.updatePlan(id, dto);
+  }
+  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
+  @Delete('plans/:id')
+  @ApiOperation({ summary: 'Delete a subscription plan (superadmin)' })
+  deletePlan(@Param('id') id: string) {
+    return this.adminService.deletePlan(id);
+  }
+
+  // ── Tenant Limit Overrides (Superadmin) ───────────────────────────────────
+  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
+  @Patch('tenants/:id/limits')
+  @ApiOperation({ summary: 'Manually override tenant limits e.g. maxPos (superadmin)' })
+  overrideLimits(@Param('id') id: string, @Body() dto: TenantLimitOverrideDto) {
+    return this.adminService.updateTenantLimits(id, dto);
+  }
 }
 
 // ── Tenant-facing controller ─────────────────────────────────────────────────
@@ -175,6 +205,6 @@ export class TenantSubscriptionController {
   @Get('plans')
   @ApiOperation({ summary: 'List all available subscription plans (public)' })
   getPlans() {
-    return this.adminService.getAllPlans();
+    return this.adminService.getAllPlans(true);
   }
 }

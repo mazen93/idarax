@@ -215,7 +215,7 @@ let OrderService = class OrderService {
                         status: dto.isPreOrder
                             ? 'SCHEDULED'
                             : dto.status || (isFullyPaid ? 'COMPLETED' : 'PENDING'),
-                        orderType: dto.orderType || (dto.tableId ? 'DINE_IN' : 'IN_STORE'),
+                        orderType: dto.orderType || (this.tenantService.isRetail() ? 'IN_STORE' : (dto.tableId ? 'DINE_IN' : 'IN_STORE')),
                         paymentMethod: dto.splitPayments?.length ? 'MULTI' : (dto.paymentMethod || 'CASH'),
                         guestName: dto.guestName,
                         guestPhone: dto.guestPhone,
@@ -356,7 +356,7 @@ let OrderService = class OrderService {
             if (this.analyticsService) {
                 this.analyticsService.pushStatsUpdate(tenantId, branchId).catch(() => { });
             }
-            if (this.kdsGateway && !dto.isPreOrder) {
+            if (this.kdsGateway && !dto.isPreOrder && !this.tenantService.isRetail()) {
                 this.kdsGateway.notifyNewOrder(tenantId, order);
                 if (order.items) {
                     const stationItemsMap = new Map();
@@ -447,7 +447,7 @@ let OrderService = class OrderService {
         for (const item of order.items) {
             await this.deductStockRecursively(this.prisma.client, order.tenantId, order.branchId, item.productId, item.quantity, orderId);
         }
-        if (this.kdsGateway) {
+        if (this.kdsGateway && !this.tenantService.isRetail()) {
             this.kdsGateway.notifyNewOrder(order.tenantId, { ...order, status: 'PENDING' });
             if (order.items) {
                 const stationItemsMap = new Map();

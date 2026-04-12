@@ -4,13 +4,13 @@ export declare class OfferController {
     private readonly offerService;
     constructor(offerService: OfferService);
     createPromotion(dto: CreatePromotionDto): Promise<{
+        isActive: boolean;
         id: string;
         name: string;
-        tenantId: string;
+        type: import(".prisma/client").$Enums.PromotionType;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -31,8 +31,8 @@ export declare class OfferController {
     findAllPromotions(): Promise<({
         promoCodes: {
             id: string;
-            tenantId: string;
             createdAt: Date;
+            tenantId: string;
             code: string;
             promotionId: string;
             maxUsages: number | null;
@@ -43,13 +43,13 @@ export declare class OfferController {
             staffOnly: boolean;
         }[];
     } & {
+        isActive: boolean;
         id: string;
         name: string;
-        tenantId: string;
+        type: import(".prisma/client").$Enums.PromotionType;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -68,13 +68,13 @@ export declare class OfferController {
         tierThresholds: import("@prisma/client/runtime/library").JsonValue | null;
     })[]>;
     updatePromotion(id: string, dto: Partial<CreatePromotionDto>): Promise<{
+        isActive: boolean;
         id: string;
         name: string;
-        tenantId: string;
+        type: import(".prisma/client").$Enums.PromotionType;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -93,13 +93,13 @@ export declare class OfferController {
         tierThresholds: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     deletePromotion(id: string): Promise<[import(".prisma/client").Prisma.BatchPayload, {
+        isActive: boolean;
         id: string;
         name: string;
-        tenantId: string;
+        type: import(".prisma/client").$Enums.PromotionType;
         createdAt: Date;
         updatedAt: Date;
-        isActive: boolean;
-        type: import(".prisma/client").$Enums.PromotionType;
+        tenantId: string;
         description: string | null;
         customerSegment: string | null;
         applicableProductIds: string[];
@@ -119,8 +119,8 @@ export declare class OfferController {
     }]>;
     createPromoCode(dto: CreatePromoCodeDto): Promise<{
         id: string;
-        tenantId: string;
         createdAt: Date;
+        tenantId: string;
         code: string;
         promotionId: string;
         maxUsages: number | null;
@@ -132,8 +132,8 @@ export declare class OfferController {
     }>;
     updatePromoCode(id: string, dto: Partial<CreatePromoCodeDto>): Promise<{
         id: string;
-        tenantId: string;
         createdAt: Date;
+        tenantId: string;
         code: string;
         promotionId: string;
         maxUsages: number | null;
@@ -145,8 +145,8 @@ export declare class OfferController {
     }>;
     deletePromoCode(id: string): Promise<{
         id: string;
-        tenantId: string;
         createdAt: Date;
+        tenantId: string;
         code: string;
         promotionId: string;
         maxUsages: number | null;

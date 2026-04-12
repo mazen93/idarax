@@ -1,0 +1,320 @@
+@import "tailwindcss";
+
+:root {
+  /* Light Mode - Professional, clean color system */
+  --background: #f1f5f9;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #ef8206;
+  /* Default theme color - easily override to Red or any other color */
+  --primary-foreground: #ffffff;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #0f172a;
+  --muted: #e2e8f0;
+  --muted-foreground: #64748b;
+  --accent: #dbeafe;
+  --accent-foreground: #1e3a5f;
+  --border: #cbd5e1;
+  --input: #e2e8f0;
+  --ring: #ef8206;
+
+  /* Sidebar specific - distinct from main content */
+  --sidebar-bg: #333131;
+  --sidebar-border: #e2e8f0;
+
+  /* Status Colors */
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --error: #ef4444;
+  --error-foreground: #ffffff;
+
+  /* Utility mapping for dark slate colors to work well in light mode */
+  --tw-bg-slate-900-40: rgba(248, 250, 252, 0.9);
+
+  /* Chart Colors */
+  --chart-grid: #e2e8f0;
+  --chart-axis: #64748b;
+  --chart-tooltip: #ffffff;
+  --chart-1: #ef8206;
+  --chart-2: #10b981;
+  --chart-3: #dbeafe;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #121215;
+  --card-foreground: #fafafa;
+  --popover: #09090b;
+  --popover-foreground: #fafafa;
+  --primary: #10b981;
+  --primary-foreground: #ffffff;
+  --secondary: #18181b;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #10b981;
+  --sidebar-bg: #0f0f11;
+  --sidebar-border: #27272a;
+
+  /* Status Colors */
+  --error: #ef4444;
+  --error-foreground: #ffffff;
+
+  /* Chart Colors (Dark) */
+  --chart-grid: #1f2937;
+  --chart-axis: #6b7280;
+  --chart-tooltip: #111118;
+  --chart-1: #10b981;
+  --chart-2: #ef8206;
+  --chart-3: #27272a;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+}
+
+@theme inline {
+  /* 
+     Base color mappings.
+     Mapping numeric shades (50-950) using color-mix ensures 
+     that changing a base variable (like --primary) propagates 
+     automatically to all derived classes (e.g. bg-primary-500).
+  */
+
+  /* Primary Shades (Derived from --primary) */
+  --color-primary-50: color-mix(in srgb, var(--primary), white 95%);
+  --color-primary-100: color-mix(in srgb, var(--primary), white 85%);
+  --color-primary-200: color-mix(in srgb, var(--primary), white 70%);
+  --color-primary-300: color-mix(in srgb, var(--primary), white 50%);
+  --color-primary-400: color-mix(in srgb, var(--primary), white 25%);
+  --color-primary-500: var(--primary);
+  --color-primary-600: color-mix(in srgb, var(--primary), black 10%);
+  --color-primary-700: color-mix(in srgb, var(--primary), black 20%);
+  --color-primary-800: color-mix(in srgb, var(--primary), black 30%);
+  --color-primary-900: color-mix(in srgb, var(--primary), black 45%);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  /* Success Shades (Derived from --success) */
+  --color-success-50: color-mix(in srgb, var(--success), white 95%);
+  --color-success-100: color-mix(in srgb, var(--success), white 85%);
+  --color-success-500: var(--success);
+  --color-success-600: color-mix(in srgb, var(--success), black 20%);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  /* Warning Shades (Derived from --warning) */
+  --color-warning-50: color-mix(in srgb, var(--warning), white 95%);
+  --color-warning-100: color-mix(in srgb, var(--warning), white 85%);
+  --color-warning-500: var(--warning);
+  --color-warning-600: color-mix(in srgb, var(--warning), black 20%);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  /* Error Shades (Derived from --error) */
+  --color-error-50: color-mix(in srgb, var(--error), white 95%);
+  --color-error-100: color-mix(in srgb, var(--error), white 85%);
+  --color-error-500: var(--error);
+  --color-error-600: color-mix(in srgb, var(--error), black 20%);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+
+  /* Legacy Mapping for backward compatibility with emerald/amber/rose */
+  --color-emerald-50: var(--color-success-50);
+  --color-emerald-100: var(--color-success-100);
+  --color-emerald-500: var(--success);
+  --color-emerald-600: var(--color-success-600);
+  --color-amber-500: var(--warning);
+  --color-rose-500: var(--error);
+  --color-red-500: var(--error);
+
+  /* Generic Slate/Zinc mapping for theme backgrounds */
+  --color-slate-950: var(--background);
+  --color-slate-900: var(--card);
+  --color-slate-800: var(--muted);
+  --color-slate-700: var(--muted-foreground);
+  --color-zinc-950: var(--background);
+  --color-zinc-900: var(--card);
+  --color-zinc-800: var(--muted);
+  --color-zinc-700: var(--muted-foreground);
+
+  /* Functional mappings */
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui;
+}
+
+/* ========================================
+   LIGHT MODE: Slate overrides for cards
+   Ensuring text-primary and other branding 
+   elements are never forced to generic colors.
+   ======================================== */
+html:not(.dark) .text-primary {
+  color: var(--primary) !important;
+}
+
+html:not(.dark) .bg-primary {
+  background-color: var(--primary) !important;
+}
+
+/* Light mode panels - override the dark slate classes */
+.light-mode-panel,
+html:not(.dark) .bg-slate-900\/40,
+html:not(.dark) .bg-slate-900\/50,
+html:not(.dark) .bg-slate-900\/60,
+html:not(.dark) .bg-slate-900\/80 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .bg-slate-950\/40,
+html:not(.dark) .bg-slate-950\/60 {
+  background-color: rgba(241, 245, 249, 0.7) !important;
+}
+
+html:not(.dark) .border-slate-800,
+html:not(.dark) .border-slate-800\/50 {
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .border-slate-700\/50,
+html:not(.dark) .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+html:not(.dark) .text-white {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html:not(.dark) .text-slate-300 {
+  color: #334155 !important;
+}
+
+html:not(.dark) .text-slate-400 {
+  color: #475569 !important;
+}
+
+html:not(.dark) .text-slate-500 {
+  color: #64748b !important;
+}
+
+html:not(.dark) .bg-slate-800\/50,
+html:not(.dark) .bg-slate-800\/30,
+html:not(.dark) .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .bg-slate-950,
+html:not(.dark) .bg-slate-900 {
+  background-color: #f8fafc !important;
+}
+
+html:not(.dark) .hover\:bg-slate-800\/30:hover {
+  background-color: rgba(226, 232, 240, 0.5) !important;
+}
+
+html:not(.dark) .hover\:bg-slate-700\/50:hover,
+html:not(.dark) .hover\:bg-slate-800:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Recharts grid lines */
+html:not(.dark) .recharts-cartesian-grid line {
+  stroke: #e2e8f0 !important;
+}
+
+html:not(.dark) .recharts-xaxis text,
+html:not(.dark) .recharts-yaxis text {
+  fill: #64748b !important;
+}
+
+/* Input fields in light mode */
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Sidebar in light mode */
+html:not(.dark) nav a,
+html:not(.dark) nav button {
+  color: #475569;
+}
+
+html:not(.dark) nav a:hover,
+html:not(.dark) nav button:hover {
+  color: #0f172a;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+/* Industry Standard POS Animations */
+@keyframes item-pulse-success {
+  0% { transform: scale(1); background-color: transparent; }
+  10% { transform: scale(1.02); background-color: rgba(16, 185, 129, 0.1); }
+  100% { transform: scale(1); background-color: transparent; }
+}
+
+.item-just-added {
+  animation: item-pulse-success 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  border-color: #10b981 !important;
+  z-index: 10;
+}

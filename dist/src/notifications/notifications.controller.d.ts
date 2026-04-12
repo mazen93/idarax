@@ -7,10 +7,10 @@ export declare class NotificationsController {
     constructor(notificationsService: NotificationsService, tenantService: TenantService);
     findAll(req: any): Promise<{
         id: string;
-        tenantId: string;
-        createdAt: Date;
-        branchId: string | null;
         type: import(".prisma/client").$Enums.NotificationType;
+        createdAt: Date;
+        tenantId: string;
+        branchId: string | null;
         title: string;
         meta: import("@prisma/client/runtime/library").JsonValue | null;
         message: string;

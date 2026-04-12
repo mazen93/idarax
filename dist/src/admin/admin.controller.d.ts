@@ -1,4 +1,5 @@
 import { AdminService } from './admin.service';
+import { CreatePlanDto, UpdatePlanDto, TenantLimitOverrideDto } from './dto/admin.dto';
 export declare class AdminController {
     private readonly adminService;
     constructor(adminService: AdminService);
@@ -24,12 +25,6 @@ export declare class AdminController {
         userCount: number;
         productCount: number;
         orderCount: number;
-        _count: {
-            orders: number;
-            branches: number;
-            products: number;
-            users: number;
-        };
         plan: {
             id: string;
             name: string;
@@ -46,17 +41,23 @@ export declare class AdminController {
             featuresAr: string[];
             nameAr: string | null;
         } | null;
+        _count: {
+            branches: number;
+            orders: number;
+            products: number;
+            users: number;
+        };
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        isActive: boolean;
         slug: string | null;
         domain: string | null;
         customDomain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
+        createdAt: Date;
+        updatedAt: Date;
         hasDeliveryIntegration: boolean;
         planId: string | null;
+        isActive: boolean;
         status: string;
         isTrial: boolean;
         maxBranches: number;
@@ -75,11 +76,6 @@ export declare class AdminController {
             userCount: number;
             branchCount: number;
             subscriptionStatus: string;
-            _count: {
-                orders: number;
-                branches: number;
-                users: number;
-            };
             plan: {
                 id: string;
                 name: string;
@@ -96,17 +92,22 @@ export declare class AdminController {
                 featuresAr: string[];
                 nameAr: string | null;
             } | null;
+            _count: {
+                branches: number;
+                orders: number;
+                users: number;
+            };
             id: string;
             name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            isActive: boolean;
             slug: string | null;
             domain: string | null;
             customDomain: string | null;
             type: import(".prisma/client").$Enums.TenantType;
+            createdAt: Date;
+            updatedAt: Date;
             hasDeliveryIntegration: boolean;
             planId: string | null;
+            isActive: boolean;
             status: string;
             isTrial: boolean;
             maxBranches: number;
@@ -142,6 +143,7 @@ export declare class AdminController {
         expiringSoon: {
             id: string;
             name: string;
+            subscriptionExpiresAt: Date | null;
             plan: {
                 id: string;
                 name: string;
@@ -158,7 +160,6 @@ export declare class AdminController {
                 featuresAr: string[];
                 nameAr: string | null;
             } | null;
-            subscriptionExpiresAt: Date | null;
         }[];
     }>;
     getCountryAnalytics(): Promise<any[]>;
@@ -189,15 +190,15 @@ export declare class AdminController {
     }): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        isActive: boolean;
         slug: string | null;
         domain: string | null;
         customDomain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
+        createdAt: Date;
+        updatedAt: Date;
         hasDeliveryIntegration: boolean;
         planId: string | null;
+        isActive: boolean;
         status: string;
         isTrial: boolean;
         maxBranches: number;
@@ -215,15 +216,15 @@ export declare class AdminController {
     }): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        isActive: boolean;
         slug: string | null;
         domain: string | null;
         customDomain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
+        createdAt: Date;
+        updatedAt: Date;
         hasDeliveryIntegration: boolean;
         planId: string | null;
+        isActive: boolean;
         status: string;
         isTrial: boolean;
         maxBranches: number;
@@ -239,15 +240,15 @@ export declare class AdminController {
     approveTenant(id: string): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        isActive: boolean;
         slug: string | null;
         domain: string | null;
         customDomain: string | null;
         type: import(".prisma/client").$Enums.TenantType;
+        createdAt: Date;
+        updatedAt: Date;
         hasDeliveryIntegration: boolean;
         planId: string | null;
+        isActive: boolean;
         status: string;
         isTrial: boolean;
         maxBranches: number;
@@ -266,16 +267,88 @@ export declare class AdminController {
     }): Promise<any>;
     getAuditLogs(): Promise<{
         id: string;
-        tenantId: string;
         createdAt: Date;
+        tenantId: string;
         userId: string | null;
-        ipAddress: string | null;
-        meta: import("@prisma/client/runtime/library").JsonValue | null;
-        action: string;
         userEmail: string | null;
+        action: string;
         resourceType: string | null;
         resourceId: string | null;
+        meta: import("@prisma/client/runtime/library").JsonValue | null;
+        ipAddress: string | null;
     }[]>;
+    createPlan(dto: CreatePlanDto): Promise<{
+        id: string;
+        name: string;
+        updatedAt: Date;
+        isActive: boolean;
+        maxBranches: number;
+        maxUsers: number;
+        maxPos: number;
+        maxKds: number;
+        price: import("@prisma/client/runtime/library").Decimal;
+        features: string[];
+        description: string | null;
+        descriptionAr: string | null;
+        featuresAr: string[];
+        nameAr: string | null;
+    }>;
+    updatePlan(id: string, dto: UpdatePlanDto): Promise<{
+        id: string;
+        name: string;
+        updatedAt: Date;
+        isActive: boolean;
+        maxBranches: number;
+        maxUsers: number;
+        maxPos: number;
+        maxKds: number;
+        price: import("@prisma/client/runtime/library").Decimal;
+        features: string[];
+        description: string | null;
+        descriptionAr: string | null;
+        featuresAr: string[];
+        nameAr: string | null;
+    }>;
+    deletePlan(id: string): Promise<{
+        id: string;
+        name: string;
+        updatedAt: Date;
+        isActive: boolean;
+        maxBranches: number;
+        maxUsers: number;
+        maxPos: number;
+        maxKds: number;
+        price: import("@prisma/client/runtime/library").Decimal;
+        features: string[];
+        description: string | null;
+        descriptionAr: string | null;
+        featuresAr: string[];
+        nameAr: string | null;
+    }>;
+    overrideLimits(id: string, dto: TenantLimitOverrideDto): Promise<{
+        id: string;
+        name: string;
+        slug: string | null;
+        domain: string | null;
+        customDomain: string | null;
+        type: import(".prisma/client").$Enums.TenantType;
+        createdAt: Date;
+        updatedAt: Date;
+        hasDeliveryIntegration: boolean;
+        planId: string | null;
+        isActive: boolean;
+        status: string;
+        isTrial: boolean;
+        maxBranches: number;
+        maxUsers: number;
+        maxPos: number;
+        maxKds: number;
+        subscriptionExpiresAt: Date | null;
+        trialExpiresAt: Date | null;
+        country: string | null;
+        countryCode: string | null;
+        vatNumber: string | null;
+    }>;
 }
 export declare class TenantSubscriptionController {
     private readonly adminService;

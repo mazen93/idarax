@@ -7,10 +7,10 @@ export declare class NotificationsService {
     constructor(prisma: PrismaService, gateway: NotificationsGateway);
     create(tenantId: string, dto: CreateNotificationDto): Promise<{
         id: string;
-        tenantId: string;
-        createdAt: Date;
-        branchId: string | null;
         type: import(".prisma/client").$Enums.NotificationType;
+        createdAt: Date;
+        tenantId: string;
+        branchId: string | null;
         title: string;
         meta: import("@prisma/client/runtime/library").JsonValue | null;
         message: string;
@@ -18,10 +18,10 @@ export declare class NotificationsService {
     }>;
     findAll(tenantId: string, branchId?: string): Promise<{
         id: string;
-        tenantId: string;
-        createdAt: Date;
-        branchId: string | null;
         type: import(".prisma/client").$Enums.NotificationType;
+        createdAt: Date;
+        tenantId: string;
+        branchId: string | null;
         title: string;
         meta: import("@prisma/client/runtime/library").JsonValue | null;
         message: string;

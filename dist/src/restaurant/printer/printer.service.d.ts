@@ -5,55 +5,55 @@ export declare class PrinterService {
     create(tenantId: string, data: any): Promise<{
         id: string;
         name: string;
-        tenantId: string;
+        type: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         branchId: string | null;
-        type: string;
         address: string | null;
         interface: string;
     }>;
     findAll(tenantId: string, branchId?: string): Promise<{
         id: string;
         name: string;
-        tenantId: string;
+        type: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         branchId: string | null;
-        type: string;
         address: string | null;
         interface: string;
     }[]>;
     findOne(id: string, tenantId: string): Promise<{
         id: string;
         name: string;
-        tenantId: string;
+        type: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         branchId: string | null;
-        type: string;
         address: string | null;
         interface: string;
     }>;
     update(id: string, tenantId: string, data: any): Promise<{
         id: string;
         name: string;
-        tenantId: string;
+        type: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         branchId: string | null;
-        type: string;
         address: string | null;
         interface: string;
     }>;
     remove(id: string, tenantId: string): Promise<{
         id: string;
         name: string;
-        tenantId: string;
+        type: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         branchId: string | null;
-        type: string;
         address: string | null;
         interface: string;
     }>;

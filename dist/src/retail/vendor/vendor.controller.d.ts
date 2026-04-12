@@ -5,62 +5,62 @@ export declare class VendorController {
     constructor(vendorService: VendorService);
     create(dto: CreateVendorDto): Promise<{
         id: string;
-        email: string | null;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        email: string | null;
+        tenantId: string;
         nameAr: string | null;
-        phone: string | null;
         address: string | null;
+        phone: string | null;
     }>;
     findAll(): Promise<{
         id: string;
-        email: string | null;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        email: string | null;
+        tenantId: string;
         nameAr: string | null;
-        phone: string | null;
         address: string | null;
+        phone: string | null;
     }[]>;
     update(id: string, dto: UpdateVendorDto): Promise<{
         id: string;
-        email: string | null;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        email: string | null;
+        tenantId: string;
         nameAr: string | null;
-        phone: string | null;
         address: string | null;
+        phone: string | null;
     }>;
     remove(id: string): Promise<{
         id: string;
-        email: string | null;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        email: string | null;
+        tenantId: string;
         nameAr: string | null;
-        phone: string | null;
         address: string | null;
+        phone: string | null;
     }>;
     linkProduct(id: string, dto: any): Promise<{
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         productId: string;
         vendorId: string;
     }>;
     unlinkProduct(id: string, productId: string): Promise<{
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         costPrice: import("@prisma/client/runtime/library").Decimal;
         productId: string;
         vendorId: string;

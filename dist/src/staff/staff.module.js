@@ -18,12 +18,13 @@ const schedule_service_1 = require("./schedule.service");
 const schedule_controller_1 = require("./schedule.controller");
 const prisma_module_1 = require("../prisma/prisma.module");
 const tenant_module_1 = require("../tenant/tenant.module");
+const pos_device_module_1 = require("./pos-device/pos-device.module");
 let StaffModule = class StaffModule {
 };
 exports.StaffModule = StaffModule;
 exports.StaffModule = StaffModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule],
+        imports: [prisma_module_1.PrismaModule, tenant_module_1.TenantModule, pos_device_module_1.PosDeviceModule],
         providers: [shift_service_1.ShiftService, drawer_service_1.DrawerService, staff_permissions_service_1.StaffPermissionsService, schedule_service_1.ScheduleService],
         controllers: [shift_controller_1.ShiftController, drawer_controller_1.DrawerController, staff_permissions_controller_1.StaffPermissionsController, schedule_controller_1.ScheduleController],
         exports: [shift_service_1.ShiftService, drawer_service_1.DrawerService, staff_permissions_service_1.StaffPermissionsService, schedule_service_1.ScheduleService],

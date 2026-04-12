@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreatePlanDto, UpdatePlanDto, TenantLimitOverrideDto } from './dto/admin.dto';
 
 @Injectable()
 export class AdminService {
@@ -296,13 +297,6 @@ export class AdminService {
     });
   }
 
-  // ── Plans ──────────────────────────────────────────────────────────────────
-  async getAllPlans() {
-    return this.prisma.subscriptionPlan.findMany({
-      where: { isActive: true },
-      orderBy: { price: 'asc' },
-    });
-  }
 
   // ── Tenant-facing subscription info ───────────────────────────────────────
   async getMySubscription(tenantId: string) {
@@ -452,6 +446,59 @@ export class AdminService {
       where: { key },
       update: { value },
       create: { key, value },
+    });
+  }
+
+  // ── Plan CRUD (Superadmin) ────────────────────────────────────────────────
+  async createPlan(dto: CreatePlanDto) {
+    return this.prisma.subscriptionPlan.create({
+      data: {
+        ...dto,
+        price: Number(Number(dto.price).toFixed(2))
+      }
+    });
+  }
+
+  async updatePlan(id: string, dto: UpdatePlanDto) {
+    const data: any = { ...dto };
+    if (dto.price !== undefined) {
+      data.price = Number(Number(dto.price).toFixed(2));
+    }
+    
+    return this.prisma.subscriptionPlan.update({
+      where: { id },
+      data
+    });
+  }
+
+  async deletePlan(id: string) {
+    return this.prisma.subscriptionPlan.delete({
+      where: { id }
+    });
+  }
+
+  async getAllPlans(activeOnly: boolean = false) {
+    return this.prisma.subscriptionPlan.findMany({
+      where: activeOnly ? { isActive: true } : {},
+      orderBy: { price: 'asc' }
+    });
+  }
+
+  // ── Tenant Override (Superadmin) ──────────────────────────────────────────
+  async updateTenantLimits(tenantId: string, dto: TenantLimitOverrideDto) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId } });
+    if (!tenant) throw new NotFoundException('Tenant not found');
+
+    return this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: {
+        maxPos: dto.maxPos ?? undefined,
+        maxKds: dto.maxKds ?? undefined,
+        maxBranches: dto.maxBranches ?? undefined,
+        maxUsers: dto.maxUsers ?? undefined,
+        isActive: dto.isActive ?? undefined,
+        status: dto.status ?? undefined
+      }
     });
   }
 }

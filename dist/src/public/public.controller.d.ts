@@ -94,15 +94,15 @@ export declare class PublicController {
             }[];
             id: string;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             description: string | null;
             descriptionAr: string | null;
             nameAr: string | null;
             defaultPrepTime: number;
-            defaultStationId: string | null;
             imageUrl: string | null;
+            defaultStationId: string | null;
         }[];
     }>;
     createOrder(tenantId: string, dto: CreatePublicOrderDto): Promise<any>;

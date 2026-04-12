@@ -6,60 +6,60 @@ export declare class CategoryController {
     create(dto: CreateCategoryDto): Promise<{
         id: string;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         description: string | null;
         descriptionAr: string | null;
         nameAr: string | null;
         defaultPrepTime: number;
-        defaultStationId: string | null;
         imageUrl: string | null;
+        defaultStationId: string | null;
     }>;
     findAll(): Promise<({
-        _count: {
-            products: number;
-        };
         menus: {
             menuId: string;
         }[];
+        _count: {
+            products: number;
+        };
     } & {
         id: string;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         description: string | null;
         descriptionAr: string | null;
         nameAr: string | null;
         defaultPrepTime: number;
-        defaultStationId: string | null;
         imageUrl: string | null;
+        defaultStationId: string | null;
     })[]>;
     update(id: string, dto: UpdateCategoryDto): Promise<{
         id: string;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         description: string | null;
         descriptionAr: string | null;
         nameAr: string | null;
         defaultPrepTime: number;
-        defaultStationId: string | null;
         imageUrl: string | null;
+        defaultStationId: string | null;
     }>;
     remove(id: string): Promise<{
         id: string;
         name: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: string;
         description: string | null;
         descriptionAr: string | null;
         nameAr: string | null;
         defaultPrepTime: number;
-        defaultStationId: string | null;
         imageUrl: string | null;
+        defaultStationId: string | null;
     }>;
 }

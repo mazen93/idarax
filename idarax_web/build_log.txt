@@ -1,0 +1,806 @@
+
+> idarax_web@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/mohamedmazen/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /Users/mohamedmazen/Desktop/node_projects/idarax/idarax_web/package-lock.json
+   * /Users/mohamedmazen/Desktop/node_projects/idarax/package-lock.json
+
+▲ Next.js 16.1.6 (Turbopack)
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.8s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/75) ...
+Error: MISSING_MESSAGE: logo_help_text (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at D (.next/server/chunks/ssr/d58ba_idarax_idarax_web_src_app_[locale]_dashboard_settings_page_tsx_1897bdc2._.js:1:11296) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'logo_help_text (ar)'
+}
+Error: MISSING_MESSAGE: public_ordering_website (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at D (.next/server/chunks/ssr/d58ba_idarax_idarax_web_src_app_[locale]_dashboard_settings_page_tsx_1897bdc2._.js:1:11804) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'public_ordering_website (ar)'
+}
+Error: MISSING_MESSAGE: public_ordering_subtitle (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at D (.next/server/chunks/ssr/d58ba_idarax_idarax_web_src_app_[locale]_dashboard_settings_page_tsx_1897bdc2._.js:1:11901) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'public_ordering_subtitle (ar)'
+}
+Error: MISSING_MESSAGE: public_ordering_help (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at D (.next/server/chunks/ssr/d58ba_idarax_idarax_web_src_app_[locale]_dashboard_settings_page_tsx_1897bdc2._.js:1:12597) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'public_ordering_help (ar)'
+}
+Error: MISSING_MESSAGE: logo_help_text (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at D (.next/server/chunks/ssr/d58ba_idarax_idarax_web_src_app_[locale]_dashboard_settings_page_tsx_1897bdc2._.js:1:11296) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'logo_help_text (en)'
+}
+Error: MISSING_MESSAGE: public_ordering_website (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at D (.next/server/chunks/ssr/d58ba_idarax_idarax_web_src_app_[locale]_dashboard_settings_page_tsx_1897bdc2._.js:1:11804) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'public_ordering_website (en)'
+}
+Error: MISSING_MESSAGE: public_ordering_subtitle (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at D (.next/server/chunks/ssr/d58ba_idarax_idarax_web_src_app_[locale]_dashboard_settings_page_tsx_1897bdc2._.js:1:11901) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'public_ordering_subtitle (en)'
+}
+Error: MISSING_MESSAGE: public_ordering_help (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at D (.next/server/chunks/ssr/d58ba_idarax_idarax_web_src_app_[locale]_dashboard_settings_page_tsx_1897bdc2._.js:1:12597) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'public_ordering_help (en)'
+}
+DEBUG: ProductsPage Rendering - Loading State: true
+DEBUG: Stations Count: 0
+DEBUG: ProductsPage Rendering - Loading State: true
+DEBUG: Stations Count: 0
+  Generating static pages using 7 workers (18/75) 
+Error: MISSING_MESSAGE: search_sku_name (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:7905) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'search_sku_name (en)'
+}
+Error: MISSING_MESSAGE: purchase_receipt (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:8525) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'purchase_receipt (en)'
+}
+Error: MISSING_MESSAGE: sale_deduction (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:8611) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'sale_deduction (en)'
+}
+Error: MISSING_MESSAGE: stock_adjustment (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:8699) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'stock_adjustment (en)'
+}
+Error: MISSING_MESSAGE: warehouse_transfer (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:8789) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'warehouse_transfer (en)'
+}
+Error: MISSING_MESSAGE: complete_item (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_973cb616._.js:1:2021) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'complete_item (ar)'
+}
+Error: MISSING_MESSAGE: items_count (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_973cb616._.js:1:4733) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'items_count (ar)'
+}
+Error: MISSING_MESSAGE: select_station (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_973cb616._.js:1:10229) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'select_station (ar)'
+}
+Error: MISSING_MESSAGE: select_station_help (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_973cb616._.js:1:10328) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'select_station_help (ar)'
+}
+Error: MISSING_MESSAGE: payment_method (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:6865) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'payment_method (en)'
+}
+Error: MISSING_MESSAGE: items_count (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_973cb616._.js:1:4733) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'items_count (en)'
+}
+Error: MISSING_MESSAGE: gross_amount (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:6912) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'gross_amount (en)'
+}
+Error: MISSING_MESSAGE: select_station (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_973cb616._.js:1:10229) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'select_station (en)'
+}
+Error: MISSING_MESSAGE: mall_outlet (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:8215) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'mall_outlet (en)'
+}
+Error: MISSING_MESSAGE: select_station_help (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_973cb616._.js:1:10328) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'select_station_help (en)'
+}
+Error: MISSING_MESSAGE: payment_method (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:8291) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'payment_method (en)'
+}
+Error: MISSING_MESSAGE: payment_recon_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:8839) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'payment_recon_desc (en)'
+}
+  Generating static pages using 7 workers (37/75) 
+Error: MISSING_MESSAGE: sales_reports_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:2368) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'sales_reports_desc (en)'
+}
+Error: MISSING_MESSAGE: payment_reports_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:2680) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'payment_reports_desc (en)'
+}
+Error: MISSING_MESSAGE: inventory_reports_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:2996) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'inventory_reports_desc (en)'
+}
+Error: MISSING_MESSAGE: tax_reports_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:3362) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'tax_reports_desc (en)'
+}
+Error: MISSING_MESSAGE: staff_reports_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:3646) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'staff_reports_desc (en)'
+}
+Error: MISSING_MESSAGE: customer_reports_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:4052) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'customer_reports_desc (en)'
+}
+Error: MISSING_MESSAGE: reports_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:4611) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'reports_desc (en)'
+}
+Error: MISSING_MESSAGE: sales_reports_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:2368) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'sales_reports_desc (ar)'
+}
+Error: MISSING_MESSAGE: payment_reports_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:2680) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'payment_reports_desc (ar)'
+}
+Error: MISSING_MESSAGE: inventory_reports_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:2996) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'inventory_reports_desc (ar)'
+}
+Error: MISSING_MESSAGE: tax_reports_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:3362) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'tax_reports_desc (ar)'
+}
+Error: MISSING_MESSAGE: staff_reports_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:3646) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'staff_reports_desc (ar)'
+}
+Error: MISSING_MESSAGE: customer_reports_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:4052) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'customer_reports_desc (ar)'
+}
+Error: MISSING_MESSAGE: reports_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_b110bdbc._.js:1:4611) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'reports_desc (ar)'
+}
+Error: MISSING_MESSAGE: live_orders_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:6662) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'live_orders_desc (en)'
+}
+Error: MISSING_MESSAGE: export_csv (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:7070) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'export_csv (en)'
+}
+Error: MISSING_MESSAGE: export_excel (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:7391) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'export_excel (en)'
+}
+Error: MISSING_MESSAGE: search_orders (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:8160) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'search_orders (en)'
+}
+Error: MISSING_MESSAGE: all_types (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:9491) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'all_types (en)'
+}
+Error: MISSING_MESSAGE: all_payments (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:9998) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'all_payments (en)'
+}
+Error: MISSING_MESSAGE: live_orders_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:6662) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'live_orders_desc (ar)'
+}
+Error: MISSING_MESSAGE: export_csv (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:7070) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'export_csv (ar)'
+}
+Error: MISSING_MESSAGE: export_excel (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:7391) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'export_excel (ar)'
+}
+Error: MISSING_MESSAGE: search_orders (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:8160) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'search_orders (ar)'
+}
+Error: MISSING_MESSAGE: search_sku_name (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:7905) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'search_sku_name (ar)'
+}
+Error: MISSING_MESSAGE: all_types (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:9491) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'all_types (ar)'
+}
+Error: MISSING_MESSAGE: purchase_receipt (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:8525) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'purchase_receipt (ar)'
+}
+Error: MISSING_MESSAGE: all_payments (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at L (.next/server/chunks/ssr/17ac2_projects_idarax_idarax_web_src_app_[locale]_dashboard_orders_page_tsx_edf8f478._.js:1:9998) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'all_payments (ar)'
+}
+Error: MISSING_MESSAGE: sale_deduction (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:8611) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'sale_deduction (ar)'
+}
+Error: MISSING_MESSAGE: stock_adjustment (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:8699) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'stock_adjustment (ar)'
+}
+Error: MISSING_MESSAGE: warehouse_transfer (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_213ca1ef._.js:1:8789) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'warehouse_transfer (ar)'
+}
+  Generating static pages using 7 workers (56/75) 
+Error: MISSING_MESSAGE: payment_method (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:6865) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'payment_method (ar)'
+}
+Error: MISSING_MESSAGE: gross_amount (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:6912) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'gross_amount (ar)'
+}
+Error: MISSING_MESSAGE: mall_outlet (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:8215) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'mall_outlet (ar)'
+}
+Error: MISSING_MESSAGE: payment_method (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:8291) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'payment_method (ar)'
+}
+Error: MISSING_MESSAGE: payment_recon_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_0151effc._.js:1:8839) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'payment_recon_desc (ar)'
+}
+Error: MISSING_MESSAGE: mall_outlet (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_26f5aba3._.js:1:8746) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'mall_outlet (en)'
+}
+Error: MISSING_MESSAGE: daily_sales_summary_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_26f5aba3._.js:1:9302) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'daily_sales_summary_desc (en)'
+}
+Error: MISSING_MESSAGE: no_data (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_26f5aba3._.js:1:10653) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'no_data (en)'
+}
+Error: MISSING_MESSAGE: totals (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_26f5aba3._.js:1:10910) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'totals (en)'
+}
+Error: MISSING_MESSAGE: mall_outlet (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_26f5aba3._.js:1:8746) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'mall_outlet (ar)'
+}
+Error: MISSING_MESSAGE: daily_sales_summary_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_26f5aba3._.js:1:9302) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'daily_sales_summary_desc (ar)'
+}
+Error: MISSING_MESSAGE: no_data (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_26f5aba3._.js:1:10653) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'no_data (ar)'
+}
+Error: MISSING_MESSAGE: totals (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at i (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_26f5aba3._.js:1:10910) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'totals (ar)'
+}
+Error: MISSING_MESSAGE: mall_outlet (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_cbe9d115._.js:1:8644) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'mall_outlet (en)'
+}
+Error: MISSING_MESSAGE: cash_drawer_recon_desc (en)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_cbe9d115._.js:1:9216) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'cash_drawer_recon_desc (en)'
+}
+Error: MISSING_MESSAGE: mall_outlet (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_cbe9d115._.js:1:8644) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'mall_outlet (ar)'
+}
+Error: MISSING_MESSAGE: cash_drawer_recon_desc (ar)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4715)
+    at m (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:4902)
+    at n (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:5361)
+    at l (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_ff50c4dc._.js:3:8577)
+    at k (.next/server/chunks/ssr/Desktop_node_projects_idarax_idarax_web_cbe9d115._.js:1:9216) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'cash_drawer_recon_desc (ar)'
+}
+✓ Generating static pages using 7 workers (75/75) in 385.3ms
+  Finalizing page optimization ...
+
+Route (app)                                          Revalidate  Expire
+┌ ○ /_not-found
+├ ● /[locale]                                                1m      1y
+│ ├ /en                                                      1m      1y
+│ └ /ar                                                      1m      1y
+├ ● /[locale]/admin
+│ ├ /en/admin
+│ └ /ar/admin
+├ ● /[locale]/admin/cms
+│ ├ /en/admin/cms
+│ └ /ar/admin/cms
+├ ● /[locale]/admin/logs
+│ ├ /en/admin/logs
+│ └ /ar/admin/logs
+├ ● /[locale]/admin/settings
+│ ├ /en/admin/settings
+│ └ /ar/admin/settings
+├ ● /[locale]/admin/tenants
+│ ├ /en/admin/tenants
+│ └ /ar/admin/tenants
+├ ● /[locale]/dashboard
+│ ├ /en/dashboard
+│ └ /ar/dashboard
+├ ● /[locale]/dashboard/customers
+│ ├ /en/dashboard/customers
+│ └ /ar/dashboard/customers
+├ ● /[locale]/dashboard/inventory
+│ ├ /en/dashboard/inventory
+│ └ /ar/dashboard/inventory
+├ ● /[locale]/dashboard/kds
+│ ├ /en/dashboard/kds
+│ └ /ar/dashboard/kds
+├ ● /[locale]/dashboard/menus
+│ ├ /en/dashboard/menus
+│ └ /ar/dashboard/menus
+├ ● /[locale]/dashboard/offers
+│ ├ /en/dashboard/offers
+│ └ /ar/dashboard/offers
+├ ● /[locale]/dashboard/orders
+│ ├ /en/dashboard/orders
+│ └ /ar/dashboard/orders
+├ ● /[locale]/dashboard/pos
+│ ├ /en/dashboard/pos
+│ └ /ar/dashboard/pos
+├ ● /[locale]/dashboard/products
+│ ├ /en/dashboard/products
+│ └ /ar/dashboard/products
+├ ● /[locale]/dashboard/recipes
+│ ├ /en/dashboard/recipes
+│ └ /ar/dashboard/recipes
+├ ● /[locale]/dashboard/reports
+│ ├ /en/dashboard/reports
+│ └ /ar/dashboard/reports
+├ ● /[locale]/dashboard/reports/customer/sales
+│ ├ /en/dashboard/reports/customer/sales
+│ └ /ar/dashboard/reports/customer/sales
+├ ● /[locale]/dashboard/reports/inventory/movement
+│ ├ /en/dashboard/reports/inventory/movement
+│ └ /ar/dashboard/reports/inventory/movement
+├ ● /[locale]/dashboard/reports/inventory/valuation
+│ ├ /en/dashboard/reports/inventory/valuation
+│ └ /ar/dashboard/reports/inventory/valuation
+├ ● /[locale]/dashboard/reports/payments/recon
+│ ├ /en/dashboard/reports/payments/recon
+│ └ /ar/dashboard/reports/payments/recon
+├ ● /[locale]/dashboard/reports/sales/daily
+│ ├ /en/dashboard/reports/sales/daily
+│ └ /ar/dashboard/reports/sales/daily
+├ ● /[locale]/dashboard/reports/staff/drawer
+│ ├ /en/dashboard/reports/staff/drawer
+│ └ /ar/dashboard/reports/staff/drawer
+├ ● /[locale]/dashboard/reports/staff/performance
+│ ├ /en/dashboard/reports/staff/performance
+│ └ /ar/dashboard/reports/staff/performance
+├ ● /[locale]/dashboard/reports/tax/liability
+│ ├ /en/dashboard/reports/tax/liability
+│ └ /ar/dashboard/reports/tax/liability
+├ ● /[locale]/dashboard/reservations
+│ ├ /en/dashboard/reservations
+│ └ /ar/dashboard/reservations
+├ ● /[locale]/dashboard/settings
+│ ├ /en/dashboard/settings
+│ └ /ar/dashboard/settings
+├ ● /[locale]/dashboard/settings/sessions
+│ ├ /en/dashboard/settings/sessions
+│ └ /ar/dashboard/settings/sessions
+├ ● /[locale]/dashboard/staff
+│ ├ /en/dashboard/staff
+│ └ /ar/dashboard/staff
+├ ● /[locale]/dashboard/staff/drawer
+│ ├ /en/dashboard/staff/drawer
+│ └ /ar/dashboard/staff/drawer
+├ ● /[locale]/dashboard/staff/shifts
+│ ├ /en/dashboard/staff/shifts
+│ └ /ar/dashboard/staff/shifts
+├ ● /[locale]/dashboard/tables
+│ ├ /en/dashboard/tables
+│ └ /ar/dashboard/tables
+├ ● /[locale]/login
+│ ├ /en/login
+│ └ /ar/login
+├ ƒ /[locale]/m/[tenantId]
+├ ● /[locale]/privacy
+│ ├ /en/privacy
+│ └ /ar/privacy
+├ ● /[locale]/staff-login
+│ ├ /en/staff-login
+│ └ /ar/staff-login
+└ ● /[locale]/terms
+  ├ /en/terms
+  └ /ar/terms
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

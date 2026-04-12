@@ -76,18 +76,6 @@ let CmsService = class CmsService {
             orderBy: { price: 'asc' },
         });
     }
-    async getAllPlans() {
-        return this.prisma.subscriptionPlan.findMany({ orderBy: { price: 'asc' } });
-    }
-    async createPlan(dto) {
-        return this.prisma.subscriptionPlan.create({ data: dto });
-    }
-    async updatePlan(id, dto) {
-        return this.prisma.subscriptionPlan.update({ where: { id }, data: dto });
-    }
-    async deletePlan(id) {
-        return this.prisma.subscriptionPlan.delete({ where: { id } });
-    }
     async selfRegister(dto) {
         const existing = await this.prisma.user.findFirst({
             where: { email: dto.adminEmail },

@@ -9,30 +9,30 @@ export declare class TransferService {
         product: {
             id: string;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             price: import("@prisma/client/runtime/library").Decimal;
             description: string | null;
             descriptionAr: string | null;
             nameAr: string | null;
-            defaultStationId: string | null;
             imageUrl: string | null;
+            defaultStationId: string | null;
             sku: string | null;
             barcode: string | null;
-            categoryId: string;
             costPrice: import("@prisma/client/runtime/library").Decimal;
             isSellable: boolean;
             productType: import(".prisma/client").$Enums.ProductType;
             prepTime: number;
             unit: string | null;
+            categoryId: string;
         };
         source: {
             id: string;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             branchId: string | null;
             nameAr: string | null;
             location: string | null;
@@ -40,19 +40,19 @@ export declare class TransferService {
         destination: {
             id: string;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             branchId: string | null;
             nameAr: string | null;
             location: string | null;
         };
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         status: string;
+        tenantId: string;
         productId: string;
         quantity: number;
         sourceId: string;
@@ -67,9 +67,9 @@ export declare class TransferService {
         source: {
             id: string;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             branchId: string | null;
             nameAr: string | null;
             location: string | null;
@@ -77,19 +77,19 @@ export declare class TransferService {
         destination: {
             id: string;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             branchId: string | null;
             nameAr: string | null;
             location: string | null;
         };
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         status: string;
+        tenantId: string;
         productId: string;
         quantity: number;
         sourceId: string;
@@ -99,30 +99,30 @@ export declare class TransferService {
         product: {
             id: string;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             price: import("@prisma/client/runtime/library").Decimal;
             description: string | null;
             descriptionAr: string | null;
             nameAr: string | null;
-            defaultStationId: string | null;
             imageUrl: string | null;
+            defaultStationId: string | null;
             sku: string | null;
             barcode: string | null;
-            categoryId: string;
             costPrice: import("@prisma/client/runtime/library").Decimal;
             isSellable: boolean;
             productType: import(".prisma/client").$Enums.ProductType;
             prepTime: number;
             unit: string | null;
+            categoryId: string;
         };
         source: {
             id: string;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             branchId: string | null;
             nameAr: string | null;
             location: string | null;
@@ -130,19 +130,19 @@ export declare class TransferService {
         destination: {
             id: string;
             name: string;
-            tenantId: string;
             createdAt: Date;
             updatedAt: Date;
+            tenantId: string;
             branchId: string | null;
             nameAr: string | null;
             location: string | null;
         };
     } & {
         id: string;
-        tenantId: string;
         createdAt: Date;
         updatedAt: Date;
         status: string;
+        tenantId: string;
         productId: string;
         quantity: number;
         sourceId: string;
